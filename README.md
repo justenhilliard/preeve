@@ -13,7 +13,7 @@ Early development. See [`docs/prd.md`](docs/prd.md) for the full product require
 - **Database:** PostgreSQL
 - **CV/ML:** Zero-shot CLIP classification via a hosted inference API
 - **Storage:** S3-compatible object storage (Cloudflare R2 / AWS S3)
-- **Auth:** Managed provider (Clerk / Supabase Auth / Auth.js)
+- **Auth:** Managed provider ??
 
 ## Project Structure
 
