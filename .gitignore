@@ -30,3 +30,9 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+
+# Local dev tooling / agent workflow — not part of the public project history
+AGENTS.md
+docs/CODING_CONVENTIONS.md
+/tickets/
+CHANGES.log
