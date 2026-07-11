@@ -1,0 +1,117 @@
+// Preeve — Database Schema
+// Paste this file's contents into https://dbdiagram.io to generate the ERD.
+// Derived from docs/prd.md Section 6 (Functional Requirements) and docs/DATABASE.md (fuller reference, including the
+// CREATE EXTENSION / migration / seed-data detail that doesn't belong in a visual ERD tool).
+//
+// Requires: CREATE EXTENSION IF NOT EXISTS pgcrypto;  (provides gen_random_uuid())
+// All timestamps are timestamptz (not bare timestamp) — this was a real inconsistency in an earlier draft, now fixed.
+
+Enum category_enum {
+  top
+  bottom
+  dress
+  outerwear
+  shoes
+  accessory
+}
+
+Enum color_enum {
+  black
+  white
+  gray
+  navy
+  blue
+  red
+  green
+  olive
+  brown
+  tan
+  beige
+  pink
+  purple
+  yellow
+  orange
+  burgundy
+  multicolor
+}
+
+Enum fit_enum {
+  baggy
+  oversized
+  relaxed
+  cropped
+  fitted
+  slim
+  tailored
+  straight
+}
+
+Enum formality_enum {
+  athleisure
+  casual
+  smart_casual
+  business_casual
+  formal
+}
+
+Enum verdict_enum {
+  buy
+  maybe
+  skip
+}
+
+Table users {
+  id uuid [pk, default: `gen_random_uuid()`]
+  auth_provider_id varchar [not null, unique, note: 'Clerk JWT `sub` claim. See docs/API_ROUTES.md Auth Conventions for the exact mapping and the lazy-provisioning fallback for the signup/webhook race condition.']
+  email varchar [not null, unique]
+  created_at timestamptz [default: `now()`]
+
+  Note: 'Credentials/sessions are handled entirely by Clerk (FR-1). This table just links the app to that identity. Synced via the user.created / user.updated / user.deleted webhook events, with lazy get-or-create on any authenticated request as a fallback (see docs/API_ROUTES.md).'
+}
+
+Table preferences {
+  id uuid [pk, default: `gen_random_uuid()`]
+  user_id uuid [not null, unique, ref: - users.id]
+  preferred_colors color_enum[] [note: 'Multi-select from color_enum (FR-2.1)']
+  preferred_fits fit_enum[] [note: 'Multi-select from fit_enum (FR-2.1). NOT used by the v1 verdict engine — collected for the future fine-tuned-classifier roadmap item only (docs/prd.md Section 10).']
+  formality_preference formality_enum [note: 'Single-select (FR-2.1). Nullable until onboarding is completed.']
+  updated_at timestamptz [default: `now()`]
+
+  Note: 'One row per user. Edited via the preferences screen (FR-2.3).'
+}
+
+Table scanned_items {
+  id uuid [pk, default: `gen_random_uuid()`]
+  user_id uuid [not null, ref: > users.id]
+  photo_key varchar [not null, note: 'Object key within the private R2 bucket, format items/{userId}/{itemId}.jpg — NOT a URL. The API layer generates a time-bound pre-signed URL from this key at response time (see docs/API_ROUTES.md); nothing about this photo is ever publicly reachable by a permanent URL.']
+  detected_category category_enum [note: 'Zero-shot CLIP output (FR-3.2)']
+  detected_color color_enum [note: 'Zero-shot CLIP output (FR-3.2)']
+  corrected_category category_enum [note: 'Set only if user overrides via "This looks wrong" (FR-3.5)']
+  corrected_color color_enum [note: 'Set only if user overrides via "This looks wrong" (FR-3.5)']
+  verdict verdict_enum [note: 'Computed by the deterministic rule matrix, docs/prd.md FR-4']
+  rationale text [note: 'Template-generated explanation matching the rule that fired (FR-4.3)']
+  saved_to_wardrobe boolean [default: false, note: 'True once user saves it to their wardrobe log (FR-6.1)']
+  is_favorited boolean [default: false, note: 'Toggled from the wardrobe list (FR-6.5), independent of saved_to_wardrobe and verdict']
+  created_at timestamptz [default: `now()`]
+
+  indexes {
+    (user_id, saved_to_wardrobe, created_at) [note: 'Supports the wardrobe log query: this user\'s saved items, most recent first (FR-6.2)']
+  }
+
+  Note: 'One row per scan. Application logic must treat corrected_category/corrected_color as the source of truth for the verdict engine when present, falling back to detected_category/detected_color otherwise.'
+}
+
+Table pairing_suggestions {
+  id uuid [pk, default: `gen_random_uuid()`]
+  category category_enum [not null, note: 'Matched against scanned_items effective category (corrected, else detected) at query time']
+  color color_enum [not null, note: 'Matched against scanned_items effective color (corrected, else detected) at query time']
+  suggestion_text text [not null]
+  image_key varchar [note: 'Optional. Same private-storage convention as scanned_items.photo_key if set — not a public URL.']
+  created_at timestamptz [default: `now()`]
+
+  indexes {
+    (category, color) [note: 'Supports the tag-based lookup, FR-5.1']
+  }
+
+  Note: 'Hand-authored seed dataset, 36 rows in the v1 blueprint (docs/DATABASE.md Seed Data section). No foreign key to scanned_items — matching is a query-time tag lookup, not a stored relationship.'
+}
