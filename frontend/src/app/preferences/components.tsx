@@ -82,13 +82,7 @@ export function StepShell({
             </header>
           </div>
 
-          {isLoading ? (
-            <p className="text-center font-sans text-sm text-[#4A413C]">
-              Loading your preferences...
-            </p>
-          ) : (
-            children
-          )}
+          {isLoading ? <LoadingSpinner /> : children}
 
           {errorMessage ? (
             <p className="text-center font-sans text-sm text-[#4A413C]">
@@ -98,6 +92,15 @@ export function StepShell({
         </section>
       </div>
     </main>
+  );
+}
+
+function LoadingSpinner() {
+  return (
+    <div className="flex flex-col items-center gap-3 py-10" role="status">
+      <span className="h-9 w-9 animate-spin rounded-full border-[3px] border-[#4A413C]/15 border-t-[#B8674A]" />
+      <span className="sr-only">Loading your preferences...</span>
+    </div>
   );
 }
 
