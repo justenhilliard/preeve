@@ -62,33 +62,41 @@ export function StepShell({
             Back
           </Link>
 
-          <div className="w-36 pt-2">
-            <ProgressBar step={step} />
-            <p className="mt-2 text-right font-sans text-xs font-medium text-[#4A413C]">
-              Step {step} of 3
-            </p>
-          </div>
+          {isLoading ? null : (
+            <div className="w-36 pt-2">
+              <ProgressBar step={step} />
+              <p className="mt-2 text-right font-sans text-xs font-medium text-[#4A413C]">
+                Step {step} of 3
+              </p>
+            </div>
+          )}
         </nav>
 
         <section className="flex flex-1 flex-col justify-center gap-10 py-10">
-          <div className="space-y-4">
-            <header className="space-y-4 text-center">
-              <h1 className="font-serif text-5xl font-semibold tracking-normal text-[#3E2E29]">
-                {title}
-              </h1>
-              <p className="mx-auto max-w-sm font-sans text-sm font-medium text-[#4A413C]">
-                {subtitle}
-              </p>
-            </header>
-          </div>
+          {isLoading ? (
+            <LoadingSpinner />
+          ) : (
+            <>
+              <div className="space-y-4">
+                <header className="space-y-4 text-center">
+                  <h1 className="font-serif text-5xl font-semibold tracking-normal text-[#3E2E29]">
+                    {title}
+                  </h1>
+                  <p className="mx-auto max-w-sm font-sans text-sm font-medium text-[#4A413C]">
+                    {subtitle}
+                  </p>
+                </header>
+              </div>
 
-          {isLoading ? <LoadingSpinner /> : children}
+              {children}
 
-          {errorMessage ? (
-            <p className="text-center font-sans text-sm text-[#4A413C]">
-              {errorMessage}
-            </p>
-          ) : null}
+              {errorMessage ? (
+                <p className="text-center font-sans text-sm text-[#4A413C]">
+                  {errorMessage}
+                </p>
+              ) : null}
+            </>
+          )}
         </section>
       </div>
     </main>
