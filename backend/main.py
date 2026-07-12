@@ -1,10 +1,13 @@
 import os
+from datetime import UTC, datetime
 from typing import Any
 
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy import delete, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,6 +18,43 @@ from database import get_async_session
 from models import Preference, User
 
 load_dotenv()
+
+COLOR_VALUES = (
+    "black",
+    "white",
+    "gray",
+    "navy",
+    "blue",
+    "red",
+    "green",
+    "olive",
+    "brown",
+    "tan",
+    "beige",
+    "pink",
+    "purple",
+    "yellow",
+    "orange",
+    "burgundy",
+    "multicolor",
+)
+FIT_VALUES = (
+    "baggy",
+    "oversized",
+    "relaxed",
+    "cropped",
+    "fitted",
+    "slim",
+    "tailored",
+    "straight",
+)
+FORMALITY_VALUES = (
+    "athleisure",
+    "casual",
+    "smart_casual",
+    "business_casual",
+    "formal",
+)
 
 
 def get_cors_allowed_origins() -> list[str]:
@@ -34,12 +74,98 @@ app.add_middleware(
 )
 
 
+def to_camel(field_name: str) -> str:
+    """Convert a snake_case field name to camelCase for API JSON."""
+    first_word, *remaining_words = field_name.split("_")
+    return first_word + "".join(word.title() for word in remaining_words)
+
+
+class PreferencesRequest(BaseModel):
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        populate_by_name=True,
+    )
+
+    preferred_colors: list[str] = Field(max_length=17)
+    preferred_fits: list[str] = Field(max_length=8)
+    formality_preference: str | None
+
+    @model_validator(mode="after")
+    def validate_preferences(self) -> "PreferencesRequest":
+        """Validate preferences against the locked API taxonomies."""
+        validate_list_values("preferredColors", self.preferred_colors, COLOR_VALUES)
+        validate_list_values("preferredFits", self.preferred_fits, FIT_VALUES)
+
+        if (
+            self.formality_preference is not None
+            and self.formality_preference not in FORMALITY_VALUES
+        ):
+            allowed_values = ", ".join(FORMALITY_VALUES)
+            raise ValueError(
+                f"formalityPreference must be one of: {allowed_values}.",
+            )
+
+        return self
+
+
+class PreferencesResponse(BaseModel):
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        populate_by_name=True,
+    )
+
+    preferred_colors: list[str]
+    preferred_fits: list[str]
+    formality_preference: str | None
+    updated_at: str | None
+
+
+def validate_list_values(
+    field_name: str,
+    submitted_values: list[str],
+    allowed_values: tuple[str, ...],
+) -> None:
+    """Validate a multi-select field's values and duplicate rules."""
+    if len(submitted_values) != len(set(submitted_values)):
+        raise ValueError(f"{field_name} must not contain duplicate values.")
+
+    invalid_values = [
+        submitted_value
+        for submitted_value in submitted_values
+        if submitted_value not in allowed_values
+    ]
+    if invalid_values:
+        allowed_values_text = ", ".join(allowed_values)
+        invalid_values_text = ", ".join(invalid_values)
+        raise ValueError(
+            f"{field_name} contains invalid value(s): {invalid_values_text}. "
+            f"Allowed values: {allowed_values_text}.",
+        )
+
+
 @app.exception_handler(ApiError)
 async def handle_api_error(_: Request, error: ApiError) -> JSONResponse:
     """Return API errors in the documented envelope shape."""
     return JSONResponse(
         status_code=error.status_code,
         content={"error": {"code": error.code, "message": error.message}},
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def handle_validation_error(
+    _: Request,
+    error: RequestValidationError,
+) -> JSONResponse:
+    """Return Pydantic validation errors in the documented envelope shape."""
+    first_error = error.errors()[0] if error.errors() else {}
+    message = str(first_error.get("msg", "Request validation failed."))
+    if message.startswith("Value error, "):
+        message = message.removeprefix("Value error, ")
+
+    return JSONResponse(
+        status_code=422,
+        content={"error": {"code": "validation_error", "message": message}},
     )
 
 
@@ -157,3 +283,72 @@ async def get_me(
         "hasCompletedPreferences": formality_preference is not None,
         "createdAt": format_timestamp(current_user.created_at),
     }
+
+
+async def get_user_preferences(
+    session: AsyncSession,
+    current_user: User,
+) -> Preference | None:
+    """Fetch the current user's preferences row."""
+    result = await session.execute(
+        select(Preference).where(Preference.user_id == current_user.id),
+    )
+    return result.scalar_one_or_none()
+
+
+def format_preferences(preference: Preference | None) -> PreferencesResponse:
+    """Convert a preferences row into the documented API response shape."""
+    if preference is None:
+        return PreferencesResponse(
+            preferred_colors=[],
+            preferred_fits=[],
+            formality_preference=None,
+            updated_at=None,
+        )
+
+    return PreferencesResponse(
+        preferred_colors=preference.preferred_colors,
+        preferred_fits=preference.preferred_fits,
+        formality_preference=preference.formality_preference,
+        updated_at=format_timestamp(preference.updated_at),
+    )
+
+
+@app.get("/api/preferences", response_model=PreferencesResponse)
+async def get_preferences(
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_async_session),
+) -> PreferencesResponse:
+    """Return the current user's saved preferences or the empty onboarding state."""
+    preference = await get_user_preferences(session, current_user)
+    return format_preferences(preference)
+
+
+@app.put("/api/preferences", response_model=PreferencesResponse)
+async def put_preferences(
+    preferences_request: PreferencesRequest,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_async_session),
+) -> PreferencesResponse:
+    """Create or update the current user's preferences."""
+    preference = await get_user_preferences(session, current_user)
+    updated_at = datetime.now(UTC)
+
+    if preference is None:
+        preference = Preference(
+            user_id=current_user.id,
+            preferred_colors=preferences_request.preferred_colors,
+            preferred_fits=preferences_request.preferred_fits,
+            formality_preference=preferences_request.formality_preference,
+            updated_at=updated_at,
+        )
+        session.add(preference)
+    else:
+        preference.preferred_colors = preferences_request.preferred_colors
+        preference.preferred_fits = preferences_request.preferred_fits
+        preference.formality_preference = preferences_request.formality_preference
+        preference.updated_at = updated_at
+
+    await session.commit()
+    await session.refresh(preference)
+    return format_preferences(preference)

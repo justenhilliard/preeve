@@ -44,7 +44,7 @@ One row per user. Created on first login (or lazily on first questionnaire submi
 | `id` | `uuid` | `PRIMARY KEY DEFAULT gen_random_uuid()` | |
 | `user_id` | `uuid` | `NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE` | One-to-one; deleting a user cascades. |
 | `preferred_colors` | `text[]` | `NOT NULL DEFAULT '{}'` | Multi-select. Values must be members of the 17-value color taxonomy in `docs/prd.md` FR-2.1. |
-| `preferred_fits` | `text[]` | `NOT NULL DEFAULT '{}'` | Multi-select. Values must be members of the 5-value fit taxonomy. **Not used by the v1 verdict engine** — see `docs/prd.md` FR-2.1's scope note. Collected now for the future fine-tuned-classifier roadmap item. |
+| `preferred_fits` | `text[]` | `NOT NULL DEFAULT '{}'` | Multi-select. Values must be members of the 8-value fit taxonomy (`baggy`, `oversized`, `relaxed`, `cropped`, `fitted`, `slim`, `tailored`, `straight`). **Not used by the v1 verdict engine** — see `docs/prd.md` FR-2.1's scope note. Collected now for the future fine-tuned-classifier roadmap item. |
 | `formality_preference` | `varchar(20)` | `CHECK (formality_preference IN ('athleisure', 'casual', 'smart_casual', 'business_casual', 'formal'))` | Nullable until the user completes onboarding. |
 | `updated_at` | `timestamptz` | `NOT NULL DEFAULT now()` | Update on every write (trigger or application-layer — either is fine, application-layer is simpler for a single-contributor project). |
 
