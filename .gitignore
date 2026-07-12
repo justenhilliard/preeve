@@ -36,3 +36,6 @@ AGENTS.md
 docs/CODING_CONVENTIONS.md
 /tickets/
 CHANGES.log
+
+# Personal sample photos used for local testing only — never goes public
+backend/scripts/sample_images/
