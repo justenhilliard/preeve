@@ -53,13 +53,17 @@ export function useAuthenticatedApi() {
         );
       }
 
+      const requestHeaders: Record<string, string> = {
+        ...options.headers,
+        Authorization: `Bearer ${token}`,
+      };
+      if (!(options.body instanceof FormData)) {
+        requestHeaders["Content-Type"] = "application/json";
+      }
+
       const response = await fetch(`${apiBaseUrl}${path}`, {
         ...options,
-        headers: {
-          "Content-Type": "application/json",
-          ...options.headers,
-          Authorization: `Bearer ${token}`,
-        },
+        headers: requestHeaders,
       });
 
       if (!response.ok) {
