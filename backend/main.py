@@ -514,6 +514,25 @@ async def patch_item_correction(
     return format_scanned_item(scanned_item, photo_url, False)
 
 
+@app.patch("/api/items/{item_id}/save")
+async def patch_item_save(
+    item_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_async_session),
+) -> dict[str, str | bool]:
+    """Mark one scanned item as saved to the current user's wardrobe."""
+    scanned_item = await get_user_scanned_item(session, current_user, item_id)
+    scanned_item.saved_to_wardrobe = True
+
+    await session.commit()
+    await session.refresh(scanned_item)
+
+    return {
+        "id": str(scanned_item.id),
+        "savedToWardrobe": scanned_item.saved_to_wardrobe,
+    }
+
+
 @app.post("/api/items/scan", status_code=status.HTTP_201_CREATED)
 async def post_item_scan(
     photo: UploadFile | None = File(default=None),
