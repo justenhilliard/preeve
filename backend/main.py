@@ -21,6 +21,7 @@ from database import get_async_session
 from image_processing import compress_image, validate_upload_metadata
 from models import CATEGORY_VALUES, Preference, ScannedItem, User
 from object_storage import generate_photo_url, upload_item_photo
+from verdict_engine import VerdictPreferences, compute_verdict
 
 load_dotenv()
 
@@ -392,8 +393,8 @@ def format_scanned_item(
     classification_failed: bool,
 ) -> dict[str, Any]:
     """Convert a scanned item row into the documented scan response shape."""
-    # Verdict, rationale, and pairings intentionally stay empty until the later
-    # verdict-engine and pairing-lookup tickets implement those contracts.
+    # Pairings intentionally stay empty until the later pairing-lookup tickets
+    # implement that contract.
     response = {
         "id": str(scanned_item.id),
         "photoUrl": photo_url,
@@ -401,8 +402,8 @@ def format_scanned_item(
         "detectedColor": scanned_item.detected_color,
         "correctedCategory": scanned_item.corrected_category,
         "correctedColor": scanned_item.corrected_color,
-        "verdict": None,
-        "rationale": None,
+        "verdict": scanned_item.verdict,
+        "rationale": scanned_item.rationale,
         "pairingSuggestions": [],
         "savedToWardrobe": scanned_item.saved_to_wardrobe,
         "createdAt": format_timestamp(scanned_item.created_at),
@@ -412,6 +413,29 @@ def format_scanned_item(
         response["classificationFailed"] = True
 
     return response
+
+
+async def apply_verdict_to_item(
+    session: AsyncSession,
+    current_user: User,
+    scanned_item: ScannedItem,
+    category: str,
+    color: str,
+) -> None:
+    """Compute and attach the current user's verdict for one item."""
+    preference = await get_user_preferences(session, current_user)
+    verdict_result = compute_verdict(
+        category=category,
+        color=color,
+        preferences=VerdictPreferences(
+            preferred_colors=preference.preferred_colors if preference else [],
+            formality_preference=(
+                preference.formality_preference if preference else None
+            ),
+        ),
+    )
+    scanned_item.verdict = verdict_result.verdict
+    scanned_item.rationale = verdict_result.rationale
 
 
 def is_unresolved_classification(scanned_item: ScannedItem) -> bool:
@@ -475,6 +499,13 @@ async def patch_item_correction(
     scanned_item = await get_user_scanned_item(session, current_user, item_id)
     scanned_item.corrected_category = correction_request.corrected_category
     scanned_item.corrected_color = correction_request.corrected_color
+    await apply_verdict_to_item(
+        session,
+        current_user,
+        scanned_item,
+        correction_request.corrected_category,
+        correction_request.corrected_color,
+    )
 
     await session.commit()
     await session.refresh(scanned_item)
@@ -533,6 +564,19 @@ async def post_item_scan(
         verdict=None,
         rationale=None,
     )
+    if (
+        not classification.classification_failed
+        and classification.detected_category is not None
+        and classification.detected_color is not None
+    ):
+        await apply_verdict_to_item(
+            session,
+            current_user,
+            scanned_item,
+            classification.detected_category,
+            classification.detected_color,
+        )
+
     session.add(scanned_item)
     await session.commit()
     await session.refresh(scanned_item)
