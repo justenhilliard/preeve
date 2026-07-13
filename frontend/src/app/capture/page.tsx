@@ -2,7 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ApiRequestError, useAuthenticatedApi } from "../apiClient";
 import { PrimaryAction } from "../preferences/components";
 
 const MAX_CAPTURE_DIMENSION = 1600;
@@ -17,8 +19,29 @@ const SECONDARY_ACTION_CLASS =
 const VIEWFINDER_FRAME_CLASS =
   "relative overflow-hidden rounded-2xl border border-[#4A413C]/15 " +
   "bg-[#D8D3CC]/45 shadow-[0_24px_70px_rgba(62,46,41,0.10)]";
+const PROCESSING_SECTION_CLASS =
+  "mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-3xl flex-col " +
+  "justify-center gap-8";
+const SPINNER_CLASS =
+  "h-9 w-9 animate-spin rounded-full border-[3px] border-[#4A413C]/15 " +
+  "border-t-[#B8674A]";
+const VIEWFINDER_CONTROLS_CLASS =
+  "absolute inset-x-0 bottom-0 flex items-center justify-center px-6 pb-6";
+const LIBRARY_ICON_BUTTON_CLASS =
+  "absolute left-6 flex h-12 w-12 items-center justify-center rounded-full " +
+  "bg-[#3E2E29]/40 text-[#FAF9F8] backdrop-blur-sm transition " +
+  "hover:bg-[#3E2E29]/55";
+const CAMERA_BUTTON_CLASS =
+  "flex h-[72px] w-[72px] items-center justify-center rounded-full " +
+  "border-[4px] border-[#FAF9F8] p-1 " +
+  "shadow-[0_6px_18px_rgba(62,46,41,0.35)] transition active:scale-95";
 const VIEWFINDER_OVERLAY_CLASS =
   "absolute inset-0 flex items-center justify-center px-6 text-center";
+
+type ScanResponse = {
+  classificationFailed?: boolean;
+  id: string;
+};
 
 function revokePreviewUrl(previewUrl: string | null) {
   if (previewUrl?.startsWith("blob:")) {
@@ -35,14 +58,26 @@ function getScaledDimensions(width: number, height: number) {
   };
 }
 
+function makeCanvasBlob(canvas: HTMLCanvasElement): Promise<Blob | null> {
+  return new Promise((resolve) => {
+    canvas.toBlob(resolve, "image/jpeg", 0.9);
+  });
+}
+
 export default function CapturePage() {
+  const authenticatedApi = useAuthenticatedApi();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
   const streamRef = useRef<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isCameraStarting, setIsCameraStarting] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [photoBlob, setPhotoBlob] = useState<Blob | File | null>(null);
+  const [photoFileName, setPhotoFileName] = useState("capture.jpg");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const stopCameraStream = useCallback(() => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -114,14 +149,21 @@ export default function CapturePage() {
     };
   }, [previewUrl, stopCameraStream]);
 
-  function updatePreviewUrl(nextPreviewUrl: string) {
+  function updatePreviewMedia(
+    nextPreviewUrl: string,
+    nextPhotoBlob: Blob | File,
+    nextPhotoFileName: string,
+  ) {
     setPreviewUrl((currentPreviewUrl) => {
       revokePreviewUrl(currentPreviewUrl);
       return nextPreviewUrl;
     });
+    setPhotoBlob(nextPhotoBlob);
+    setPhotoFileName(nextPhotoFileName);
+    setSubmitError(null);
   }
 
-  function captureFrame() {
+  async function captureFrame() {
     const canvas = canvasRef.current;
     const video = videoRef.current;
 
@@ -142,9 +184,18 @@ export default function CapturePage() {
     canvas.height = dimensions.height;
     context.drawImage(video, 0, 0, dimensions.width, dimensions.height);
 
-    const capturedFrameUrl = canvas.toDataURL("image/jpeg", 0.9);
+    const capturedFrame = await makeCanvasBlob(canvas);
+    if (!capturedFrame) {
+      setCameraError("Photo capture is unavailable in this browser.");
+      return;
+    }
+
     stopCameraStream();
-    updatePreviewUrl(capturedFrameUrl);
+    updatePreviewMedia(
+      URL.createObjectURL(capturedFrame),
+      capturedFrame,
+      "capture.jpg",
+    );
   }
 
   function chooseFromLibrary() {
@@ -159,7 +210,7 @@ export default function CapturePage() {
     }
 
     stopCameraStream();
-    updatePreviewUrl(URL.createObjectURL(file));
+    updatePreviewMedia(URL.createObjectURL(file), file, file.name || "upload.jpg");
   }
 
   function retakePhoto() {
@@ -168,10 +219,75 @@ export default function CapturePage() {
       return null;
     });
     setCameraError(null);
+    setIsSubmitting(false);
+    setPhotoBlob(null);
+    setPhotoFileName("capture.jpg");
+    setSubmitError(null);
 
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+  }
+
+  async function submitScan() {
+    if (!photoBlob || isSubmitting) {
+      return;
+    }
+
+    setSubmitError(null);
+    setIsSubmitting(true);
+
+    const formData = new FormData();
+    formData.append("photo", photoBlob, photoFileName);
+
+    try {
+      const scanResponse = await authenticatedApi<ScanResponse>("/api/items/scan", {
+        body: formData,
+        method: "POST",
+      });
+
+      if (scanResponse.classificationFailed) {
+        router.push(`/items/${scanResponse.id}/correct`);
+        return;
+      }
+
+      router.push(`/items/${scanResponse.id}`);
+    } catch (error) {
+      const message =
+        error instanceof ApiRequestError
+          ? error.message
+          : "Scan submission failed. Try again shortly.";
+      setSubmitError(message);
+      setIsSubmitting(false);
+    }
+  }
+
+  if (isSubmitting && previewUrl) {
+    return (
+      <main className="min-h-screen bg-background px-6 py-8 text-foreground">
+        <section className={PROCESSING_SECTION_CLASS}>
+          <div className={PREVIEW_FRAME_CLASS}>
+            <div className="relative aspect-[3/4] w-full">
+              <Image
+                alt="Captured item"
+                className="object-cover"
+                fill
+                sizes="(min-width: 768px) 768px, 100vw"
+                src={previewUrl}
+                unoptimized
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col items-center gap-3 py-4" role="status">
+            <span className={SPINNER_CLASS} />
+            <p className="font-sans text-sm font-medium text-[#4A413C]">
+              Analyzing your item...
+            </p>
+          </div>
+        </section>
+      </main>
+    );
   }
 
   return (
@@ -216,11 +332,15 @@ export default function CapturePage() {
                 >
                   Retake
                 </button>
-                <PrimaryAction disabled>Continue</PrimaryAction>
+                <PrimaryAction disabled={!photoBlob} onClick={submitScan}>
+                  Continue
+                </PrimaryAction>
               </div>
-              <p className="text-center text-sm leading-6 text-[#4A413C]">
-                Item scanning is coming soon.
-              </p>
+              {submitError ? (
+                <p className="text-center font-sans text-sm text-[#4A413C]">
+                  {submitError}
+                </p>
+              ) : null}
             </section>
           ) : (
             <section className="space-y-6">
@@ -249,10 +369,10 @@ export default function CapturePage() {
                   </div>
                 ) : null}
 
-                <div className="absolute inset-x-0 bottom-0 flex items-center justify-center px-6 pb-6">
+                <div className={VIEWFINDER_CONTROLS_CLASS}>
                   <button
                     aria-label="Choose from library"
-                    className="absolute left-6 flex h-12 w-12 items-center justify-center rounded-full bg-[#3E2E29]/40 text-[#FAF9F8] backdrop-blur-sm transition hover:bg-[#3E2E29]/55"
+                    className={LIBRARY_ICON_BUTTON_CLASS}
                     onClick={chooseFromLibrary}
                     type="button"
                   >
@@ -275,7 +395,7 @@ export default function CapturePage() {
                   {!isCameraStarting && !cameraError ? (
                     <button
                       aria-label="Capture photo"
-                      className="flex h-[72px] w-[72px] items-center justify-center rounded-full border-[4px] border-[#FAF9F8] p-1 shadow-[0_6px_18px_rgba(62,46,41,0.35)] transition active:scale-95"
+                      className={CAMERA_BUTTON_CLASS}
                       onClick={captureFrame}
                       type="button"
                     >
