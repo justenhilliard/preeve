@@ -1,9 +1,11 @@
+import asyncio
 import os
+import uuid
 from datetime import UTC, datetime
 from typing import Any
 
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, Request
+from fastapi import Depends, FastAPI, File, Request, UploadFile, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -14,8 +16,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from svix.webhooks import Webhook, WebhookVerificationError
 
 from auth import ApiError, format_timestamp, get_current_user
+from clip_classifier import InferenceUnavailableError, classify_image_bytes
 from database import get_async_session
-from models import Preference, User
+from image_processing import compress_image, validate_upload_metadata
+from models import Preference, ScannedItem, User
+from object_storage import generate_photo_url, upload_item_photo
 
 load_dotenv()
 
@@ -352,3 +357,93 @@ async def put_preferences(
     await session.commit()
     await session.refresh(preference)
     return format_preferences(preference)
+
+
+def format_scanned_item(
+    scanned_item: ScannedItem,
+    photo_url: str,
+    classification_failed: bool,
+) -> dict[str, Any]:
+    """Convert a scanned item row into the documented scan response shape."""
+    # Verdict, rationale, and pairings intentionally stay empty until the later
+    # verdict-engine and pairing-lookup tickets implement those contracts.
+    response = {
+        "id": str(scanned_item.id),
+        "photoUrl": photo_url,
+        "detectedCategory": scanned_item.detected_category,
+        "detectedColor": scanned_item.detected_color,
+        "correctedCategory": scanned_item.corrected_category,
+        "correctedColor": scanned_item.corrected_color,
+        "verdict": None,
+        "rationale": None,
+        "pairingSuggestions": [],
+        "savedToWardrobe": scanned_item.saved_to_wardrobe,
+        "createdAt": format_timestamp(scanned_item.created_at),
+    }
+
+    if classification_failed:
+        response["classificationFailed"] = True
+
+    return response
+
+
+@app.post("/api/items/scan", status_code=status.HTTP_201_CREATED)
+async def post_item_scan(
+    photo: UploadFile | None = File(default=None),
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_async_session),
+) -> dict[str, Any]:
+    """Compress, store, classify, and persist an uploaded item photo."""
+    if photo is None:
+        raise ApiError(
+            status_code=400,
+            code="validation_error",
+            message="Photo upload is required.",
+        )
+
+    uploaded_image = await photo.read()
+    if not uploaded_image:
+        raise ApiError(
+            status_code=400,
+            code="validation_error",
+            message="Photo upload is required.",
+        )
+
+    validate_upload_metadata(photo.content_type, len(uploaded_image))
+    compressed_image = await asyncio.to_thread(compress_image, uploaded_image)
+
+    try:
+        classification = await asyncio.to_thread(
+            classify_image_bytes,
+            compressed_image,
+        )
+    except InferenceUnavailableError as error:
+        raise ApiError(
+            status_code=502,
+            code="inference_unavailable",
+            message="Classification service is temporarily unavailable. Try again shortly.",
+        ) from error
+
+    item_id = uuid.uuid4()
+    photo_key = f"items/{current_user.id}/{item_id}.jpg"
+    await asyncio.to_thread(upload_item_photo, photo_key, compressed_image)
+
+    scanned_item = ScannedItem(
+        id=item_id,
+        user_id=current_user.id,
+        photo_key=photo_key,
+        detected_category=classification.detected_category,
+        detected_color=classification.detected_color,
+        verdict=None,
+        rationale=None,
+    )
+    session.add(scanned_item)
+    await session.commit()
+    await session.refresh(scanned_item)
+
+    photo_url = await asyncio.to_thread(generate_photo_url, photo_key)
+    return format_scanned_item(
+        scanned_item,
+        photo_url,
+        classification.classification_failed,
+    )
