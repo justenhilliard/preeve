@@ -19,7 +19,7 @@ from auth import ApiError, format_timestamp, get_current_user
 from clip_classifier import InferenceUnavailableError, classify_image_bytes
 from database import get_async_session
 from image_processing import compress_image, validate_upload_metadata
-from models import Preference, ScannedItem, User
+from models import CATEGORY_VALUES, Preference, ScannedItem, User
 from object_storage import generate_photo_url, upload_item_photo
 
 load_dotenv()
@@ -123,6 +123,33 @@ class PreferencesResponse(BaseModel):
     preferred_fits: list[str]
     formality_preference: str | None
     updated_at: str | None
+
+
+class ItemCorrectionRequest(BaseModel):
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        populate_by_name=True,
+    )
+
+    corrected_category: str
+    corrected_color: str
+
+    @model_validator(mode="after")
+    def validate_correction(self) -> "ItemCorrectionRequest":
+        """Validate correction fields against the locked item taxonomies."""
+        if self.corrected_category not in CATEGORY_VALUES:
+            allowed_values = ", ".join(CATEGORY_VALUES)
+            raise ValueError(
+                f"correctedCategory must be one of: {allowed_values}.",
+            )
+
+        if self.corrected_color not in COLOR_VALUES:
+            allowed_values = ", ".join(COLOR_VALUES)
+            raise ValueError(
+                f"correctedColor must be one of: {allowed_values}.",
+            )
+
+        return self
 
 
 def validate_list_values(
@@ -385,6 +412,75 @@ def format_scanned_item(
         response["classificationFailed"] = True
 
     return response
+
+
+def is_unresolved_classification(scanned_item: ScannedItem) -> bool:
+    """Return whether an item still needs manual classification fallback."""
+    return (
+        scanned_item.detected_category is None
+        or scanned_item.detected_color is None
+    ) and (
+        scanned_item.corrected_category is None
+        or scanned_item.corrected_color is None
+    )
+
+
+async def get_user_scanned_item(
+    session: AsyncSession,
+    current_user: User,
+    item_id: uuid.UUID,
+) -> ScannedItem:
+    """Fetch an item scoped to the current user or raise not_found."""
+    result = await session.execute(
+        select(ScannedItem).where(
+            ScannedItem.id == item_id,
+            ScannedItem.user_id == current_user.id,
+        ),
+    )
+    scanned_item = result.scalar_one_or_none()
+    if scanned_item is None:
+        raise ApiError(
+            status_code=404,
+            code="not_found",
+            message="No item found with that ID for this user.",
+        )
+
+    return scanned_item
+
+
+@app.get("/api/items/{item_id}")
+async def get_item(
+    item_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_async_session),
+) -> dict[str, Any]:
+    """Return one scanned item scoped to the current user."""
+    scanned_item = await get_user_scanned_item(session, current_user, item_id)
+    photo_url = await asyncio.to_thread(generate_photo_url, scanned_item.photo_key)
+    return format_scanned_item(
+        scanned_item,
+        photo_url,
+        is_unresolved_classification(scanned_item),
+    )
+
+
+@app.patch("/api/items/{item_id}/correct")
+async def patch_item_correction(
+    item_id: uuid.UUID,
+    correction_request: ItemCorrectionRequest,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_async_session),
+) -> dict[str, Any]:
+    """Persist manual category and color correction for one scanned item."""
+    scanned_item = await get_user_scanned_item(session, current_user, item_id)
+    scanned_item.corrected_category = correction_request.corrected_category
+    scanned_item.corrected_color = correction_request.corrected_color
+
+    await session.commit()
+    await session.refresh(scanned_item)
+
+    photo_url = await asyncio.to_thread(generate_photo_url, scanned_item.photo_key)
+    return format_scanned_item(scanned_item, photo_url, False)
 
 
 @app.post("/api/items/scan", status_code=status.HTTP_201_CREATED)
