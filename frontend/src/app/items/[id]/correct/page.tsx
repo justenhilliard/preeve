@@ -1,0 +1,242 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { ApiRequestError, useAuthenticatedApi } from "../../../apiClient";
+import {
+  ColorSwatchButton,
+  formatOptionLabel,
+  OptionButton,
+  PrimaryAction,
+} from "../../../preferences/components";
+import {
+  COLOR_OPTIONS,
+  COLOR_SWATCHES,
+  type ColorOption,
+} from "../../../preferences/preferencesContext";
+
+const CATEGORY_OPTIONS = [
+  "top",
+  "bottom",
+  "dress",
+  "outerwear",
+  "shoes",
+  "accessory",
+] as const;
+
+type CategoryOption = (typeof CATEGORY_OPTIONS)[number];
+
+type ScannedItemResponse = {
+  correctedCategory: CategoryOption | null;
+  correctedColor: ColorOption | null;
+  id: string;
+  photoUrl: string;
+};
+
+type CorrectionPayload = {
+  correctedCategory: CategoryOption;
+  correctedColor: ColorOption;
+};
+
+const PREVIEW_FRAME_CLASS =
+  "overflow-hidden rounded-2xl border border-[#4A413C]/15 bg-[#D8D3CC]/45 " +
+  "shadow-[0_24px_70px_rgba(62,46,41,0.10)]";
+const SPINNER_CLASS =
+  "h-9 w-9 animate-spin rounded-full border-[3px] border-[#4A413C]/15 " +
+  "border-t-[#B8674A]";
+
+function getRouteItemId(itemIdParam: string | string[] | undefined) {
+  return Array.isArray(itemIdParam) ? itemIdParam[0] : itemIdParam;
+}
+
+export default function CorrectItemPage() {
+  const authenticatedApi = useAuthenticatedApi();
+  const params = useParams();
+  const router = useRouter();
+  const itemId = getRouteItemId(params.id);
+  const [category, setCategory] = useState<CategoryOption | null>(null);
+  const [color, setColor] = useState<ColorOption | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [item, setItem] = useState<ScannedItemResponse | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchItem() {
+      if (!itemId) {
+        setErrorMessage("No item found with that ID for this user.");
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const itemResponse = await authenticatedApi<ScannedItemResponse>(
+          `/api/items/${itemId}`,
+        );
+
+        if (!isMounted) {
+          return;
+        }
+
+        setItem(itemResponse);
+        setCategory(itemResponse.correctedCategory);
+        setColor(itemResponse.correctedColor);
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+
+        const message =
+          error instanceof ApiRequestError && error.status === 404
+            ? "No item found with that ID for this user."
+            : error instanceof Error
+              ? error.message
+              : "Unable to load this item.";
+        setErrorMessage(message);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void fetchItem();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [authenticatedApi, itemId]);
+
+  async function submitCorrection() {
+    if (!itemId || !category || !color || isSubmitting) {
+      return;
+    }
+
+    setErrorMessage(null);
+    setIsSubmitting(true);
+
+    try {
+      await authenticatedApi<ScannedItemResponse>(`/api/items/${itemId}/correct`, {
+        body: JSON.stringify({
+          correctedCategory: category,
+          correctedColor: color,
+        } satisfies CorrectionPayload),
+        method: "PATCH",
+      });
+      router.push(`/items/${itemId}`);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unable to save this correction.";
+      setErrorMessage(message);
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <main className="min-h-screen bg-background px-6 py-8 text-foreground">
+      <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-4xl flex-col">
+        <nav>
+          <Link href="/" className="auth-back-link">
+            Back
+          </Link>
+        </nav>
+
+        <section className="flex flex-1 flex-col justify-center gap-8 py-10">
+          <header className="space-y-4 text-center">
+            <h1 className="font-serif text-5xl font-semibold tracking-normal text-[#3E2E29]">
+              Tell us what it is
+            </h1>
+            <p className="mx-auto max-w-md text-base leading-7 text-[#4A413C]">
+              Pick one category and one color so Preeve can keep going.
+            </p>
+          </header>
+
+          {isLoading ? (
+            <div className="flex flex-col items-center gap-3 py-10" role="status">
+              <span className={SPINNER_CLASS} />
+              <span className="sr-only">Loading item...</span>
+            </div>
+          ) : item ? (
+            <div className="grid gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+              <div className={PREVIEW_FRAME_CLASS}>
+                <div className="relative aspect-[3/4] w-full">
+                  <Image
+                    alt="Scanned item"
+                    className="object-cover"
+                    fill
+                    sizes="(min-width: 1024px) 380px, 100vw"
+                    src={item.photoUrl}
+                    unoptimized
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-8">
+                <section className="space-y-4">
+                  <h2 className="font-serif text-3xl font-semibold tracking-normal text-[#3E2E29]">
+                    Category
+                  </h2>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {CATEGORY_OPTIONS.map((categoryOption) => (
+                      <OptionButton
+                        isSelected={category === categoryOption}
+                        key={categoryOption}
+                        onClick={() => setCategory(categoryOption)}
+                      >
+                        {formatOptionLabel(categoryOption)}
+                      </OptionButton>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="space-y-4">
+                  <h2 className="font-serif text-3xl font-semibold tracking-normal text-[#3E2E29]">
+                    Color
+                  </h2>
+                  <div className="grid grid-cols-3 gap-5 sm:grid-cols-4">
+                    {COLOR_OPTIONS.map((colorOption) => (
+                      <ColorSwatchButton
+                        colorName={colorOption}
+                        hex={COLOR_SWATCHES[colorOption]}
+                        isSelected={color === colorOption}
+                        key={colorOption}
+                        onClick={() => setColor(colorOption)}
+                      />
+                    ))}
+                  </div>
+                </section>
+
+                <div className="flex flex-col gap-3 sm:items-end">
+                  <PrimaryAction
+                    disabled={!category || !color || isSubmitting}
+                    onClick={submitCorrection}
+                  >
+                    Save correction
+                  </PrimaryAction>
+                  {errorMessage ? (
+                    <p className="font-sans text-sm text-[#4A413C]">
+                      {errorMessage}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="text-center font-sans text-sm text-[#4A413C]">
+              {errorMessage ?? "No item found with that ID for this user."}
+            </p>
+          )}
+        </section>
+      </div>
+    </main>
+  );
+}
