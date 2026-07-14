@@ -50,13 +50,6 @@ const TOP_BAR_CLASS =
   "sm:items-center sm:justify-between";
 const CHIP_BASE_CLASS =
   "rounded-full px-4 py-2 font-sans text-sm font-semibold transition";
-const TOGGLE_CLASS =
-  "inline-flex items-center gap-3 rounded-full border border-[#4A413C]/15 " +
-  "bg-[#FAF9F8] px-4 py-2 font-sans text-sm font-semibold text-[#3E2E29] " +
-  "transition hover:bg-[#D8D3CC]/45";
-const TOGGLE_INDICATOR_CLASS =
-  "flex h-5 w-9 items-center rounded-full border border-[#4A413C]/20 p-0.5 " +
-  "transition";
 const CARD_CLASS =
   "group relative overflow-hidden rounded-2xl border border-[#4A413C]/15 " +
   "bg-[#D8D3CC]/45 shadow-[0_18px_48px_rgba(62,46,41,0.10)]";
@@ -180,15 +173,16 @@ function WardrobeCard({
           <span className={HANG_TAG_CLASS}>{formatCategoryColor(item)}</span>
         </div>
 
-        <div className="flex items-center justify-between gap-3 px-4 py-4">
-          <span className="font-sans text-sm font-semibold text-[#3E2E29]">
-            {item.verdict ? formatVerdict(item.verdict) : "No verdict"}
-          </span>
+        <div className="flex items-center justify-end px-4 py-4">
           {item.verdict ? (
             <span className={`${VERDICT_BADGE_CLASS} ${VERDICT_STYLES[item.verdict]}`}>
               {formatVerdict(item.verdict)}
             </span>
-          ) : null}
+          ) : (
+            <span className="font-sans text-sm font-semibold text-[#4A413C]">
+              No verdict
+            </span>
+          )}
         </div>
       </Link>
 
@@ -324,48 +318,51 @@ export default function WardrobePage() {
               </p>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex flex-wrap gap-2">
               <button
                 aria-pressed={favoritesOnly}
-                className={TOGGLE_CLASS}
+                className={`${CHIP_BASE_CLASS} inline-flex items-center gap-2 ${
+                  favoritesOnly
+                    ? "bg-[#B8674A] text-[#FAF9F8]"
+                    : "bg-[#FAF9F8] text-[#4A413C] hover:bg-[#D8D3CC]/45"
+                }`}
                 onClick={() => setFavoritesOnly((currentValue) => !currentValue)}
                 type="button"
               >
-                <span
-                  className={`${TOGGLE_INDICATOR_CLASS} ${
-                    favoritesOnly ? "bg-[#B8674A]" : "bg-[#D8D3CC]/70"
-                  }`}
+                <svg
+                  aria-hidden="true"
+                  className="h-4 w-4"
+                  fill={favoritesOnly ? "currentColor" : "none"}
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  viewBox="0 0 24 24"
                 >
-                  <span
-                    className={`h-4 w-4 rounded-full bg-[#FAF9F8] transition ${
-                      favoritesOnly ? "translate-x-4" : "translate-x-0"
-                    }`}
-                  />
-                </span>
-                Favorites only
+                  <path d={HEART_PATH} />
+                </svg>
+                Favorites
               </button>
 
-              <div className="flex flex-wrap gap-2">
-                {VERDICT_FILTERS.map((filter) => {
-                  const isActive = verdictFilter === filter.value;
+              {VERDICT_FILTERS.map((filter) => {
+                const isActive = verdictFilter === filter.value;
 
-                  return (
-                    <button
-                      aria-pressed={isActive}
-                      className={`${CHIP_BASE_CLASS} ${
-                        isActive
-                          ? "bg-[#B8674A] text-[#FAF9F8]"
-                          : "bg-[#FAF9F8] text-[#4A413C] hover:bg-[#D8D3CC]/45"
-                      }`}
-                      key={filter.value}
-                      onClick={() => setVerdictFilter(filter.value)}
-                      type="button"
-                    >
-                      {filter.label}
-                    </button>
-                  );
-                })}
-              </div>
+                return (
+                  <button
+                    aria-pressed={isActive}
+                    className={`${CHIP_BASE_CLASS} ${
+                      isActive
+                        ? "bg-[#B8674A] text-[#FAF9F8]"
+                        : "bg-[#FAF9F8] text-[#4A413C] hover:bg-[#D8D3CC]/45"
+                    }`}
+                    key={filter.value}
+                    onClick={() => setVerdictFilter(filter.value)}
+                    type="button"
+                  >
+                    {filter.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
