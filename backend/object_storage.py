@@ -63,6 +63,30 @@ def upload_item_photo(photo_key: str, image_bytes: bytes) -> None:
         ) from error
 
 
+def delete_item_photo(photo_key: str) -> None:
+    """Delete an item photo from R2, ignoring already-missing objects."""
+    try:
+        create_r2_client().delete_object(
+            Bucket=get_required_env("R2_BUCKET_NAME"),
+            Key=photo_key,
+        )
+    except ClientError as error:
+        if is_missing_object_error(error):
+            return
+
+        raise ApiError(
+            status_code=500,
+            code="internal_error",
+            message="Photo storage is temporarily unavailable.",
+        ) from error
+    except BotoCoreError as error:
+        raise ApiError(
+            status_code=500,
+            code="internal_error",
+            message="Photo storage is temporarily unavailable.",
+        ) from error
+
+
 def upload_json_object(key: str, data: dict[str, Any]) -> None:
     """Upload a JSON object to the private R2 bucket."""
     try:

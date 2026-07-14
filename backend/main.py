@@ -25,7 +25,7 @@ from clip_classifier import (
 from database import get_async_session
 from image_processing import compress_image, validate_upload_metadata
 from models import CATEGORY_VALUES, PairingSuggestion, Preference, ScannedItem, User
-from object_storage import generate_photo_url, upload_item_photo
+from object_storage import delete_item_photo, generate_photo_url, upload_item_photo
 from pairing_lookup import find_pairing_suggestions
 from verdict_engine import VerdictPreferences, compute_verdict
 
@@ -480,6 +480,7 @@ def format_scanned_item(
         "rationale": scanned_item.rationale,
         "pairingSuggestions": pairing_suggestions or [],
         "savedToWardrobe": scanned_item.saved_to_wardrobe,
+        "isFavorited": scanned_item.is_favorited,
         "createdAt": format_timestamp(scanned_item.created_at),
     }
 
@@ -727,6 +728,19 @@ async def patch_item_favorite(
         "id": str(scanned_item.id),
         "isFavorited": scanned_item.is_favorited,
     }
+
+
+@app.delete("/api/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_item(
+    item_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_async_session),
+) -> None:
+    """Delete one scanned item and its stored photo for the current user."""
+    scanned_item = await get_user_scanned_item(session, current_user, item_id)
+    await asyncio.to_thread(delete_item_photo, scanned_item.photo_key)
+    await session.delete(scanned_item)
+    await session.commit()
 
 
 @app.post("/api/items/scan", status_code=status.HTTP_201_CREATED)
