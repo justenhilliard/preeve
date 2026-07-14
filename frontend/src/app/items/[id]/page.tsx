@@ -178,20 +178,27 @@ export default function ItemResultPage() {
               <section className={RESULT_PANEL_CLASS}>
                 <div className="flex h-full flex-col justify-between gap-8">
                   <div className="space-y-6">
-                    <span
-                      className={`${VERDICT_BADGE_CLASS} ${
-                        VERDICT_STYLES[item.verdict]
-                      }`}
-                    >
-                      {formatVerdict(item.verdict)}
-                    </span>
+                    <h1 className={RESULT_HEADING_CLASS}>Your Analysis</h1>
 
-                    <div className="space-y-4">
-                      <h1 className={RESULT_HEADING_CLASS}>Your verdict</h1>
-                      <p className="text-lg leading-8 text-[#4A413C]">
-                        {item.rationale}
-                      </p>
+                    <div className="flex items-center gap-3">
+                      <span className="font-sans text-sm font-semibold uppercase tracking-[0.14em] text-[#4A413C]">
+                        Verdict
+                      </span>
+                      <span
+                        className={`${VERDICT_BADGE_CLASS} ${
+                          VERDICT_STYLES[item.verdict]
+                        }`}
+                      >
+                        {formatVerdict(item.verdict)}
+                      </span>
                     </div>
+
+                    <p className="text-lg leading-8 text-[#4A413C]">
+                      {item.rationale}
+                    </p>
+
+                    {/* Style/pairing suggestions land here once issues
+                        #24-26 (pairing dataset + lookup) exist. */}
                   </div>
 
                   <div className="flex flex-col gap-3 sm:flex-row">
