@@ -24,8 +24,9 @@ from clip_classifier import (
 )
 from database import get_async_session
 from image_processing import compress_image, validate_upload_metadata
-from models import CATEGORY_VALUES, Preference, ScannedItem, User
+from models import CATEGORY_VALUES, PairingSuggestion, Preference, ScannedItem, User
 from object_storage import generate_photo_url, upload_item_photo
+from pairing_lookup import find_pairing_suggestions
 from verdict_engine import VerdictPreferences, compute_verdict
 
 load_dotenv()
@@ -176,6 +177,21 @@ class ItemCorrectionRequest(BaseModel):
             )
 
         return self
+
+
+def validate_taxonomy_value(
+    field_name: str,
+    submitted_value: str,
+    allowed_values: tuple[str, ...],
+) -> None:
+    """Validate a single enum-like API value against a locked taxonomy."""
+    if submitted_value not in allowed_values:
+        allowed_values_text = ", ".join(allowed_values)
+        raise ApiError(
+            status_code=422,
+            code="validation_error",
+            message=f"{field_name} must be one of: {allowed_values_text}.",
+        )
 
 
 def validate_list_values(
@@ -372,6 +388,29 @@ def format_preferences(preference: Preference | None) -> PreferencesResponse:
     )
 
 
+async def format_pairing_suggestions(
+    pairing_suggestions: list[PairingSuggestion],
+) -> list[dict[str, str | None]]:
+    """Convert pairing suggestion rows into the documented API shape."""
+    formatted_suggestions: list[dict[str, str | None]] = []
+
+    for pairing_suggestion in pairing_suggestions:
+        image_url = (
+            await asyncio.to_thread(generate_photo_url, pairing_suggestion.image_key)
+            if pairing_suggestion.image_key is not None
+            else None
+        )
+        formatted_suggestions.append(
+            {
+                "id": str(pairing_suggestion.id),
+                "suggestionText": pairing_suggestion.suggestion_text,
+                "imageUrl": image_url,
+            },
+        )
+
+    return formatted_suggestions
+
+
 @app.get("/api/preferences", response_model=PreferencesResponse)
 async def get_preferences(
     current_user: User = Depends(get_current_user),
@@ -416,10 +455,11 @@ def format_scanned_item(
     scanned_item: ScannedItem,
     photo_url: str,
     classification_failed: bool,
+    pairing_suggestions: list[dict[str, str | None]] | None = None,
 ) -> dict[str, Any]:
     """Convert a scanned item row into the documented scan response shape."""
-    # Pairings intentionally stay empty until the later pairing-lookup tickets
-    # implement that contract.
+    # Routes that do not perform a pairing lookup still use the shared item
+    # shape and leave suggestions empty.
     response = {
         "id": str(scanned_item.id),
         "photoUrl": photo_url,
@@ -429,7 +469,7 @@ def format_scanned_item(
         "correctedColor": scanned_item.corrected_color,
         "verdict": scanned_item.verdict,
         "rationale": scanned_item.rationale,
-        "pairingSuggestions": [],
+        "pairingSuggestions": pairing_suggestions or [],
         "savedToWardrobe": scanned_item.saved_to_wardrobe,
         "createdAt": format_timestamp(scanned_item.created_at),
     }
@@ -461,6 +501,16 @@ async def apply_verdict_to_item(
     )
     scanned_item.verdict = verdict_result.verdict
     scanned_item.rationale = verdict_result.rationale
+
+
+async def get_formatted_pairing_suggestions(
+    session: AsyncSession,
+    category: str,
+    color: str,
+) -> list[dict[str, str | None]]:
+    """Look up and format pairing suggestions for item response payloads."""
+    pairing_suggestions = await find_pairing_suggestions(session, category, color)
+    return await format_pairing_suggestions(pairing_suggestions)
 
 
 def is_unresolved_classification(scanned_item: ScannedItem) -> bool:
@@ -506,10 +556,28 @@ async def get_item(
     """Return one scanned item scoped to the current user."""
     scanned_item = await get_user_scanned_item(session, current_user, item_id)
     photo_url = await asyncio.to_thread(generate_photo_url, scanned_item.photo_key)
+
+    # pairing_suggestions has no FK to scanned_items (see docs/DATABASE.md) —
+    # it's looked up fresh on every fetch using the item's *effective*
+    # category/color (a manual correction wins over the original CLIP
+    # detection), not persisted at scan/correct time.
+    effective_category = scanned_item.corrected_category or scanned_item.detected_category
+    effective_color = scanned_item.corrected_color or scanned_item.detected_color
+    pairing_suggestions = (
+        await get_formatted_pairing_suggestions(
+            session,
+            effective_category,
+            effective_color,
+        )
+        if effective_category and effective_color
+        else []
+    )
+
     return format_scanned_item(
         scanned_item,
         photo_url,
         is_unresolved_classification(scanned_item),
+        pairing_suggestions,
     )
 
 
@@ -536,7 +604,32 @@ async def patch_item_correction(
     await session.refresh(scanned_item)
 
     photo_url = await asyncio.to_thread(generate_photo_url, scanned_item.photo_key)
-    return format_scanned_item(scanned_item, photo_url, False)
+    pairing_suggestions = await get_formatted_pairing_suggestions(
+        session,
+        correction_request.corrected_category,
+        correction_request.corrected_color,
+    )
+    return format_scanned_item(scanned_item, photo_url, False, pairing_suggestions)
+
+
+@app.get("/api/pairings")
+async def get_pairings(
+    category: str,
+    color: str,
+    _: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_async_session),
+) -> dict[str, list[dict[str, str | None]]]:
+    """Return pairing suggestions for category and color tags."""
+    validate_taxonomy_value("category", category, CATEGORY_VALUES)
+    validate_taxonomy_value("color", color, COLOR_VALUES)
+
+    return {
+        "suggestions": await get_formatted_pairing_suggestions(
+            session,
+            category,
+            color,
+        ),
+    }
 
 
 @app.patch("/api/items/{item_id}/save")
@@ -620,6 +713,13 @@ async def post_item_scan(
             classification.detected_category,
             classification.detected_color,
         )
+        pairing_suggestions = await get_formatted_pairing_suggestions(
+            session,
+            classification.detected_category,
+            classification.detected_color,
+        )
+    else:
+        pairing_suggestions = []
 
     session.add(scanned_item)
     await session.commit()
@@ -630,4 +730,5 @@ async def post_item_scan(
         scanned_item,
         photo_url,
         classification.classification_failed,
+        pairing_suggestions,
     )
