@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ApiRequestError, useAuthenticatedApi } from "../../apiClient";
+import { FavoriteHeart } from "../../favoriteHeart";
 import {
   formatOptionLabel,
   PrimaryAction,
@@ -25,11 +26,13 @@ type ScannedItemResponse = {
   detectedCategory: string | null;
   detectedColor: string | null;
   id: string;
+  isFavorited: boolean;
   pairingSuggestions: PairingSuggestion[];
   photoUrl: string;
   rationale: string | null;
   savedToWardrobe: boolean;
   verdict: Verdict | null;
+  createdAt: string;
 };
 
 function getEffectiveAttribute(
@@ -44,6 +47,11 @@ type SaveItemResponse = {
   savedToWardrobe: boolean;
 };
 
+type FavoriteItemResponse = {
+  id: string;
+  isFavorited: boolean;
+};
+
 const PREVIEW_FRAME_CLASS =
   "overflow-hidden rounded-2xl border border-[#4A413C]/15 bg-[#D8D3CC]/45 " +
   "shadow-[0_24px_70px_rgba(62,46,41,0.10)]";
@@ -56,6 +64,13 @@ const SPINNER_CLASS =
 const DISCARD_BUTTON_CLASS =
   "rounded-xl border border-[#4A413C]/20 px-6 py-3 font-sans text-sm " +
   "font-semibold text-[#3E2E29] transition hover:bg-[#D8D3CC]/45";
+const DELETE_BUTTON_CLASS =
+  "rounded-xl border border-[#B8674A]/45 px-6 py-3 font-sans text-sm " +
+  "font-semibold text-[#3E2E29] transition hover:bg-[#B8674A]/10";
+const FAVORITE_BUTTON_CLASS =
+  "flex h-11 w-11 items-center justify-center rounded-full border " +
+  "border-[#4A413C]/15 bg-[#FAF9F8]/85 text-[#3E2E29] transition " +
+  "hover:bg-[#D8D3CC]";
 const PAIRING_CARD_CLASS =
   "overflow-hidden rounded-2xl border border-[#4A413C]/15 bg-[#FAF9F8] " +
   "shadow-[0_10px_28px_rgba(62,46,41,0.08)]";
@@ -80,6 +95,13 @@ function getRouteItemId(itemIdParam: string | string[] | undefined) {
 
 function formatVerdict(verdict: Verdict) {
   return verdict.charAt(0).toUpperCase() + verdict.slice(1);
+}
+
+function formatScanDate(createdAt: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(createdAt));
 }
 
 function PairingSuggestions({
@@ -126,7 +148,10 @@ export default function ItemResultPage() {
   const params = useParams();
   const router = useRouter();
   const itemId = getRouteItemId(params.id);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isFavoriting, setIsFavoriting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [item, setItem] = useState<ScannedItemResponse | null>(null);
@@ -213,6 +238,60 @@ export default function ItemResultPage() {
     }
   }
 
+  async function toggleFavorite() {
+    if (!itemId || !item || isFavoriting) {
+      return;
+    }
+
+    setErrorMessage(null);
+    setIsFavoriting(true);
+
+    try {
+      const favoriteResponse = await authenticatedApi<FavoriteItemResponse>(
+        `/api/items/${itemId}/favorite`,
+        {
+          body: JSON.stringify({ isFavorited: !item.isFavorited }),
+          method: "PATCH",
+        },
+      );
+      setItem({
+        ...item,
+        isFavorited: favoriteResponse.isFavorited,
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unable to update favorite status.";
+      setErrorMessage(message);
+    } finally {
+      setIsFavoriting(false);
+    }
+  }
+
+  async function deleteCurrentItem() {
+    if (!itemId || isDeleting) {
+      return;
+    }
+
+    setErrorMessage(null);
+    setIsDeleting(true);
+
+    try {
+      await authenticatedApi<void>(`/api/items/${itemId}`, {
+        method: "DELETE",
+      });
+      router.push("/");
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unable to delete this item.";
+      setErrorMessage(message);
+      setIsDeleting(false);
+    }
+  }
+
   return (
     <main className="min-h-screen bg-background px-6 py-8 text-foreground">
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-5xl flex-col">
@@ -257,7 +336,22 @@ export default function ItemResultPage() {
                 <div className="flex h-full flex-col justify-between gap-8">
                   <div className="space-y-6">
                     <div className="space-y-2">
-                      <h1 className={RESULT_HEADING_CLASS}>Your Analysis</h1>
+                      <div className="flex items-start justify-between gap-4">
+                        <h1 className={RESULT_HEADING_CLASS}>Your Analysis</h1>
+                        <button
+                          aria-label={
+                            item.isFavorited
+                              ? "Remove favorite"
+                              : "Mark favorite"
+                          }
+                          className={FAVORITE_BUTTON_CLASS}
+                          disabled={isFavoriting}
+                          onClick={toggleFavorite}
+                          type="button"
+                        >
+                          <FavoriteHeart isFavorited={item.isFavorited} />
+                        </button>
+                      </div>
                       {(() => {
                         const effectiveCategory = getEffectiveAttribute(
                           item.correctedCategory,
@@ -275,6 +369,9 @@ export default function ItemResultPage() {
                           </p>
                         ) : null;
                       })()}
+                      <p className="font-sans text-sm font-medium text-[#4A413C]">
+                        Scanned {formatScanDate(item.createdAt)}
+                      </p>
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -305,14 +402,41 @@ export default function ItemResultPage() {
                     {item.savedToWardrobe ? (
                       <PrimaryLink href="/wardrobe">View wardrobe</PrimaryLink>
                     ) : null}
-                    <button
-                      className={DISCARD_BUTTON_CLASS}
-                      onClick={() => router.push("/")}
-                      type="button"
-                    >
-                      Discard
-                    </button>
+                    {item.savedToWardrobe ? (
+                      <button
+                        className={DELETE_BUTTON_CLASS}
+                        disabled={isDeleting}
+                        onClick={() => {
+                          if (confirmingDelete) {
+                            void deleteCurrentItem();
+                          } else {
+                            setConfirmingDelete(true);
+                          }
+                        }}
+                        type="button"
+                      >
+                        {isDeleting
+                            ? "Deleting..."
+                            : confirmingDelete
+                              ? "Confirm delete"
+                              : "Delete"}
+                      </button>
+                    ) : (
+                      <button
+                        className={DISCARD_BUTTON_CLASS}
+                        disabled={isDeleting}
+                        onClick={() => void deleteCurrentItem()}
+                        type="button"
+                      >
+                        {isDeleting ? "Discarding..." : "Discard"}
+                      </button>
+                    )}
                   </div>
+                  {confirmingDelete && item.savedToWardrobe ? (
+                    <p className="font-sans text-sm text-[#4A413C]">
+                      Delete this item? This cannot be undone.
+                    </p>
+                  ) : null}
                 </div>
               </section>
             </div>
