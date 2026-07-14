@@ -9,9 +9,16 @@ import { PrimaryAction } from "../../preferences/components";
 
 type Verdict = "buy" | "maybe" | "skip";
 
+type PairingSuggestion = {
+  id: string;
+  imageUrl: string | null;
+  suggestionText: string;
+};
+
 type ScannedItemResponse = {
   classificationFailed?: boolean;
   id: string;
+  pairingSuggestions: PairingSuggestion[];
   photoUrl: string;
   rationale: string | null;
   savedToWardrobe: boolean;
@@ -35,6 +42,14 @@ const SPINNER_CLASS =
 const DISCARD_BUTTON_CLASS =
   "rounded-xl border border-[#4A413C]/20 px-6 py-3 font-sans text-sm " +
   "font-semibold text-[#3E2E29] transition hover:bg-[#D8D3CC]/45";
+const PAIRING_CARD_CLASS =
+  "overflow-hidden rounded-2xl border border-[#4A413C]/15 bg-[#FAF9F8] " +
+  "shadow-[0_10px_28px_rgba(62,46,41,0.08)]";
+const PAIRING_EMPTY_CLASS =
+  "rounded-xl border border-[#4A413C]/15 bg-[#FAF9F8]/70 px-4 py-3 " +
+  "text-sm leading-6 text-[#4A413C]";
+const SECTION_LABEL_CLASS =
+  "font-sans text-sm font-semibold uppercase tracking-[0.14em] text-[#4A413C]";
 const RESULT_HEADING_CLASS =
   "font-serif text-5xl font-semibold tracking-normal text-[#3E2E29]";
 const VERDICT_BADGE_CLASS =
@@ -51,6 +66,45 @@ function getRouteItemId(itemIdParam: string | string[] | undefined) {
 
 function formatVerdict(verdict: Verdict) {
   return verdict.charAt(0).toUpperCase() + verdict.slice(1);
+}
+
+function PairingSuggestions({
+  suggestions,
+}: Readonly<{ suggestions: PairingSuggestion[] }>) {
+  return (
+    <section className="space-y-3">
+      <h2 className={SECTION_LABEL_CLASS}>Styling idea</h2>
+
+      {suggestions.length > 0 ? (
+        <div className="grid gap-3">
+          {suggestions.map((suggestion) => (
+            <article className={PAIRING_CARD_CLASS} key={suggestion.id}>
+              {suggestion.imageUrl ? (
+                <div className="relative aspect-[16/9] w-full">
+                  <Image
+                    alt="Suggested pairing"
+                    className="object-cover"
+                    fill
+                    sizes="(min-width: 1024px) 520px, 100vw"
+                    src={suggestion.imageUrl}
+                    unoptimized
+                  />
+                </div>
+              ) : null}
+
+              <p className="px-4 py-4 text-sm leading-6 text-[#4A413C]">
+                {suggestion.suggestionText}
+              </p>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <p className={PAIRING_EMPTY_CLASS}>
+          No pairing suggestions yet for this combination.
+        </p>
+      )}
+    </section>
+  );
 }
 
 export default function ItemResultPage() {
@@ -181,9 +235,7 @@ export default function ItemResultPage() {
                     <h1 className={RESULT_HEADING_CLASS}>Your Analysis</h1>
 
                     <div className="flex items-center gap-3">
-                      <span className="font-sans text-sm font-semibold uppercase tracking-[0.14em] text-[#4A413C]">
-                        Verdict
-                      </span>
+                      <span className={SECTION_LABEL_CLASS}>Verdict</span>
                       <span
                         className={`${VERDICT_BADGE_CLASS} ${
                           VERDICT_STYLES[item.verdict]
@@ -197,8 +249,7 @@ export default function ItemResultPage() {
                       {item.rationale}
                     </p>
 
-                    {/* Style/pairing suggestions land here once issues
-                        #24-26 (pairing dataset + lookup) exist. */}
+                    <PairingSuggestions suggestions={item.pairingSuggestions} />
                   </div>
 
                   <div className="flex flex-col gap-3 sm:flex-row">
