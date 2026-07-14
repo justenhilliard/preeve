@@ -39,3 +39,4 @@ CHANGES.log
 
 # Personal sample photos used for local testing only — never goes public
 backend/scripts/sample_images/
+backend/scripts/debug_score_image.py

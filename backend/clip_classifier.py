@@ -37,6 +37,19 @@ RETRY_PAUSE_SECONDS = 2.0
 # for exactly this case. Don't sink further time into prompt-tuning this;
 # a fine-tuned classifier (PRD Future Work) is the real fix if it matters
 # enough later.
+#
+# `tan` vs. `blue` on denim was tried too, and reverted for the same reason:
+# a real scan (light-wash blue denim shorts) scored tan=0.2170 vs.
+# blue=0.2149, a 0.0021 margin — within the same noise band where blue is
+# correctly top on other denim (jeans1.jpeg: blue margin ~0.002-0.04) and a
+# polo (polo1.jpeg: blue margin 0.0015-0.0004 depending on prompt wording).
+# Narrowing `blue` toward denim fixed the failing case but dropped polo1's
+# blue score from 1st to 9th place (0.2597 -> 0.2292), a clear regression.
+# Narrowing `tan` alone (excluding "blue denim") flipped the failing case
+# back correctly but then flipped jeans1 — previously reliably blue —
+# to tan instead (tan=0.2428 vs. blue=0.2270). Each version traded one
+# wrong case for another rather than net-improving. Same conclusion as
+# `dress`: real embedding-space overlap, not a wording problem.
 CATEGORY_PROMPTS = {
     "top": "a photo of a top clothing item, shirt, sweater, tank, or polo",
     "bottom": "a photo of a bottom clothing item, jeans, shorts, skirt, or pants",

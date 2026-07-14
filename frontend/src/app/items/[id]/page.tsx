@@ -1,11 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ApiRequestError, useAuthenticatedApi } from "../../apiClient";
-import { formatOptionLabel, PrimaryAction } from "../../preferences/components";
+import {
+  formatOptionLabel,
+  PrimaryAction,
+  PrimaryLink,
+} from "../../preferences/components";
 
 type Verdict = "buy" | "maybe" | "skip";
 
@@ -214,9 +217,19 @@ export default function ItemResultPage() {
     <main className="min-h-screen bg-background px-6 py-8 text-foreground">
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-5xl flex-col">
         <nav>
-          <Link href="/" className="auth-back-link">
+          <button
+            className="auth-back-link"
+            onClick={() => {
+              if (typeof window !== "undefined" && window.history.length > 1) {
+                router.back();
+              } else {
+                router.push("/");
+              }
+            }}
+            type="button"
+          >
             Back
-          </Link>
+          </button>
         </nav>
 
         <section className="flex flex-1 flex-col justify-center gap-8 py-10">
@@ -289,6 +302,9 @@ export default function ItemResultPage() {
                     >
                       {item.savedToWardrobe ? "Saved" : "Save to wardrobe"}
                     </PrimaryAction>
+                    {item.savedToWardrobe ? (
+                      <PrimaryLink href="/wardrobe">View wardrobe</PrimaryLink>
+                    ) : null}
                     <button
                       className={DISCARD_BUTTON_CLASS}
                       onClick={() => router.push("/")}
