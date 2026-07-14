@@ -184,7 +184,7 @@ Each requirement includes acceptance criteria — the bar for "this is done," no
 - Replace the preference questionnaire with swipe-based onboarding that builds a learned style embedding.
 - Replace rule-based verdicts with embedding-based similarity scoring between item and user profile (would introduce a vector store, e.g., via the `pgvector` Postgres extension).
 - Replace zero-shot classification with a fine-tuned classifier (e.g., trained on DeepFashion2 or Fashionpedia) to support pattern and formality detection.
-- Replace the fixed pairing dataset with retrieval-based suggestions using similarity search over a larger outfit dataset.
+- Replace the fixed pairing dataset with retrieval-based suggestions using similarity search over a larger outfit dataset. Richer presentation to pair with this: show the actual recommended colors as named swatches (reusing the color-chip pattern from the preferences questionnaire), not just prose text, and compose full multi-piece outfit suggestions (e.g. "this top + these shoes + this bottom") rather than a single one-line pairing sentence. The current v1 `pairing_suggestions` table (36 hand-authored rows, one suggestion sentence per category/color) doesn't have the structure to support this — it would need a real schema rework, not just a UI change, once retrieval-based lookup replaces the fixed seed dataset.
 - Expand wardrobe features toward full closet management and outfit visualization.
 - Add social features (sharing, following other users' style profiles).
 - Native mobile app.
