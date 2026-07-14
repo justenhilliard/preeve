@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ApiRequestError, useAuthenticatedApi } from "../../apiClient";
-import { PrimaryAction } from "../../preferences/components";
+import { formatOptionLabel, PrimaryAction } from "../../preferences/components";
 
 type Verdict = "buy" | "maybe" | "skip";
 
@@ -17,6 +17,10 @@ type PairingSuggestion = {
 
 type ScannedItemResponse = {
   classificationFailed?: boolean;
+  correctedCategory: string | null;
+  correctedColor: string | null;
+  detectedCategory: string | null;
+  detectedColor: string | null;
   id: string;
   pairingSuggestions: PairingSuggestion[];
   photoUrl: string;
@@ -24,6 +28,13 @@ type ScannedItemResponse = {
   savedToWardrobe: boolean;
   verdict: Verdict | null;
 };
+
+function getEffectiveAttribute(
+  correctedValue: string | null,
+  detectedValue: string | null,
+) {
+  return correctedValue ?? detectedValue;
+}
 
 type SaveItemResponse = {
   id: string;
@@ -232,7 +243,26 @@ export default function ItemResultPage() {
               <section className={RESULT_PANEL_CLASS}>
                 <div className="flex h-full flex-col justify-between gap-8">
                   <div className="space-y-6">
-                    <h1 className={RESULT_HEADING_CLASS}>Your Analysis</h1>
+                    <div className="space-y-2">
+                      <h1 className={RESULT_HEADING_CLASS}>Your Analysis</h1>
+                      {(() => {
+                        const effectiveCategory = getEffectiveAttribute(
+                          item.correctedCategory,
+                          item.detectedCategory,
+                        );
+                        const effectiveColor = getEffectiveAttribute(
+                          item.correctedColor,
+                          item.detectedColor,
+                        );
+
+                        return effectiveCategory && effectiveColor ? (
+                          <p className="font-sans text-base font-semibold text-[#4A413C]">
+                            {formatOptionLabel(effectiveColor)}{" "}
+                            {formatOptionLabel(effectiveCategory)}
+                          </p>
+                        ) : null;
+                      })()}
+                    </div>
 
                     <div className="flex items-center gap-3">
                       <span className={SECTION_LABEL_CLASS}>Verdict</span>
