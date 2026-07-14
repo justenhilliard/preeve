@@ -1,6 +1,7 @@
 import asyncio
 import os
 import uuid
+from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from typing import Any
 
@@ -16,7 +17,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from svix.webhooks import Webhook, WebhookVerificationError
 
 from auth import ApiError, format_timestamp, get_current_user
-from clip_classifier import InferenceUnavailableError, classify_image_bytes
+from clip_classifier import (
+    InferenceUnavailableError,
+    classify_image_bytes,
+    get_label_embeddings,
+)
 from database import get_async_session
 from image_processing import compress_image, validate_upload_metadata
 from models import CATEGORY_VALUES, Preference, ScannedItem, User
@@ -69,7 +74,27 @@ def get_cors_allowed_origins() -> list[str]:
     return [origin.strip() for origin in raw_origins.split(",") if origin.strip()]
 
 
-app = FastAPI(title="Preeve API")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Pre-embed CLIP category/color labels before accepting requests.
+
+    get_label_embeddings() caches its result in-process for the rest of the
+    server's lifetime, but embedding all 23 labels sequentially the first
+    time takes 20-30+ seconds. Warming it here means that cost is paid once
+    at boot, not on whichever user's request happens to hit the server first.
+    """
+    try:
+        await asyncio.to_thread(get_label_embeddings)
+    except InferenceUnavailableError:
+        # Replicate unreachable at boot (e.g. missing token locally). Don't
+        # block startup on it — classify_image_bytes will retry the lazy
+        # path on the first real scan request instead.
+        pass
+
+    yield
+
+
+app = FastAPI(title="Preeve API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
