@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useAuthenticatedApi } from "../apiClient";
+import { FavoriteHeart, HEART_PATH } from "../favoriteHeart";
 import { formatOptionLabel, PrimaryLink } from "../preferences/components";
 
 type Verdict = "buy" | "maybe" | "skip";
@@ -81,10 +82,6 @@ const VERDICT_STYLES: Record<Verdict, string> = {
   maybe: "bg-[#C9A66B] text-[#FAF9F8]",
   skip: "bg-[#3E2E29] text-[#FAF9F8]",
 };
-const HEART_PATH =
-  "M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 " +
-  "7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z";
-
 function WardrobeTopBar() {
   return (
     <nav className={TOP_BAR_CLASS}>
@@ -130,25 +127,6 @@ function formatCategoryColor(item: WardrobeItem) {
   return `${formatOptionLabel(item.detectedColor)} ${formatOptionLabel(
     item.detectedCategory,
   )}`;
-}
-
-function FavoriteHeart({
-  isFavorited,
-}: Readonly<{ isFavorited: boolean }>) {
-  return (
-    <svg
-      aria-hidden="true"
-      className="h-5 w-5"
-      fill={isFavorited ? "#B8674A" : "none"}
-      stroke={isFavorited ? "#B8674A" : "#3E2E29"}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      viewBox="0 0 24 24"
-    >
-      <path d={HEART_PATH} />
-    </svg>
-  );
 }
 
 function WardrobeCard({
