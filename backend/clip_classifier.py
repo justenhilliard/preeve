@@ -23,13 +23,27 @@ RETRY_PAUSE_SECONDS = 2.0
 
 
 # These prompts intentionally match backend/scripts/clip_validation_spike.py
-# verbatim. The confidence/margin thresholds below were derived from that
-# spike's observed score distribution — reworded prompts shift the actual
-# similarity scores, which would silently invalidate the calibration.
+# verbatim, EXCEPT `dress`, tuned deliberately below. The confidence/margin
+# thresholds were derived from the spike's observed score distribution —
+# reworded prompts shift similarity scores, which would silently invalidate
+# the calibration if changed casually. `dress` is the one documented
+# exception: real usage reproduced the spike's own flagged failure mode
+# (tank1.jpeg, a sleeveless top, scored dress=0.2468 vs. top=0.2276, a narrow
+# 0.0193 margin). Making the prompt explicitly contrastive against separates
+# only nudged this to dress=0.2444 (margin 0.0169) — still wrong. This is a
+# real representational overlap between sleeveless tops and dresses in
+# CLIP's embedding space, not something prompt wording alone reliably fixes.
+# Accepted as a known v1 limitation — the manual correction screen exists
+# for exactly this case. Don't sink further time into prompt-tuning this;
+# a fine-tuned classifier (PRD Future Work) is the real fix if it matters
+# enough later.
 CATEGORY_PROMPTS = {
     "top": "a photo of a top clothing item, shirt, sweater, tank, or polo",
     "bottom": "a photo of a bottom clothing item, jeans, shorts, skirt, or pants",
-    "dress": "a photo of a dress clothing item",
+    "dress": (
+        "a photo of a one-piece dress that covers the torso and legs in a "
+        "single garment, not a separate top, tank, or camisole"
+    ),
     "outerwear": "a photo of outerwear, jacket, coat, blazer, or hoodie",
     "shoes": "a photo of shoes, sneakers, boots, loafers, or sandals",
     "accessory": "a photo of a fashion accessory, hat, jewelry, bag, or sunglasses",
