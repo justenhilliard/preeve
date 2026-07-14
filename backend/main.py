@@ -3,10 +3,10 @@ import os
 import uuid
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, Literal
 
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, File, Request, UploadFile, status
+from fastapi import Depends, FastAPI, File, Query, Request, UploadFile, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -177,6 +177,15 @@ class ItemCorrectionRequest(BaseModel):
             )
 
         return self
+
+
+class FavoriteItemRequest(BaseModel):
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        populate_by_name=True,
+    )
+
+    is_favorited: bool
 
 
 def validate_taxonomy_value(
@@ -480,6 +489,21 @@ def format_scanned_item(
     return response
 
 
+async def format_wardrobe_item(scanned_item: ScannedItem) -> dict[str, str | bool | None]:
+    """Convert a saved scanned item row into the wardrobe list shape."""
+    photo_url = await asyncio.to_thread(generate_photo_url, scanned_item.photo_key)
+    return {
+        "id": str(scanned_item.id),
+        "photoUrl": photo_url,
+        "detectedCategory": scanned_item.corrected_category
+        or scanned_item.detected_category,
+        "detectedColor": scanned_item.corrected_color or scanned_item.detected_color,
+        "verdict": scanned_item.verdict,
+        "isFavorited": scanned_item.is_favorited,
+        "createdAt": format_timestamp(scanned_item.created_at),
+    }
+
+
 async def apply_verdict_to_item(
     session: AsyncSession,
     current_user: User,
@@ -545,6 +569,40 @@ async def get_user_scanned_item(
         )
 
     return scanned_item
+
+
+@app.get("/api/items")
+async def get_items(
+    verdict: Literal["buy", "maybe", "skip"] | None = None,
+    favorited: Literal["true"] | None = Query(default=None),
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_async_session),
+) -> dict[str, list[dict[str, str | bool | None]]]:
+    """Return saved wardrobe items scoped to the current user."""
+    statement = (
+        select(ScannedItem)
+        .where(
+            ScannedItem.user_id == current_user.id,
+            ScannedItem.saved_to_wardrobe.is_(True),
+        )
+        .order_by(ScannedItem.created_at.desc())
+    )
+
+    if verdict is not None:
+        statement = statement.where(ScannedItem.verdict == verdict)
+
+    if favorited == "true":
+        statement = statement.where(ScannedItem.is_favorited.is_(True))
+
+    result = await session.execute(statement)
+    scanned_items = result.scalars().all()
+
+    return {
+        "items": [
+            await format_wardrobe_item(scanned_item)
+            for scanned_item in scanned_items
+        ],
+    }
 
 
 @app.get("/api/items/{item_id}")
@@ -648,6 +706,26 @@ async def patch_item_save(
     return {
         "id": str(scanned_item.id),
         "savedToWardrobe": scanned_item.saved_to_wardrobe,
+    }
+
+
+@app.patch("/api/items/{item_id}/favorite")
+async def patch_item_favorite(
+    item_id: uuid.UUID,
+    favorite_request: FavoriteItemRequest,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_async_session),
+) -> dict[str, str | bool]:
+    """Persist favorite status for one item scoped to the current user."""
+    scanned_item = await get_user_scanned_item(session, current_user, item_id)
+    scanned_item.is_favorited = favorite_request.is_favorited
+
+    await session.commit()
+    await session.refresh(scanned_item)
+
+    return {
+        "id": str(scanned_item.id),
+        "isFavorited": scanned_item.is_favorited,
     }
 
 
