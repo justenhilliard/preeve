@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import math
 import os
@@ -9,7 +10,9 @@ from dataclasses import dataclass
 from threading import Lock
 from urllib import error, request
 
+from auth import ApiError
 from models import CATEGORY_VALUES, COLOR_VALUES
+from object_storage import download_json_object, upload_json_object
 
 REPLICATE_MODEL = "openai/clip"
 REPLICATE_PREDICTIONS_URL = "https://api.replicate.com/v1/predictions"
@@ -181,6 +184,87 @@ def embed_labels(token: str, prompts: dict[str, str]) -> dict[str, list[float]]:
     }
 
 
+def get_label_embedding_cache_key() -> str:
+    """Derive the persistent label embedding cache key from prompt content."""
+    prompt_payload = {
+        "category": CATEGORY_PROMPTS,
+        "color": COLOR_PROMPTS,
+    }
+    serialized_prompts = json.dumps(
+        prompt_payload,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    prompt_hash = hashlib.sha256(serialized_prompts.encode("utf-8")).hexdigest()[:16]
+    return f"system/clip-label-embeddings-{prompt_hash}.json"
+
+
+def normalize_cached_embedding_group(
+    payload: object,
+    expected_labels: tuple[str, ...],
+) -> dict[str, list[float]] | None:
+    """Validate and normalize one cached embedding group."""
+    if not isinstance(payload, dict):
+        return None
+
+    normalized_group: dict[str, list[float]] = {}
+    for label in expected_labels:
+        embedding = payload.get(label)
+        if not isinstance(embedding, list):
+            return None
+
+        try:
+            normalized_group[label] = [float(value) for value in embedding]
+        except (TypeError, ValueError):
+            return None
+
+    return normalized_group
+
+
+def normalize_cached_label_embeddings(
+    payload: dict[str, object] | None,
+) -> dict[str, dict[str, list[float]]] | None:
+    """Validate and normalize the persisted label embedding cache payload."""
+    if payload is None:
+        return None
+
+    category_embeddings = normalize_cached_embedding_group(
+        payload.get("category"),
+        CATEGORY_VALUES,
+    )
+    color_embeddings = normalize_cached_embedding_group(
+        payload.get("color"),
+        COLOR_VALUES,
+    )
+    if category_embeddings is None or color_embeddings is None:
+        return None
+
+    return {
+        "category": category_embeddings,
+        "color": color_embeddings,
+    }
+
+
+def download_cached_label_embeddings() -> dict[str, dict[str, list[float]]] | None:
+    """Read label embeddings from R2, treating storage errors as cache misses."""
+    try:
+        cached_payload = download_json_object(get_label_embedding_cache_key())
+    except ApiError:
+        return None
+
+    return normalize_cached_label_embeddings(cached_payload)
+
+
+def upload_cached_label_embeddings(
+    label_embeddings: dict[str, dict[str, list[float]]],
+) -> None:
+    """Persist label embeddings to R2 without blocking classification on failure."""
+    try:
+        upload_json_object(get_label_embedding_cache_key(), label_embeddings)
+    except ApiError:
+        return
+
+
 def get_label_embeddings() -> dict[str, dict[str, list[float]]]:
     """Return cached category and color label embeddings."""
     global _label_embeddings
@@ -190,6 +274,11 @@ def get_label_embeddings() -> dict[str, dict[str, list[float]]]:
 
     with _label_embeddings_lock:
         if _label_embeddings is None:
+            cached_label_embeddings = download_cached_label_embeddings()
+            if cached_label_embeddings is not None:
+                _label_embeddings = cached_label_embeddings
+                return _label_embeddings
+
             token = get_replicate_token()
             _label_embeddings = {
                 "category": embed_labels(
@@ -201,6 +290,7 @@ def get_label_embeddings() -> dict[str, dict[str, list[float]]]:
                     {label: COLOR_PROMPTS[label] for label in COLOR_VALUES},
                 ),
             }
+            upload_cached_label_embeddings(_label_embeddings)
 
     return _label_embeddings
 
