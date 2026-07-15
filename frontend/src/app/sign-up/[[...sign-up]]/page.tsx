@@ -1,9 +1,15 @@
+"use client";
+
 import { SignUp } from "@clerk/nextjs";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 import { authAppearance } from "../../authAppearance";
 
 export default function SignUpPage() {
+  const searchParams = useSearchParams();
+  const email = searchParams.get("email") ?? undefined;
+
   return (
     <main className="min-h-screen bg-[#FAF9F8] px-6 py-8 text-[#3E2E29]">
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-md flex-col">
@@ -23,6 +29,7 @@ export default function SignUpPage() {
 
           <SignUp
             appearance={authAppearance}
+            initialValues={email ? { emailAddress: email } : undefined}
             path="/sign-up"
             routing="path"
           />
