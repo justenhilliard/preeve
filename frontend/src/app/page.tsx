@@ -242,6 +242,44 @@ function EmailSignupForm({ compact = false }: Readonly<{ compact?: boolean }>) {
   );
 }
 
+function FaqItem({ item }: Readonly<{ item: (typeof FAQ_ITEMS)[number] }>) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <article className={LANDING_CARD_CLASS}>
+      <button
+        aria-expanded={isOpen}
+        className="flex w-full items-center justify-between gap-4 text-left"
+        onClick={() => setIsOpen((currentValue) => !currentValue)}
+        type="button"
+      >
+        <h3 className="font-sans text-base font-semibold text-[#3E2E29]">
+          {item.question}
+        </h3>
+        <svg
+          aria-hidden="true"
+          className={`h-4 w-4 shrink-0 text-[#4A413C] transition-transform ${
+            isOpen ? "rotate-180" : ""
+          }`}
+          fill="none"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+      {isOpen ? (
+        <p className="mt-3 text-base leading-7 text-[#4A413C]">
+          {item.answer}
+        </p>
+      ) : null}
+    </article>
+  );
+}
+
 function LandingPreview() {
   return (
     <div className={LANDING_PREVIEW_CLASS}>
@@ -332,18 +370,11 @@ function LandingPage() {
 
       <section className={`${LANDING_SECTION_CLASS} py-16`}>
         <h2 className="mb-8 font-serif text-5xl font-semibold tracking-normal text-[#3E2E29]">
-          FAQ
+          Frequently Asked Questions
         </h2>
         <div className="grid gap-4 md:grid-cols-2">
           {FAQ_ITEMS.map((item) => (
-            <article className={LANDING_CARD_CLASS} key={item.question}>
-              <h3 className="font-sans text-base font-semibold text-[#3E2E29]">
-                {item.question}
-              </h3>
-              <p className="mt-3 text-base leading-7 text-[#4A413C]">
-                {item.answer}
-              </p>
-            </article>
+            <FaqItem item={item} key={item.question} />
           ))}
         </div>
       </section>
