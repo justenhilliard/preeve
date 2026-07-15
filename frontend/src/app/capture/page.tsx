@@ -264,7 +264,8 @@ export default function CapturePage() {
 
   if (isSubmitting && previewUrl) {
     return (
-      <main className="min-h-screen bg-background px-6 py-8 text-foreground">
+      <main className="relative min-h-screen bg-background px-6 py-8 text-foreground">
+        <div aria-hidden="true" className="grain-overlay" />
         <section className={PROCESSING_SECTION_CLASS}>
           <div className={PREVIEW_FRAME_CLASS}>
             <div className="relative aspect-[3/4] w-full">
@@ -291,7 +292,8 @@ export default function CapturePage() {
   }
 
   return (
-    <main className="min-h-screen bg-background px-6 py-8 text-foreground">
+    <main className="relative min-h-screen bg-background px-6 py-8 text-foreground">
+      <div aria-hidden="true" className="grain-overlay" />
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-3xl flex-col">
         <nav>
           <Link href="/" className="auth-back-link">
