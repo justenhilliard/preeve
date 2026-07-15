@@ -281,7 +281,7 @@ export default function ItemResultPage() {
       await authenticatedApi<void>(`/api/items/${itemId}`, {
         method: "DELETE",
       });
-      router.push("/");
+      router.push(item?.savedToWardrobe ? "/wardrobe" : "/");
     } catch (error) {
       const message =
         error instanceof Error
