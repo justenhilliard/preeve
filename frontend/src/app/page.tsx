@@ -372,7 +372,7 @@ function LandingPage() {
         <h2 className="mb-8 font-serif text-5xl font-semibold tracking-normal text-[#3E2E29]">
           Frequently Asked Questions
         </h2>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="mx-auto flex max-w-2xl flex-col gap-4">
           {FAQ_ITEMS.map((item) => (
             <FaqItem item={item} key={item.question} />
           ))}
