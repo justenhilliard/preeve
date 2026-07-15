@@ -122,8 +122,7 @@ const CTA_BANNER_CLASS =
   "rounded-2xl border border-[#4A413C]/15 bg-[#D8D3CC]/45 p-8 " +
   "shadow-[0_24px_70px_rgba(62,46,41,0.10)]";
 const FOOTER_LAYOUT_CLASS =
-  "flex flex-col gap-6 border-t border-[#4A413C]/15 pt-8 sm:flex-row " +
-  "sm:items-end sm:justify-between";
+  "flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between";
 const LOADING_HOME_CLASS =
   "mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-5xl items-center " +
   "justify-center";
@@ -204,7 +203,8 @@ function EmptyStateCard() {
 
 function HomeDashboard() {
   return (
-    <main className="min-h-screen bg-background px-6 py-8 text-foreground">
+    <main className="relative min-h-screen bg-background px-6 py-8 text-foreground">
+      <div aria-hidden="true" className="grain-overlay" />
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-5xl flex-col gap-10">
         <HomeTopBar />
 
@@ -586,7 +586,7 @@ function LandingPage() {
               fill="none"
               stroke="#8A9A7B"
               strokeLinecap="round"
-              strokeWidth={5}
+              strokeWidth={9}
             />
           </svg>
         </div>
@@ -666,7 +666,7 @@ function LandingPage() {
         <div className="mx-auto flex max-w-2xl flex-col items-center gap-5">
           <svg
             aria-hidden="true"
-            className="h-9 w-9 text-[#B8674A]"
+            className="h-9 w-9 text-[#8A9A7B]"
             fill="none"
             stroke="currentColor"
             strokeLinecap="round"
@@ -680,7 +680,7 @@ function LandingPage() {
           <p
             className={
               "font-sans text-sm font-semibold uppercase " +
-              "tracking-[0.28em] text-[#B8674A]"
+              "tracking-[0.28em] text-[#8A9A7B]"
             }
           >
             Privacy
@@ -725,35 +725,45 @@ function LandingPage() {
         </div>
       </section>
 
-      <footer className={`${LANDING_SECTION_CLASS} py-10`}>
-        <div className={FOOTER_LAYOUT_CLASS}>
-          <div className="space-y-2">
-            <p className="font-serif text-4xl font-semibold tracking-normal text-[#3E2E29]">
-              Preeve
-            </p>
-            <p className="text-base text-[#4A413C]">
-              A pause before every purchase.
-            </p>
-            <p className="font-sans text-sm text-[#4A413C]">
-              {currentYear} Preeve
-            </p>
-          </div>
+      <footer className="bg-[#3E2E29] py-14">
+        <div className={LANDING_SECTION_CLASS}>
+          <div className={FOOTER_LAYOUT_CLASS}>
+            <div className="space-y-2">
+              <p className="font-serif text-4xl font-semibold tracking-normal text-[#FAF9F8]">
+                Preeve
+              </p>
+              <p className="text-base text-[#D8D3CC]">
+                A pause before every purchase.
+              </p>
+              <p className="font-sans text-sm text-[#D8D3CC]/70">
+                {currentYear} Preeve
+              </p>
+            </div>
 
-          <div className="flex gap-4 font-sans text-sm font-semibold">
-            <a
-              className="text-[#4A413C] transition hover:text-[#3E2E29]"
-              href="https://github.com/justenhilliard/preeve"
-              rel="noreferrer"
-              target="_blank"
-            >
-              GitHub
-            </a>
-            <a
-              className="text-[#4A413C] transition hover:text-[#3E2E29]"
-              href="mailto:justenkhilliard@gmail.com"
-            >
-              Contact
-            </a>
+            <div className="flex gap-4 font-sans text-sm font-semibold">
+              <a
+                className="text-[#D8D3CC] transition hover:text-[#B8674A]"
+                href="https://github.com/justenhilliard"
+                rel="noreferrer"
+                target="_blank"
+              >
+                GitHub
+              </a>
+              <a
+                className="text-[#D8D3CC] transition hover:text-[#B8674A]"
+                href="https://www.linkedin.com/in/justen-hilliard"
+                rel="noreferrer"
+                target="_blank"
+              >
+                LinkedIn
+              </a>
+              <a
+                className="text-[#D8D3CC] transition hover:text-[#B8674A]"
+                href="mailto:justenkhilliard@gmail.com"
+              >
+                Contact
+              </a>
+            </div>
           </div>
         </div>
       </footer>

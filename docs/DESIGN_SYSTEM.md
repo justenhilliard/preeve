@@ -1,6 +1,6 @@
 # Preeve — Design System
 
-**Status:** v1.1 — Locked visual direction: elegant / editorial, warm-neutral palette (revised from v1.0 — the original palette leaned rose/blush, which read as feminine-coded against a target audience that isn't gender-specific per `docs/prd.md` Section 3. Swapped the two pink-leaning tones for warm neutrals; everything else — typography, shape language, badge logic — is unchanged).
+**Status:** v1.3 — Locked visual direction: elegant / editorial, warm-neutral palette (revised from v1.0 — the original palette leaned rose/blush, which read as feminine-coded against a target audience that isn't gender-specific per `docs/prd.md` Section 3. Swapped the two pink-leaning tones for warm neutrals; everything else — typography, shape language, badge logic — is unchanged). v1.3 narrows the Shape & Spacing correction made in v1.2: the clipped top-right corner is exclusive to the landing page's own CTA buttons (`Hero`/`CTABanner` "Preeve it", and the landing nav's "Sign in" button) — a one-time flourish a first-time visitor sees, not a general button style. Applying it to the shared `PrimaryAction`/`PrimaryLink` component and Clerk's auth button (tried in a later pass) made it read as the default button shape everywhere instead of a signature accent, so it was reverted there. Those stay plain rounded rectangles.
 
 ---
 
@@ -53,9 +53,9 @@ Rule of thumb: if it's a headline or the logo, Cormorant Garamond. If it's somet
 
 ## Shape & Spacing
 
-Reversing the earlier sharp/clipped-corner direction — that belonged to the streetwear exploration and fights this palette.
+Soft and rounded is the base language — cards, inputs, badges, and buttons should never feel sharp. The one deliberate exception is the landing page's own CTA buttons (`Button/Primary-CTA`: the hero and CTA-banner "Preeve it" buttons, plus the landing nav's "Sign in" button): these carry a clipped top-right corner as a one-time signature accent, since a first-time visitor only sees them once before signing up. It does not extend to the shared `PrimaryAction`/`PrimaryLink` component used throughout the authenticated app, or to Clerk's auth form button — those are seen repeatedly during normal use, and the clip read as the default button shape rather than a flourish when tried there. Both stay plain rounded rectangles.
 
-- **Corner radius:** soft and rounded throughout. Buttons and inputs `12px`, cards `16px`, badges/pills fully rounded (`9999px`). No clipped corners, no sharp edges anywhere.
+- **Corner radius:** soft and rounded for cards (`16px`), inputs (`12px`), badges/pills (fully rounded, `9999px`), and buttons (`12px`) everywhere except the landing page's own CTA buttons, which keep the clipped top-right corner described above.
 - **Borders:** thin (`1px`), `color-charcoal` at low opacity rather than heavy strokes — let color and spacing do the work, not bold outlines.
 - **Whitespace:** generous. Editorial/boutique aesthetics read as premium partly through restraint — don't crowd elements. Prefer more padding over more content density.
 - **Imagery:** warm, soft-lit photography (coffee/vintage-clothing-rack style references — drop any floral/rose imagery from the moodboard going forward, it's the other half of the gendered signal the palette just moved away from) — avoid harsh flash-lit or clinical product photos when real item photos start populating the wardrobe log; this is a note for future photography choices, not something enforceable in code.

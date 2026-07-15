@@ -32,9 +32,10 @@ type PrimaryLinkProps = Readonly<{
 
 const PRIMARY_ACTION_CLASS =
   "rounded-xl bg-[#B8674A] px-6 py-3 font-sans text-sm font-semibold " +
-  "text-[#FAF9F8] transition hover:bg-[#a95c42]";
+  "text-[#FAF9F8] transition-[background-color,transform] duration-[160ms] " +
+  "ease-[var(--ease-out)] hover:bg-[#a95c42] active:scale-[0.97]";
 const DISABLED_PRIMARY_ACTION_CLASS =
-  "disabled:cursor-not-allowed disabled:opacity-60";
+  "disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100";
 const OPTION_BUTTON_BASE_CLASS =
   "flex items-center justify-between gap-3 rounded-xl border-2 " +
   "border-[#4A413C]/15 bg-[#FAF9F8] px-4 py-3 font-sans text-sm " +
@@ -44,6 +45,9 @@ const COLOR_SWATCH_BASE_CLASS =
   "relative flex h-16 w-16 items-center justify-center rounded-full border " +
   "border-[#4A413C]/20 shadow-[0_3px_8px_rgba(62,46,41,0.22)] " +
   "outline outline-[3px] outline-offset-[3px] transition";
+const LOADING_SPINNER_CLASS =
+  "h-9 w-9 animate-spin rounded-full border-[3px] border-[#4A413C]/15 " +
+  "border-t-[#B8674A]";
 
 export function StepShell({
   backHref,
@@ -55,7 +59,8 @@ export function StepShell({
   title,
 }: StepShellProps) {
   return (
-    <main className="min-h-screen bg-background px-6 py-8 text-foreground">
+    <main className="relative min-h-screen bg-background px-6 py-8 text-foreground">
+      <div aria-hidden="true" className="grain-overlay" />
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-3xl flex-col">
         <nav className="flex items-start justify-between gap-4">
           <Link href={backHref} className="auth-back-link">
@@ -106,7 +111,7 @@ export function StepShell({
 function LoadingSpinner() {
   return (
     <div className="flex flex-col items-center gap-3 py-10" role="status">
-      <span className="h-9 w-9 animate-spin rounded-full border-[3px] border-[#4A413C]/15 border-t-[#B8674A]" />
+      <span className={LOADING_SPINNER_CLASS} />
       <span className="sr-only">Loading your preferences...</span>
     </div>
   );
