@@ -1,9 +1,10 @@
 "use client";
 
 import { useAuth, useUser } from "@clerk/nextjs";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { PrimaryLink } from "./preferences/components";
 
 const NAV_ITEMS = [
@@ -13,18 +14,35 @@ const NAV_ITEMS = [
   { href: "/settings", label: "Settings" },
 ];
 
+const LANDING_NAV_LINKS = [
+  { href: "#why-preeve", label: "Why Preeve" },
+  { href: "#how-it-works", label: "How Preeve works" },
+  { href: "#privacy", label: "Privacy" },
+  { href: "#faq", label: "FAQ" },
+];
+
 const HOW_IT_WORKS_STEPS = [
   {
     title: "Scan",
-    copy: "Snap or upload the piece while you are still deciding.",
+    copy:
+      "Snap a photo of the piece while you're still deciding, right in the " +
+      "store or from a listing you're considering. Preeve reads the image " +
+      "and identifies the category and color for you.",
   },
   {
     title: "Verdict",
-    copy: "Get a Buy, Maybe, or Skip based on your saved preferences.",
+    copy:
+      "Preeve compares the item against the wardrobe and style preferences " +
+      "you saved, then returns a clear Buy, Maybe, or Skip with the " +
+      "reasoning behind it. If something looks off, you can correct the " +
+      "details and get an updated verdict.",
   },
   {
     title: "Pairing",
-    copy: "See a simple styling idea when Preeve has a matching suggestion.",
+    copy:
+      "When there's a good match already in your wardrobe log, Preeve " +
+      "suggests how to pair the new piece with something you already own, " +
+      "so you can picture the outfit before you commit to buying.",
   },
 ];
 
@@ -77,31 +95,29 @@ const EMPTY_STATE_CARD_CLASS =
   "shadow-[0_24px_70px_rgba(62,46,41,0.10)]";
 const LANDING_SECTION_CLASS =
   "mx-auto w-full max-w-5xl px-6";
+const LANDING_BAND_CLASS =
+  "scroll-mt-28 border-y border-[#4A413C]/10 bg-[#D8D3CC]/30 py-24";
 const LANDING_NAV_CLASS =
   "mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-6";
 const LANDING_CTA_BUTTON_CLASS =
   "rounded-xl bg-[#B8674A] px-6 py-3 font-sans text-sm font-semibold " +
-  "text-[#FAF9F8] transition hover:bg-[#a95c42]";
+  "text-[#FAF9F8] transition-[background-color,transform] duration-[160ms] " +
+  "ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-[#a95c42] active:scale-[0.97]";
 const CLIPPED_CTA_CLASS =
   LANDING_CTA_BUTTON_CLASS + " [clip-path:polygon(0_0,calc(100%-14px)_0," +
   "100%_14px,100%_100%,0_100%)]";
+const SIGN_IN_BUTTON_CLASS =
+  "rounded-xl bg-[#3E2E29] px-5 py-2.5 font-sans text-sm font-semibold " +
+  "text-[#FAF9F8] transition-[background-color,transform] duration-[160ms] " +
+  "ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-[#2f2320] active:scale-[0.97] " +
+  "[clip-path:polygon(0_0,calc(100%-10px)_0,100%_10px,100%_100%,0_100%)]";
 const EMAIL_INPUT_CLASS =
   "min-h-12 flex-1 rounded-xl border border-[#4A413C]/20 bg-[#FAF9F8] px-4 " +
   "font-sans text-sm text-[#3E2E29] outline-none transition " +
   "placeholder:text-[#4A413C]/65 focus:border-[#B8674A]";
-const LANDING_CARD_CLASS =
-  "rounded-2xl border border-[#4A413C]/15 bg-[#D8D3CC]/45 p-6 " +
-  "shadow-[0_18px_48px_rgba(62,46,41,0.08)]";
-const LANDING_PREVIEW_CLASS =
-  "relative min-h-[420px] overflow-hidden rounded-2xl border " +
-  "border-[#4A413C]/15 bg-[#D8D3CC]/45 p-6 " +
-  "shadow-[0_24px_70px_rgba(62,46,41,0.12)]";
-const LANDING_PREVIEW_WASH_CLASS =
-  "absolute inset-0 " +
-  "bg-[linear-gradient(135deg,rgba(250,249,248,0.9),rgba(216,211,204,0.55))]";
 const HERO_HEADLINE_CLASS =
-  "max-w-3xl font-serif text-6xl font-semibold tracking-normal " +
-  "text-[#3E2E29] sm:text-7xl";
+  "font-serif text-6xl font-semibold leading-[1.05] tracking-normal " +
+  "text-[#FAF9F8] sm:text-7xl lg:text-8xl";
 const CTA_BANNER_CLASS =
   "rounded-2xl border border-[#4A413C]/15 bg-[#D8D3CC]/45 p-8 " +
   "shadow-[0_24px_70px_rgba(62,46,41,0.10)]";
@@ -246,10 +262,14 @@ function FaqItem({ item }: Readonly<{ item: (typeof FAQ_ITEMS)[number] }>) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <article className={LANDING_CARD_CLASS}>
+    <article className="border-b border-[#4A413C]/15 first:pt-0 last:border-b-0">
       <button
         aria-expanded={isOpen}
-        className="flex w-full items-center justify-between gap-4 text-left"
+        className={
+          "flex w-full items-center justify-between gap-4 px-3 py-5 " +
+          "text-left transition-colors duration-[200ms] " +
+          "ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-[#D8D3CC]/35"
+        }
         onClick={() => setIsOpen((currentValue) => !currentValue)}
         type="button"
       >
@@ -258,9 +278,10 @@ function FaqItem({ item }: Readonly<{ item: (typeof FAQ_ITEMS)[number] }>) {
         </h3>
         <svg
           aria-hidden="true"
-          className={`h-4 w-4 shrink-0 text-[#4A413C] transition-transform ${
-            isOpen ? "rotate-180" : ""
-          }`}
+          className={`h-4 w-4 shrink-0 text-[#4A413C] transition-transform ` +
+            `duration-[200ms] ease-[cubic-bezier(0.23,1,0.32,1)] ${
+              isOpen ? "rotate-180" : ""
+            }`}
           fill="none"
           stroke="currentColor"
           strokeLinecap="round"
@@ -271,41 +292,200 @@ function FaqItem({ item }: Readonly<{ item: (typeof FAQ_ITEMS)[number] }>) {
           <path d="M6 9l6 6 6-6" />
         </svg>
       </button>
-      {isOpen ? (
-        <p className="mt-3 text-base leading-7 text-[#4A413C]">
+      <div
+        className={`grid px-3 transition-[grid-template-rows] duration-[250ms] ` +
+          `ease-[cubic-bezier(0.23,1,0.32,1)] ${
+            isOpen ? "mb-5 grid-rows-[1fr]" : "grid-rows-[0fr]"
+          }`}
+      >
+        <p className="overflow-hidden text-base leading-7 text-[#4A413C]">
           {item.answer}
         </p>
-      ) : null}
+      </div>
     </article>
   );
 }
 
-function LandingPreview() {
+function ScanScreen() {
   return (
-    <div className={LANDING_PREVIEW_CLASS}>
-      <div className={LANDING_PREVIEW_WASH_CLASS} />
-      <div className="relative grid h-full gap-4">
-        <div className="overflow-hidden rounded-2xl border border-[#4A413C]/15 bg-[#FAF9F8]">
-          <div className="grid aspect-[4/3] grid-cols-[0.8fr_1.2fr]">
-            <div className="bg-[#8A9A7B]" />
-            <div className="grid grid-rows-[1.1fr_0.9fr]">
-              <div className="bg-[#3E2E29]" />
-              <div className="bg-[#C9A66B]" />
-            </div>
-          </div>
-        </div>
+    <>
+      <div
+        className={
+          "relative aspect-[3/4] w-full overflow-hidden rounded-2xl border " +
+          "border-[#4A413C]/15 bg-[#D8D3CC]/60"
+        }
+      >
+        <div
+          className={
+            "absolute inset-x-6 top-1/2 h-0.5 -translate-y-1/2 bg-[#B8674A]"
+          }
+        />
+      </div>
+      <p className="text-center font-sans text-sm font-semibold text-[#4A413C]">
+        Scanning your item...
+      </p>
+    </>
+  );
+}
 
-        <div className="rounded-2xl border border-[#4A413C]/15 bg-[#FAF9F8]/95 p-5">
-          <div className="mb-4 flex gap-2">
-            <span className={`${BADGE_CLASS} bg-[#8A9A7B]`}>Buy</span>
-            <span className={`${BADGE_CLASS} bg-[#C9A66B]`}>Maybe</span>
-            <span className={`${BADGE_CLASS} bg-[#3E2E29]`}>Skip</span>
-          </div>
-          <p className="text-base leading-7 text-[#4A413C]">
-            Navy works with your palette. Pair it with tan or white pieces for
-            an easy repeat outfit.
-          </p>
+function VerdictScreen() {
+  return (
+    <>
+      <div className="flex justify-center gap-2">
+        <span className={`${BADGE_CLASS} bg-[#8A9A7B]`}>Buy</span>
+        <span className={`${BADGE_CLASS} bg-[#C9A66B]/55 text-[#4A413C]`}>
+          Maybe
+        </span>
+        <span className={`${BADGE_CLASS} bg-[#3E2E29]/35 text-[#4A413C]`}>
+          Skip
+        </span>
+      </div>
+      <p className="text-center font-serif text-3xl font-semibold text-[#3E2E29]">
+        Buy
+      </p>
+      <p className="text-center text-sm leading-6 text-[#4A413C]">
+        Navy fits the palette you saved.
+      </p>
+    </>
+  );
+}
+
+function PairingScreen() {
+  return (
+    <div className="rounded-2xl border border-[#4A413C]/15 bg-[#FAF9F8] p-4">
+      <div className="mb-3 h-20 rounded-xl bg-[#D8D3CC]/70" />
+      <p className="text-sm leading-6 text-[#4A413C]">
+        Pair it with tan or white pieces for an easy repeat outfit.
+      </p>
+    </div>
+  );
+}
+
+const PHONE_SCREENS = [
+  { Screen: ScanScreen, key: "scan" },
+  { Screen: VerdictScreen, key: "verdict" },
+  { Screen: PairingScreen, key: "pairing" },
+];
+
+function PhoneMockup({ activeStep }: Readonly<{ activeStep: number }>) {
+  return (
+    <div className="order-first mx-auto w-full max-w-[280px] lg:order-none">
+      <div
+        className={
+          "relative overflow-hidden rounded-[2.5rem] border-[10px] " +
+          "border-[#3E2E29] bg-[#3E2E29] " +
+          "shadow-[0_32px_80px_rgba(62,46,41,0.25)]"
+        }
+      >
+        <div
+          className={
+            "absolute left-1/2 top-0 z-10 h-6 w-32 -translate-x-1/2 " +
+            "rounded-b-2xl bg-[#3E2E29]"
+          }
+        />
+        <div className="relative aspect-[9/19.5] overflow-hidden rounded-[2rem] bg-[#FAF9F8]">
+          {PHONE_SCREENS.map(({ Screen, key }, index) => (
+            <div
+              className={
+                "absolute inset-0 flex flex-col justify-center gap-4 p-6 " +
+                "transition-all duration-[420ms] ease-[cubic-bezier(0.23,1,0.32,1)] " +
+                (activeStep === index
+                  ? "translate-y-0 scale-100 opacity-100"
+                  : "translate-y-3 scale-95 opacity-0")
+              }
+              key={key}
+            >
+              <Screen />
+            </div>
+          ))}
         </div>
+      </div>
+
+      <div className="mt-6 flex justify-center gap-2">
+        {PHONE_SCREENS.map(({ key }, index) => (
+          <span
+            aria-hidden="true"
+            className={
+              "h-2 rounded-full transition-[width,background-color] " +
+              "duration-[300ms] ease-[cubic-bezier(0.23,1,0.32,1)] " +
+              (activeStep === index
+                ? "w-6 bg-[#B8674A]"
+                : "w-2 bg-[#4A413C]/20")
+            }
+            key={key}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function HowItWorksScroll() {
+  const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [activeStep, setActiveStep] = useState(0);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) {
+            return;
+          }
+
+          const index = Number(entry.target.getAttribute("data-step-index"));
+          setActiveStep(index);
+        });
+      },
+      { rootMargin: "-45% 0px -45% 0px", threshold: 0 },
+    );
+
+    const currentStepEls = stepRefs.current;
+    currentStepEls.forEach((stepEl) => {
+      if (stepEl) {
+        observer.observe(stepEl);
+      }
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div className="grid gap-16 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
+      <div className="flex flex-col gap-40 lg:py-32">
+        {HOW_IT_WORKS_STEPS.map((step, index) => (
+          <div
+            className={`transition-opacity duration-[300ms] ${
+              activeStep === index ? "opacity-100" : "opacity-40"
+            }`}
+            data-step-index={index}
+            key={step.title}
+            ref={(el) => {
+              stepRefs.current[index] = el;
+            }}
+          >
+            <div className="flex items-center gap-4">
+              <span
+                className={
+                  "flex h-12 w-12 shrink-0 items-center justify-center " +
+                  "rounded-full bg-[#B8674A] font-serif text-xl " +
+                  "font-semibold text-[#FAF9F8]"
+                }
+              >
+                {index + 1}
+              </span>
+              <h3 className="font-serif text-4xl font-semibold tracking-normal text-[#3E2E29]">
+                {step.title}
+              </h3>
+            </div>
+            <p className="mt-3 max-w-md text-lg leading-8 text-[#4A413C]">
+              {step.copy}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div className="lg:sticky lg:top-24 lg:self-start">
+        <PhoneMockup activeStep={activeStep} />
       </div>
     </div>
   );
@@ -315,71 +495,223 @@ function LandingPage() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <nav className={LANDING_NAV_CLASS}>
-        <Link
-          className="font-serif text-4xl font-semibold tracking-normal text-[#3E2E29]"
-          href="/"
-        >
-          Preeve
-        </Link>
-        <Link className="auth-back-link" href="/sign-in">
-          Sign in
-        </Link>
-      </nav>
+    <main className="relative min-h-screen bg-background text-foreground">
+      <div aria-hidden="true" className="grain-overlay" />
 
-      <section className={`${LANDING_SECTION_CLASS} pb-20 pt-12`}>
-        <div className="grid items-center gap-10 lg:grid-cols-[1fr_0.78fr]">
-          <div className="space-y-8">
-            <div className="space-y-5">
-              <h1 className={HERO_HEADLINE_CLASS}>Preeve it before you buy it.</h1>
-              <p className="max-w-xl text-xl leading-9 text-[#4A413C]">
-                Snap a pic, get the verdict, skip the regret.
-              </p>
-            </div>
-            <EmailSignupForm />
+      <div
+        className={
+          "sticky top-0 z-50 border-b border-[#4A413C]/10 " +
+          "bg-[#FAF9F8]/85 backdrop-blur-md"
+        }
+      >
+        <nav className={LANDING_NAV_CLASS}>
+          <Link
+            className="font-serif text-5xl font-semibold tracking-normal text-[#3E2E29]"
+            href="/"
+          >
+            Preeve
+          </Link>
+
+          <div className="hidden items-center gap-8 sm:flex">
+            {LANDING_NAV_LINKS.map((navLink) => (
+              <a
+                className={
+                  "font-sans text-sm font-semibold text-[#4A413C] " +
+                  "transition-colors duration-[160ms] hover:text-[#B8674A]"
+                }
+                href={navLink.href}
+                key={navLink.href}
+              >
+                {navLink.label}
+              </a>
+            ))}
           </div>
 
-          <LandingPreview />
+          <Link className={SIGN_IN_BUTTON_CLASS} href="/sign-in">
+            Sign in
+          </Link>
+        </nav>
+      </div>
+
+      <section
+        className={
+          "relative flex min-h-[calc(100dvh-6rem)] flex-col justify-center " +
+          "overflow-hidden py-12"
+        }
+      >
+        <div aria-hidden="true" className="absolute inset-0 z-0">
+          <Image
+            alt=""
+            className="object-cover object-center"
+            fill
+            priority
+            src="/preeveherobackground.png"
+          />
+          <div
+            className={
+              "absolute inset-0 bg-gradient-to-b from-[#241a16]/45 " +
+              "via-[#241a16]/60 to-[#241a16]/75"
+            }
+          />
+          <div
+            className={
+              "absolute inset-0 bg-[radial-gradient(ellipse_75%_60%_at_50%_48%," +
+              "rgba(20,14,12,0.55)_0%,rgba(20,14,12,0.3)_45%," +
+              "rgba(20,14,12,0.05)_75%,rgba(20,14,12,0)_100%)]"
+            }
+          />
+          <svg
+            aria-hidden="true"
+            className="absolute inset-x-0 bottom-0 h-16 w-full"
+            preserveAspectRatio="none"
+            viewBox="0 0 1440 100"
+          >
+            <path
+              d={
+                "M0,50 C120,20 240,80 360,50 C480,20 600,80 720,50 " +
+                "C840,20 960,80 1080,50 C1200,20 1320,80 1440,50 " +
+                "L1440,100 L0,100 Z"
+              }
+              fill="#FAF9F8"
+            />
+            <path
+              className={
+                "[filter:drop-shadow(0_10px_8px_rgba(36,26,22,0.6))_" +
+                "drop-shadow(0_24px_28px_rgba(36,26,22,0.4))]"
+              }
+              d={
+                "M0,50 C120,20 240,80 360,50 C480,20 600,80 720,50 " +
+                "C840,20 960,80 1080,50 C1200,20 1320,80 1440,50"
+              }
+              fill="none"
+              stroke="#8A9A7B"
+              strokeLinecap="round"
+              strokeWidth={5}
+            />
+          </svg>
+        </div>
+
+        <div
+          className={`${LANDING_SECTION_CLASS} relative z-10 flex flex-col items-center gap-10`}
+        >
+          <div className="flex max-w-2xl flex-col items-center gap-6 text-center">
+            <h1 className={`animate-fade-up ${HERO_HEADLINE_CLASS}`}>
+              Preeve it before you buy it.
+            </h1>
+            <p
+              className={
+                "animate-fade-up max-w-lg text-xl leading-9 " +
+                "text-[#FAF9F8]/85"
+              }
+              style={{ animationDelay: "90ms" }}
+            >
+              Ready to skip the regret? Enter your email to get started.
+            </p>
+            <div
+              className="animate-fade-up flex w-full justify-center"
+              style={{ animationDelay: "160ms" }}
+            >
+              <EmailSignupForm />
+            </div>
+          </div>
         </div>
       </section>
 
-      <section className={`${LANDING_SECTION_CLASS} py-16`}>
-        <div className="mb-8 space-y-3">
+      <section
+        className={
+          `${LANDING_SECTION_CLASS} scroll-mt-28 py-24 text-center`
+        }
+        id="why-preeve"
+      >
+        <div className="mx-auto flex max-w-2xl flex-col items-center gap-5">
+          <p
+            className={
+              "font-sans text-sm font-semibold uppercase " +
+              "tracking-[0.28em] text-[#B8674A]"
+            }
+          >
+            Why Preeve
+          </p>
           <h2 className="font-serif text-5xl font-semibold tracking-normal text-[#3E2E29]">
-            How it works
+            Built for the pause before you buy.
           </h2>
-        </div>
-
-        <div className="grid gap-5 md:grid-cols-3">
-          {HOW_IT_WORKS_STEPS.map((step, index) => (
-            <article className={LANDING_CARD_CLASS} key={step.title}>
-              <p className="mb-6 font-sans text-sm font-semibold text-[#4A413C]">
-                0{index + 1}
-              </p>
-              <h3 className="font-serif text-4xl font-semibold tracking-normal text-[#3E2E29]">
-                {step.title}
-              </h3>
-              <p className="mt-4 text-base leading-7 text-[#4A413C]">
-                {step.copy}
-              </p>
-            </article>
-          ))}
+          <p className="text-xl leading-9 text-[#4A413C]">
+            Impulse buys pile up fast: in a cart, in a fitting room, in a
+            closet you already forgot about. Preeve gives you one honest
+            look before a piece is yours, so you know it actually fits the
+            wardrobe you&apos;re building, not just the moment you&apos;re
+            standing in.
+          </p>
         </div>
       </section>
 
-      <section className={`${LANDING_SECTION_CLASS} py-16`}>
-        <h2 className="mb-8 font-serif text-5xl font-semibold tracking-normal text-[#3E2E29]">
-          Frequently Asked Questions
-        </h2>
-        <div className="mx-auto flex max-w-2xl flex-col gap-4">
-          {FAQ_ITEMS.map((item) => (
-            <FaqItem item={item} key={item.question} />
-          ))}
+      <section className={LANDING_BAND_CLASS} id="how-it-works">
+        <div className={LANDING_SECTION_CLASS}>
+          <div className="mb-4 space-y-3">
+            <h2 className="font-serif text-5xl font-semibold tracking-normal text-[#3E2E29]">
+              How Preeve works
+            </h2>
+          </div>
+
+          <HowItWorksScroll />
         </div>
       </section>
 
-      <section className={`${LANDING_SECTION_CLASS} py-16`}>
+      <section
+        className={
+          `${LANDING_SECTION_CLASS} scroll-mt-28 py-24 text-center`
+        }
+        id="privacy"
+      >
+        <div className="mx-auto flex max-w-2xl flex-col items-center gap-5">
+          <svg
+            aria-hidden="true"
+            className="h-9 w-9 text-[#B8674A]"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            viewBox="0 0 24 24"
+          >
+            <rect height="11" rx="2" width="16" x="4" y="10" />
+            <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+          </svg>
+          <p
+            className={
+              "font-sans text-sm font-semibold uppercase " +
+              "tracking-[0.28em] text-[#B8674A]"
+            }
+          >
+            Privacy
+          </p>
+          <h2 className="font-serif text-5xl font-semibold tracking-normal text-[#3E2E29]">
+            Your photos stay private, by design.
+          </h2>
+          <p className="text-xl leading-9 text-[#4A413C]">
+            Every photo you scan is stored in a private bucket that only
+            Preeve&apos;s backend can reach. When you need to see it again,
+            we generate a short-lived link just for you. There&apos;s no
+            public URL for any photo, ever, and nothing you scan is shared
+            with other users.
+          </p>
+        </div>
+      </section>
+
+      <section className={LANDING_BAND_CLASS} id="faq">
+        <div className={LANDING_SECTION_CLASS}>
+          <h2 className="mb-10 font-serif text-5xl font-semibold tracking-normal text-[#3E2E29]">
+            Frequently Asked Questions
+          </h2>
+          <div className="mx-auto flex max-w-2xl flex-col">
+            {FAQ_ITEMS.map((item) => (
+              <FaqItem item={item} key={item.question} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className={`${LANDING_SECTION_CLASS} py-24`}>
         <div className={CTA_BANNER_CLASS}>
           <div className="mx-auto flex max-w-2xl flex-col items-center gap-6 text-center">
             <h2 className="font-serif text-5xl font-semibold tracking-normal text-[#3E2E29]">
@@ -400,7 +732,7 @@ function LandingPage() {
               Preeve
             </p>
             <p className="text-base text-[#4A413C]">
-              Snap a pic, get the verdict, skip the regret.
+              A pause before every purchase.
             </p>
             <p className="font-sans text-sm text-[#4A413C]">
               {currentYear} Preeve

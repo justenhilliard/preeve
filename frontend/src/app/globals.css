@@ -3,6 +3,8 @@
 :root {
   --background: #faf9f8;
   --foreground: #3e2e29;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
 @theme inline {
@@ -16,6 +18,16 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-lato), ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 .auth-back-link {
@@ -62,4 +74,54 @@ body {
 
 .home-auth-link-primary:hover {
   background-color: #a95c42;
+}
+
+/* Entrance animation used on the landing page. Rare/first-time per-visit
+   motion (Emil Kowalski's frequency framework), kept short and eased out. */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 480ms var(--ease-out) both;
+}
+
+/* Reduced motion keeps the opacity fade (aids comprehension of what's
+   appearing) but drops the position movement entirely, per Emil Kowalski's
+   guidance that reduced motion means gentler animation, not zero. */
+@keyframes fade-in-only {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up {
+    animation: fade-in-only 200ms ease both;
+    animation-delay: 0ms !important;
+  }
+}
+
+/* Subtle linen/grain texture for the landing page. Fixed so it doesn't
+   scroll with content, low-opacity + overlay blend so it reads as paper
+   texture rather than visible noise, non-interactive. */
+.grain-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)'/%3E%3C/svg%3E");
+  pointer-events: none;
 }

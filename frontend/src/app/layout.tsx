@@ -26,7 +26,9 @@ const lato = Lato({
 
 export const metadata: Metadata = {
   title: "Preeve",
-  description: "Preeve web app scaffold",
+  description:
+    "Snap a photo of anything you're about to buy and get an instant " +
+    "Buy, Maybe, or Skip verdict based on your wardrobe and style.",
 };
 
 export default function RootLayout({
