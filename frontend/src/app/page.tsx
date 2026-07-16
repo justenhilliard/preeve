@@ -114,7 +114,7 @@ const TOP_BAR_CLASS =
   "flex flex-col gap-6 border-b border-[#4A413C]/15 pb-6 sm:flex-row " +
   "sm:items-center sm:justify-between";
 const EMPTY_STATE_CARD_CLASS =
-  "rounded-2xl border border-[#4A413C]/15 bg-[#D8D3CC]/45 p-8 " +
+  "rounded-2xl border border-[#4A413C]/15 bg-[#D8D3CC] p-8 " +
   "shadow-[0_24px_70px_rgba(62,46,41,0.10)]";
 const LANDING_SECTION_CLASS =
   "mx-auto w-full max-w-5xl px-6";
@@ -906,7 +906,7 @@ function LandingPage() {
             className="object-cover object-center"
             fill
             priority
-            src="/preeveherobackground.png"
+            src="/preeve-branding.png"
           />
           <div
             className={
