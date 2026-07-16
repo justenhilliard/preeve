@@ -25,6 +25,10 @@ type WardrobeItemsResponse = {
   items: WardrobeItem[];
 };
 
+type MeResponse = {
+  hasCompletedPreferences: boolean;
+};
+
 const NAV_ITEMS = [
   { href: "/", label: "Home" },
   { href: "/wardrobe", label: "Wardrobe" },
@@ -333,7 +337,12 @@ function HomeDashboard() {
     queryKey: ["homeWardrobeItems"],
     queryFn: () => authenticatedApi<WardrobeItemsResponse>("/api/items"),
   });
+  const meQuery = useQuery({
+    queryKey: ["homeMe"],
+    queryFn: () => authenticatedApi<MeResponse>("/api/users/me"),
+  });
   const recentItems = wardrobeQuery.data?.items.slice(0, 6) ?? [];
+  const needsPreferences = meQuery.data?.hasCompletedPreferences === false;
 
   return (
     <main className="relative min-h-screen bg-background px-6 py-8 text-foreground">
@@ -342,16 +351,30 @@ function HomeDashboard() {
         <HomeTopBar />
 
         <section className="flex flex-1 flex-col justify-center gap-10 py-8">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-            <div className="space-y-4">
-              <HomeGreeting />
-              <p className="max-w-2xl text-lg leading-8 text-[#4A413C]">
-                A quiet place to check whether a piece belongs with the style
-                you are building.
-              </p>
+          <div className="space-y-4">
+            <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+              <div className="space-y-4">
+                <HomeGreeting />
+                <p className="max-w-2xl text-lg leading-8 text-[#4A413C]">
+                  A quiet place to check whether a piece belongs with the
+                  style you are building.
+                </p>
+              </div>
+
+              <PrimaryLink href="/capture">Scan item</PrimaryLink>
             </div>
 
-            <PrimaryLink href="/capture">Scan item</PrimaryLink>
+            {needsPreferences ? (
+              <Link
+                className={
+                  "inline-block font-sans text-sm font-semibold " +
+                  "text-[#B8674A] transition hover:text-[#a95c42]"
+                }
+                href="/preferences/colors"
+              >
+                Set your style preferences for personalized verdicts &rarr;
+              </Link>
+            ) : null}
           </div>
 
           {wardrobeQuery.isLoading ? (
