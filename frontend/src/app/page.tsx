@@ -1,11 +1,29 @@
 "use client";
 
 import { useAuth, useUser } from "@clerk/nextjs";
+import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useRef, useState } from "react";
-import { PrimaryLink } from "./preferences/components";
+import { useAuthenticatedApi } from "./apiClient";
+import { formatOptionLabel, PrimaryLink } from "./preferences/components";
+
+type Verdict = "buy" | "maybe" | "skip";
+
+type WardrobeItem = {
+  createdAt: string;
+  detectedCategory: string | null;
+  detectedColor: string | null;
+  id: string;
+  isFavorited: boolean;
+  photoUrl: string;
+  verdict: Verdict | null;
+};
+
+type WardrobeItemsResponse = {
+  items: WardrobeItem[];
+};
 
 const NAV_ITEMS = [
   { href: "/", label: "Home" },
@@ -128,6 +146,16 @@ const LOADING_HOME_CLASS =
   "justify-center";
 const BADGE_CLASS =
   "rounded-full px-4 py-2 font-sans text-sm font-semibold text-[#FAF9F8]";
+const VERDICT_BADGE_CLASS =
+  "inline-flex rounded-full px-3 py-1 font-sans text-xs font-semibold";
+const VERDICT_STYLES: Record<Verdict, string> = {
+  buy: "bg-[#8A9A7B] text-[#FAF9F8]",
+  maybe: "bg-[#C9A66B] text-[#FAF9F8]",
+  skip: "bg-[#3E2E29] text-[#FAF9F8]",
+};
+const DASHBOARD_SPINNER_CLASS =
+  "h-9 w-9 animate-spin rounded-full border-[3px] border-[#4A413C]/15 " +
+  "border-t-[#B8674A]";
 
 function HomeTopBar() {
   return (
@@ -201,7 +229,112 @@ function EmptyStateCard() {
   );
 }
 
+function DashboardActivityLoading() {
+  return (
+    <section className={EMPTY_STATE_CARD_CLASS}>
+      <div className="mx-auto flex max-w-xl flex-col items-center gap-4 text-center">
+        <p className="font-sans text-sm font-semibold uppercase tracking-[0.18em] text-[#4A413C]">
+          Checking your wardrobe
+        </p>
+        <span className={DASHBOARD_SPINNER_CLASS} />
+      </div>
+    </section>
+  );
+}
+
+function formatVerdict(verdict: Verdict) {
+  return verdict.charAt(0).toUpperCase() + verdict.slice(1);
+}
+
+function formatCategoryColor(item: WardrobeItem) {
+  if (!item.detectedCategory || !item.detectedColor) {
+    return "Unlabeled item";
+  }
+
+  return `${formatOptionLabel(item.detectedColor)} ${formatOptionLabel(
+    item.detectedCategory,
+  )}`;
+}
+
+function formatScanDate(createdAt: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(createdAt));
+}
+
+function RecentActivityItem({ item }: Readonly<{ item: WardrobeItem }>) {
+  return (
+    <Link
+      aria-label={`Open ${formatCategoryColor(item)}`}
+      className="w-40 shrink-0 snap-start"
+      href={`/items/${item.id}`}
+    >
+      <div className="overflow-hidden rounded-2xl border border-[#4A413C]/15 bg-[#FAF9F8]">
+        <div className="relative aspect-[3/4] w-full">
+          <Image
+            alt={formatCategoryColor(item)}
+            className="object-cover"
+            fill
+            sizes="160px"
+            src={item.photoUrl}
+            unoptimized
+          />
+        </div>
+      </div>
+
+      <div className="mt-3 space-y-1.5">
+        <p className="font-sans text-sm font-semibold text-[#3E2E29]">
+          {formatCategoryColor(item)}
+        </p>
+        {item.verdict ? (
+          <span
+            className={`${VERDICT_BADGE_CLASS} ${VERDICT_STYLES[item.verdict]}`}
+          >
+            {formatVerdict(item.verdict)}
+          </span>
+        ) : (
+          <span className="font-sans text-xs font-semibold text-[#4A413C]">
+            No verdict
+          </span>
+        )}
+        <p className="font-sans text-xs text-[#4A413C]">
+          {formatScanDate(item.createdAt)}
+        </p>
+      </div>
+    </Link>
+  );
+}
+
+function RecentActivityRow({ items }: Readonly<{ items: WardrobeItem[] }>) {
+  return (
+    <section className={EMPTY_STATE_CARD_CLASS}>
+      <div className="space-y-5">
+        <div className="flex items-center justify-between gap-4">
+          <p className="font-sans text-sm font-semibold uppercase tracking-[0.18em] text-[#4A413C]">
+            Recent activity
+          </p>
+          <PrimaryLink href="/wardrobe">View your wardrobe</PrimaryLink>
+        </div>
+
+        <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2">
+          {items.map((item) => (
+            <RecentActivityItem item={item} key={item.id} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function HomeDashboard() {
+  const authenticatedApi = useAuthenticatedApi();
+  const wardrobeQuery = useQuery({
+    queryKey: ["homeWardrobeItems"],
+    queryFn: () => authenticatedApi<WardrobeItemsResponse>("/api/items"),
+  });
+  const recentItems = wardrobeQuery.data?.items.slice(0, 6) ?? [];
+
   return (
     <main className="relative min-h-screen bg-background px-6 py-8 text-foreground">
       <div aria-hidden="true" className="grain-overlay" />
@@ -209,15 +342,25 @@ function HomeDashboard() {
         <HomeTopBar />
 
         <section className="flex flex-1 flex-col justify-center gap-10 py-8">
-          <div className="space-y-4">
-            <HomeGreeting />
-            <p className="max-w-2xl text-lg leading-8 text-[#4A413C]">
-              A quiet place to check whether a piece belongs with the style you
-              are building.
-            </p>
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+            <div className="space-y-4">
+              <HomeGreeting />
+              <p className="max-w-2xl text-lg leading-8 text-[#4A413C]">
+                A quiet place to check whether a piece belongs with the style
+                you are building.
+              </p>
+            </div>
+
+            <PrimaryLink href="/capture">Scan item</PrimaryLink>
           </div>
 
-          <EmptyStateCard />
+          {wardrobeQuery.isLoading ? (
+            <DashboardActivityLoading />
+          ) : recentItems.length > 0 ? (
+            <RecentActivityRow items={recentItems} />
+          ) : (
+            <EmptyStateCard />
+          )}
         </section>
       </div>
     </main>
