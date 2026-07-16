@@ -112,6 +112,9 @@ export function getAuthAppearance(theme: Theme) {
         fontFamily: FONT_BODY,
       },
       formFieldInput: {
+        "&::placeholder": {
+          color: c.textMuted,
+        },
         backgroundColor: c.bg,
         borderColor: `${c.textMuted}50`,
         borderRadius: "12px",

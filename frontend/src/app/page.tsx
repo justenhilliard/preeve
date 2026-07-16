@@ -136,7 +136,7 @@ const SIGN_IN_BUTTON_CLASS =
 const EMAIL_INPUT_CLASS =
   "min-h-12 flex-1 rounded-xl border border-[var(--color-text-muted)]/20 " +
   "bg-[var(--color-bg)] px-4 font-sans text-sm text-[var(--color-text)] " +
-  "outline-none transition placeholder:text-[var(--color-text-muted)]/65 " +
+  "outline-none transition placeholder:text-[var(--color-text-muted)] " +
   "focus:border-[var(--color-accent)]";
 const HERO_HEADLINE_CLASS =
   "font-serif text-6xl font-semibold leading-[1.05] tracking-normal " +
