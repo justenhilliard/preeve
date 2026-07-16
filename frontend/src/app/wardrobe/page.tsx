@@ -8,6 +8,7 @@ import { useMemo, useState } from "react";
 import { useAuthenticatedApi } from "../apiClient";
 import { FavoriteHeart, HEART_PATH } from "../favoriteHeart";
 import { formatOptionLabel, PrimaryLink } from "../preferences/components";
+import { ThemeToggle } from "../themeToggle";
 
 type Verdict = "buy" | "maybe" | "skip";
 
@@ -47,52 +48,53 @@ const VERDICT_FILTERS: { label: string; value: VerdictFilter }[] = [
 ];
 
 const TOP_BAR_CLASS =
-  "flex flex-col gap-6 border-b border-[#4A413C]/15 pb-6 sm:flex-row " +
+  "flex flex-col gap-6 border-b border-[var(--color-text-muted)]/15 pb-6 sm:flex-row " +
   "sm:items-center sm:justify-between";
 const CHIP_BASE_CLASS =
   "rounded-full px-4 py-2 font-sans text-sm font-semibold transition";
 const CARD_CLASS =
-  "group relative overflow-hidden rounded-2xl border border-[#4A413C]/15 " +
-  "bg-[#D8D3CC]/45 shadow-[0_18px_48px_rgba(62,46,41,0.10)]";
+  "group relative overflow-hidden rounded-2xl border border-[var(--color-text-muted)]/15 " +
+  "bg-[var(--color-surface)]/45 shadow-[0_18px_48px_rgba(62,46,41,0.10)]";
 const HANG_TAG_CLASS =
-  "absolute bottom-3 left-3 rounded-xl border border-[#4A413C]/15 " +
-  "bg-[#FAF9F8]/95 px-3 py-2 font-sans text-xs font-semibold " +
-  "text-[#3E2E29] shadow-[0_8px_20px_rgba(62,46,41,0.14)]";
+  "absolute bottom-3 left-3 rounded-xl border border-[var(--color-text-muted)]/15 " +
+  "bg-[var(--color-bg)]/95 px-3 py-2 font-sans text-xs font-semibold " +
+  "text-[var(--color-text)] shadow-[0_8px_20px_rgba(62,46,41,0.14)]";
 const FAVORITE_BUTTON_CLASS =
   "absolute right-3 top-3 flex h-11 w-11 items-center justify-center " +
-  "rounded-full border border-[#4A413C]/15 bg-[#FAF9F8]/95 " +
-  "text-[#3E2E29] shadow-[0_8px_20px_rgba(62,46,41,0.14)] transition " +
-  "hover:bg-[#D8D3CC]";
+  "rounded-full border border-[var(--color-text-muted)]/15 bg-[var(--color-bg)]/95 " +
+  "text-[var(--color-text)] shadow-[0_8px_20px_rgba(62,46,41,0.14)] transition " +
+  "hover:bg-[var(--color-surface)]";
 const EMPTY_STATE_CLASS =
-  "rounded-2xl border border-[#4A413C]/15 bg-[#D8D3CC]/45 p-8 text-center " +
+  "rounded-2xl border border-[var(--color-text-muted)]/15 " +
+  "bg-[var(--color-surface)]/45 p-8 text-center " +
   "shadow-[0_24px_70px_rgba(62,46,41,0.10)]";
 const CLEAR_FILTERS_BUTTON_CLASS =
-  "rounded-md bg-[#B8674A] px-6 py-3 font-sans text-sm font-semibold " +
-  "text-[#FAF9F8] transition hover:bg-[#a95c42]";
+  "rounded-md bg-[var(--color-accent)] px-6 py-3 font-sans text-sm font-semibold " +
+  "text-[var(--color-on-dark)] transition hover:bg-[var(--color-accent-hover)]";
 const PAGE_HEADING_CLASS =
-  "font-serif text-5xl font-semibold tracking-normal text-[#3E2E29] " +
+  "font-serif text-5xl font-semibold tracking-normal text-[var(--color-text)] " +
   "sm:text-6xl";
 const SPINNER_CLASS =
-  "h-9 w-9 animate-spin rounded-full border-[3px] border-[#4A413C]/15 " +
-  "border-t-[#B8674A]";
+  "h-9 w-9 animate-spin rounded-full border-[3px] border-[var(--color-text-muted)]/15 " +
+  "border-t-[var(--color-accent)]";
 const VERDICT_BADGE_CLASS =
   "inline-flex rounded-full px-3 py-1 font-sans text-xs font-semibold";
 const VERDICT_STYLES: Record<Verdict, string> = {
-  buy: "bg-[#8A9A7B] text-[#FAF9F8]",
-  maybe: "bg-[#C9A66B] text-[#FAF9F8]",
-  skip: "bg-[#3E2E29] text-[#FAF9F8]",
+  buy: "bg-[var(--color-sage)] text-[var(--color-on-dark)]",
+  maybe: "bg-[var(--color-ochre)] text-[var(--color-on-dark)]",
+  skip: "bg-[var(--color-accent-dark)] text-[var(--color-on-dark)]",
 };
 function WardrobeTopBar() {
   return (
     <nav className={TOP_BAR_CLASS}>
       <Link
-        className="font-serif text-4xl font-semibold tracking-normal text-[#3E2E29]"
+        className="font-serif text-4xl font-semibold tracking-normal text-[var(--color-text)]"
         href="/"
       >
         Preeve
       </Link>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {NAV_ITEMS.map((item) => {
           const isActive = item.href === "/wardrobe";
 
@@ -100,8 +102,8 @@ function WardrobeTopBar() {
             <Link
               className={`rounded-full px-4 py-2 font-sans text-sm font-semibold transition ${
                 isActive
-                  ? "bg-[#B8674A] text-[#FAF9F8]"
-                  : "text-[#4A413C] hover:bg-[#D8D3CC]/45"
+                  ? "bg-[var(--color-accent)] text-[var(--color-on-dark)]"
+                  : "text-[var(--color-text-muted)] hover:bg-[var(--color-surface)]/45"
               }`}
               href={item.href}
               key={item.href}
@@ -110,6 +112,7 @@ function WardrobeTopBar() {
             </Link>
           );
         })}
+        <ThemeToggle />
       </div>
     </nav>
   );
@@ -157,7 +160,7 @@ function WardrobeCard({
               {formatVerdict(item.verdict)}
             </span>
           ) : (
-            <span className="font-sans text-sm font-semibold text-[#4A413C]">
+            <span className="font-sans text-sm font-semibold text-[var(--color-text-muted)]">
               No verdict
             </span>
           )}
@@ -180,10 +183,10 @@ function EmptyWardrobeState() {
   return (
     <section className={EMPTY_STATE_CLASS}>
       <div className="mx-auto flex max-w-xl flex-col items-center gap-5">
-        <h2 className="font-serif text-4xl font-semibold tracking-normal text-[#3E2E29]">
+        <h2 className="font-serif text-4xl font-semibold tracking-normal text-[var(--color-text)]">
           Your saved pieces will land here.
         </h2>
-        <p className="max-w-md text-base leading-7 text-[#4A413C]">
+        <p className="max-w-md text-base leading-7 text-[var(--color-text-muted)]">
           Scan an item, save the verdict, and build a wardrobe log you can
           revisit while shopping.
         </p>
@@ -199,10 +202,10 @@ function EmptyFilterState({
   return (
     <section className={EMPTY_STATE_CLASS}>
       <div className="mx-auto flex max-w-xl flex-col items-center gap-5">
-        <h2 className="font-serif text-4xl font-semibold tracking-normal text-[#3E2E29]">
+        <h2 className="font-serif text-4xl font-semibold tracking-normal text-[var(--color-text)]">
           No pieces match those filters.
         </h2>
-        <p className="max-w-md text-base leading-7 text-[#4A413C]">
+        <p className="max-w-md text-base leading-7 text-[var(--color-text-muted)]">
           Clear the current filter combination to see the saved items in your
           wardrobe.
         </p>
@@ -292,7 +295,7 @@ export default function WardrobePage() {
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-3">
               <h1 className={PAGE_HEADING_CLASS}>Your Wardrobe</h1>
-              <p className="max-w-2xl text-lg leading-8 text-[#4A413C]">
+              <p className="max-w-2xl text-lg leading-8 text-[var(--color-text-muted)]">
                 Saved decisions, ready for a second look.
               </p>
             </div>
@@ -302,8 +305,9 @@ export default function WardrobePage() {
                 aria-pressed={favoritesOnly}
                 className={`${CHIP_BASE_CLASS} inline-flex items-center gap-2 ${
                   favoritesOnly
-                    ? "bg-[#B8674A] text-[#FAF9F8]"
-                    : "bg-[#FAF9F8] text-[#4A413C] hover:bg-[#D8D3CC]/45"
+                    ? "bg-[var(--color-accent)] text-[var(--color-on-dark)]"
+                    : "bg-[var(--color-bg)] text-[var(--color-text-muted)] " +
+                      "hover:bg-[var(--color-surface)]/45"
                 }`}
                 onClick={() => setFavoritesOnly((currentValue) => !currentValue)}
                 type="button"
@@ -331,8 +335,9 @@ export default function WardrobePage() {
                     aria-pressed={isActive}
                     className={`${CHIP_BASE_CLASS} ${
                       isActive
-                        ? "bg-[#B8674A] text-[#FAF9F8]"
-                        : "bg-[#FAF9F8] text-[#4A413C] hover:bg-[#D8D3CC]/45"
+                        ? "bg-[var(--color-accent)] text-[var(--color-on-dark)]"
+                        : "bg-[var(--color-bg)] text-[var(--color-text-muted)] " +
+                          "hover:bg-[var(--color-surface)]/45"
                     }`}
                     key={filter.value}
                     onClick={() => setVerdictFilter(filter.value)}
@@ -351,7 +356,7 @@ export default function WardrobePage() {
               <span className="sr-only">Loading wardrobe...</span>
             </div>
           ) : queryErrorMessage ? (
-            <p className="text-center font-sans text-sm text-[#4A413C]">
+            <p className="text-center font-sans text-sm text-[var(--color-text-muted)]">
               {queryErrorMessage}
             </p>
           ) : wardrobeItems.length === 0 ? (
@@ -373,7 +378,7 @@ export default function WardrobePage() {
           )}
 
           {favoriteError ? (
-            <p className="text-center font-sans text-sm text-[#4A413C]">
+            <p className="text-center font-sans text-sm text-[var(--color-text-muted)]">
               {favoriteError}
             </p>
           ) : null}

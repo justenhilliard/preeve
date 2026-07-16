@@ -9,8 +9,8 @@ export function FavoriteHeart({
     <svg
       aria-hidden="true"
       className="h-5 w-5"
-      fill={isFavorited ? "#B8674A" : "none"}
-      stroke={isFavorited ? "#B8674A" : "#3E2E29"}
+      fill={isFavorited ? "var(--color-accent)" : "none"}
+      stroke={isFavorited ? "var(--color-accent)" : "var(--color-text)"}
       strokeLinecap="round"
       strokeLinejoin="round"
       strokeWidth={2}

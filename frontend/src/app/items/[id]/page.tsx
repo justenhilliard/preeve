@@ -10,6 +10,7 @@ import {
   PrimaryAction,
   PrimaryLink,
 } from "../../preferences/components";
+import { ThemeToggle } from "../../themeToggle";
 
 type Verdict = "buy" | "maybe" | "skip";
 
@@ -53,43 +54,43 @@ type FavoriteItemResponse = {
 };
 
 const PREVIEW_FRAME_CLASS =
-  "overflow-hidden rounded-2xl border border-[#4A413C]/15 bg-[#D8D3CC]/45 " +
-  "shadow-[0_24px_70px_rgba(62,46,41,0.10)]";
+  "overflow-hidden rounded-2xl border border-[var(--color-text-muted)]/15 " +
+  "bg-[var(--color-surface)]/45 shadow-[0_24px_70px_rgba(62,46,41,0.10)]";
 const RESULT_PANEL_CLASS =
-  "rounded-2xl border border-[#4A413C]/15 bg-[#D8D3CC]/45 p-8 " +
+  "rounded-2xl border border-[var(--color-text-muted)]/15 bg-[var(--color-surface)]/45 p-8 " +
   "shadow-[0_24px_70px_rgba(62,46,41,0.10)]";
 const SPINNER_CLASS =
-  "h-9 w-9 animate-spin rounded-full border-[3px] border-[#4A413C]/15 " +
-  "border-t-[#B8674A]";
+  "h-9 w-9 animate-spin rounded-full border-[3px] border-[var(--color-text-muted)]/15 " +
+  "border-t-[var(--color-accent)]";
 const DISCARD_BUTTON_CLASS =
-  "rounded-md border border-[#4A413C]/20 px-6 py-3 font-sans text-sm " +
-  "font-semibold text-[#3E2E29] transition hover:bg-[#D8D3CC]/45";
+  "rounded-md border border-[var(--color-text-muted)]/20 px-6 py-3 font-sans text-sm " +
+  "font-semibold text-[var(--color-text)] transition hover:bg-[var(--color-surface)]/45";
 const DELETE_BUTTON_CLASS =
-  "rounded-md border border-[#B8674A]/45 px-6 py-3 font-sans text-sm " +
-  "font-semibold text-[#3E2E29] transition hover:bg-[#B8674A]/10";
+  "rounded-md border border-[var(--color-accent)]/45 px-6 py-3 font-sans text-sm " +
+  "font-semibold text-[var(--color-text)] transition hover:bg-[var(--color-accent)]/10";
 const OVERRIDE_BUTTON_CLASS =
-  "w-fit rounded-full border border-[#4A413C]/20 px-4 py-2 font-sans " +
-  "text-sm font-semibold text-[#3E2E29] transition hover:bg-[#FAF9F8]/70";
+  "w-fit rounded-full border border-[var(--color-text-muted)]/20 px-4 py-2 font-sans " +
+  "text-sm font-semibold text-[var(--color-text)] transition hover:bg-[var(--color-bg)]/70";
 const FAVORITE_BUTTON_CLASS =
   "flex h-11 w-11 items-center justify-center rounded-full border " +
-  "border-[#4A413C]/15 bg-[#FAF9F8]/85 text-[#3E2E29] transition " +
-  "hover:bg-[#D8D3CC]";
+  "border-[var(--color-text-muted)]/15 bg-[var(--color-bg)]/85 " +
+  "text-[var(--color-text)] transition hover:bg-[var(--color-surface)]";
 const PAIRING_CARD_CLASS =
-  "overflow-hidden rounded-2xl border border-[#4A413C]/15 bg-[#FAF9F8] " +
+  "overflow-hidden rounded-2xl border border-[var(--color-text-muted)]/15 bg-[var(--color-bg)] " +
   "shadow-[0_10px_28px_rgba(62,46,41,0.08)]";
 const PAIRING_EMPTY_CLASS =
-  "rounded-xl border border-[#4A413C]/15 bg-[#FAF9F8]/70 px-4 py-3 " +
-  "text-sm leading-6 text-[#4A413C]";
+  "rounded-xl border border-[var(--color-text-muted)]/15 bg-[var(--color-bg)]/70 px-4 py-3 " +
+  "text-sm leading-6 text-[var(--color-text-muted)]";
 const SECTION_LABEL_CLASS =
-  "font-sans text-sm font-semibold uppercase tracking-[0.14em] text-[#4A413C]";
+  "font-sans text-sm font-semibold uppercase tracking-[0.14em] text-[var(--color-text-muted)]";
 const RESULT_HEADING_CLASS =
-  "font-serif text-5xl font-semibold tracking-normal text-[#3E2E29]";
+  "font-serif text-5xl font-semibold tracking-normal text-[var(--color-text)]";
 const VERDICT_BADGE_CLASS =
   "inline-flex rounded-full px-5 py-2 font-sans text-sm font-semibold";
 const VERDICT_STYLES: Record<Verdict, string> = {
-  buy: "bg-[#8A9A7B] text-[#FAF9F8]",
-  maybe: "bg-[#C9A66B] text-[#FAF9F8]",
-  skip: "bg-[#3E2E29] text-[#FAF9F8]",
+  buy: "bg-[var(--color-sage)] text-[var(--color-on-dark)]",
+  maybe: "bg-[var(--color-ochre)] text-[var(--color-on-dark)]",
+  skip: "bg-[var(--color-accent-dark)] text-[var(--color-on-dark)]",
 };
 
 function getRouteItemId(itemIdParam: string | string[] | undefined) {
@@ -131,7 +132,7 @@ function PairingSuggestions({
                 </div>
               ) : null}
 
-              <p className="px-4 py-4 text-sm leading-6 text-[#4A413C]">
+              <p className="px-4 py-4 text-sm leading-6 text-[var(--color-text-muted)]">
                 {suggestion.suggestionText}
               </p>
             </article>
@@ -298,7 +299,7 @@ export default function ItemResultPage() {
   return (
     <main className="min-h-screen bg-background px-6 py-8 text-foreground">
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-5xl flex-col">
-        <nav>
+        <nav className="flex items-center justify-between gap-4">
           <button
             className="auth-back-link"
             onClick={() => {
@@ -312,6 +313,8 @@ export default function ItemResultPage() {
           >
             Back
           </button>
+
+          <ThemeToggle />
         </nav>
 
         <section className="flex flex-1 flex-col justify-center gap-8 py-10">
@@ -366,13 +369,18 @@ export default function ItemResultPage() {
                         );
 
                         return effectiveCategory && effectiveColor ? (
-                          <p className="font-sans text-base font-semibold text-[#4A413C]">
+                          <p
+                            className={
+                              "font-sans text-base font-semibold " +
+                              "text-[var(--color-text-muted)]"
+                            }
+                          >
                             {formatOptionLabel(effectiveColor)}{" "}
                             {formatOptionLabel(effectiveCategory)}
                           </p>
                         ) : null;
                       })()}
-                      <p className="font-sans text-sm font-medium text-[#4A413C]">
+                      <p className="font-sans text-sm font-medium text-[var(--color-text-muted)]">
                         Scanned {formatScanDate(item.createdAt)}
                       </p>
                     </div>
@@ -388,7 +396,7 @@ export default function ItemResultPage() {
                       </span>
                     </div>
 
-                    <p className="text-lg leading-8 text-[#4A413C]">
+                    <p className="text-lg leading-8 text-[var(--color-text-muted)]">
                       {item.rationale}
                     </p>
 
@@ -444,7 +452,7 @@ export default function ItemResultPage() {
                     )}
                   </div>
                   {confirmingDelete && item.savedToWardrobe ? (
-                    <p className="font-sans text-sm text-[#4A413C]">
+                    <p className="font-sans text-sm text-[var(--color-text-muted)]">
                       Delete this item? This cannot be undone.
                     </p>
                   ) : null}
@@ -452,13 +460,13 @@ export default function ItemResultPage() {
               </section>
             </div>
           ) : (
-            <p className="text-center font-sans text-sm text-[#4A413C]">
+            <p className="text-center font-sans text-sm text-[var(--color-text-muted)]">
               {errorMessage ?? "No item found with that ID for this user."}
             </p>
           )}
 
           {errorMessage && item ? (
-            <p className="text-center font-sans text-sm text-[#4A413C]">
+            <p className="text-center font-sans text-sm text-[var(--color-text-muted)]">
               {errorMessage}
             </p>
           ) : null}

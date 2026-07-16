@@ -4,6 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { ThemeProvider } from "./themeContext";
 
 export function ClerkAppProvider({
   children,
@@ -17,8 +18,10 @@ export function ClerkAppProvider({
     : "Create Account";
 
   return (
-    <ClerkProvider localization={{ formButtonPrimary }}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    </ClerkProvider>
+    <ThemeProvider>
+      <ClerkProvider localization={{ formButtonPrimary }}>
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      </ClerkProvider>
+    </ThemeProvider>
   );
 }

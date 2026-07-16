@@ -1,10 +1,43 @@
 @import "tailwindcss";
 
+/* Theme tokens are named by ROLE, not by literal color, since the same
+   brand hex sometimes plays two different roles (e.g. espresso #3E2E29 is
+   both "primary text" and "decorative dark surface fill" - those need to
+   move in opposite directions in dark mode, so they're separate tokens
+   even though they share a light-mode value). Toggled via a `.dark` class
+   on <html>, set by frontend/src/app/themeContext.tsx. */
 :root {
-  --background: #faf9f8;
-  --foreground: #3e2e29;
+  --color-bg: #faf9f8;
+  --color-surface: #d8d3cc;
+  --color-text: #3e2e29;
+  --color-text-muted: #4a413c;
+  --color-accent: #b8674a;
+  --color-accent-hover: #a95c42;
+  --color-accent-dark: #3e2e29;
+  --color-accent-dark-hover: #2f2320;
+  --color-on-dark: #faf9f8;
+  --color-on-dark-muted: #d8d3cc;
+  --color-sage: #8a9a7b;
+  --color-ochre: #c9a66b;
+  --background: var(--color-bg);
+  --foreground: var(--color-text);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+.dark {
+  --color-bg: #17120f;
+  --color-surface: #2a211d;
+  --color-text: #f3ece6;
+  --color-text-muted: #c9bfb6;
+  --color-accent: #d9835f;
+  --color-accent-hover: #e7997a;
+  --color-accent-dark: #4a3830;
+  --color-accent-dark-hover: #5c463c;
+  --color-on-dark: #f3ece6;
+  --color-on-dark-muted: #d8d3cc;
+  --color-sage: #a3b693;
+  --color-ochre: #d8bb86;
 }
 
 @theme inline {
@@ -18,6 +51,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-lato), ui-sans-serif, system-ui, sans-serif;
+  transition: background-color 200ms ease, color 200ms ease;
 }
 
 html {
@@ -34,7 +68,7 @@ html {
   width: fit-content;
   border-radius: 9999px;
   padding: 0.5rem 0.75rem;
-  color: #4a413c;
+  color: var(--color-text-muted);
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
   font-size: 0.875rem;
   font-weight: 500;
@@ -42,7 +76,7 @@ html {
 }
 
 .auth-back-link:hover {
-  background-color: rgb(216 211 204 / 0.45);
+  background-color: color-mix(in srgb, var(--color-surface) 45%, transparent);
 }
 
 .home-auth-link {
@@ -57,23 +91,23 @@ html {
 }
 
 .home-auth-link-secondary {
-  border: 1px solid rgb(74 65 60 / 0.25);
-  color: #3e2e29;
+  border: 1px solid color-mix(in srgb, var(--color-text-muted) 25%, transparent);
+  color: var(--color-text);
   font-weight: 500;
 }
 
 .home-auth-link-secondary:hover {
-  background-color: rgb(216 211 204 / 0.45);
+  background-color: color-mix(in srgb, var(--color-surface) 45%, transparent);
 }
 
 .home-auth-link-primary {
-  background-color: #b8674a;
-  color: #faf9f8;
+  background-color: var(--color-accent);
+  color: var(--color-on-dark);
   font-weight: 600;
 }
 
 .home-auth-link-primary:hover {
-  background-color: #a95c42;
+  background-color: var(--color-accent-hover);
 }
 
 /* Entrance animation used on the landing page. Rare/first-time per-visit

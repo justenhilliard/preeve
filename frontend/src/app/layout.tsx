@@ -31,6 +31,23 @@ export const metadata: Metadata = {
     "Buy, Maybe, or Skip verdict based on your wardrobe and style.",
 };
 
+// Runs before React hydrates so the .dark class (and therefore every CSS
+// custom property in globals.css) is correct on first paint - without this,
+// a returning dark-mode visitor would see a flash of the light theme.
+const THEME_INIT_SCRIPT = `
+(function () {
+  try {
+    var stored = window.localStorage.getItem("preeve-theme");
+    var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    var isDark = stored ? stored === "dark" : prefersDark;
+    document.documentElement.classList.toggle("dark", isDark);
+  } catch (error) {
+    // localStorage/matchMedia can throw in locked-down environments -
+    // falling back to the light theme default is fine.
+  }
+})();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -42,6 +59,7 @@ export default function RootLayout({
       className={`h-full antialiased ${cormorantGaramond.variable} ${inter.variable} ${lato.variable}`}
     >
       <body className="min-h-full flex flex-col">
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <ClerkAppProvider>{children}</ClerkAppProvider>
       </body>
     </html>

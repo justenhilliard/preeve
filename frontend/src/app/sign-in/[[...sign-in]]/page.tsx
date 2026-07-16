@@ -2,10 +2,16 @@ import { SignIn } from "@clerk/nextjs";
 import Link from "next/link";
 
 import { authAppearance } from "../../authAppearance";
+import { ThemeToggle } from "../../themeToggle";
 
 export default function SignInPage() {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#FAF9F8] px-6 py-8 text-[#3E2E29]">
+    <main
+      className={
+        "relative min-h-screen overflow-hidden bg-[var(--color-bg)] " +
+        "px-6 py-8 text-[var(--color-text)]"
+      }
+    >
       <div aria-hidden="true" className="grain-overlay" />
 
       <svg
@@ -20,7 +26,7 @@ export default function SignInPage() {
             "C840,38 960,62 1080,50 C1200,38 1320,62 1440,50 " +
             "L1440,100 L0,100 Z"
           }
-          fill="#3E2E29"
+          fill="var(--color-accent-dark)"
         />
         <path
           className={
@@ -32,16 +38,20 @@ export default function SignInPage() {
             "C840,38 960,62 1080,50 C1200,38 1320,62 1440,50"
           }
           fill="none"
-          stroke="#8A9A7B"
+          stroke="var(--color-sage)"
           strokeLinecap="round"
           strokeWidth={4}
         />
       </svg>
 
       <div className="relative z-10 mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-md flex-col">
-        <Link href="/" className="auth-back-link">
-          Back
-        </Link>
+        <nav className="flex items-center justify-between gap-4">
+          <Link href="/" className="auth-back-link">
+            Back
+          </Link>
+
+          <ThemeToggle />
+        </nav>
 
         <section className="flex flex-1 flex-col items-center justify-center gap-8 py-10">
           <header className="animate-fade-up space-y-4 text-center">

@@ -6,34 +6,35 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiRequestError, useAuthenticatedApi } from "../apiClient";
 import { PrimaryAction } from "../preferences/components";
+import { ThemeToggle } from "../themeToggle";
 
 const MAX_CAPTURE_DIMENSION = 1600;
 const CAMERA_ERROR_MESSAGE =
   "Camera access is unavailable. You can still choose a photo from your library.";
 const PREVIEW_FRAME_CLASS =
-  "overflow-hidden rounded-2xl border border-[#4A413C]/15 bg-[#D8D3CC]/45 " +
-  "shadow-[0_24px_70px_rgba(62,46,41,0.10)]";
+  "overflow-hidden rounded-2xl border border-[var(--color-text-muted)]/15 " +
+  "bg-[var(--color-surface)]/45 shadow-[0_24px_70px_rgba(62,46,41,0.10)]";
 const SECONDARY_ACTION_CLASS =
-  "rounded-md border border-[#4A413C]/20 px-6 py-3 font-sans text-sm " +
-  "font-semibold text-[#3E2E29] transition hover:bg-[#D8D3CC]/45";
+  "rounded-md border border-[var(--color-text-muted)]/20 px-6 py-3 font-sans text-sm " +
+  "font-semibold text-[var(--color-text)] transition hover:bg-[var(--color-surface)]/45";
 const VIEWFINDER_FRAME_CLASS =
-  "relative overflow-hidden rounded-2xl border border-[#4A413C]/15 " +
-  "bg-[#D8D3CC]/45 shadow-[0_24px_70px_rgba(62,46,41,0.10)]";
+  "relative overflow-hidden rounded-2xl border border-[var(--color-text-muted)]/15 " +
+  "bg-[var(--color-surface)]/45 shadow-[0_24px_70px_rgba(62,46,41,0.10)]";
 const PROCESSING_SECTION_CLASS =
   "mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-3xl flex-col " +
   "justify-center gap-8";
 const SPINNER_CLASS =
-  "h-9 w-9 animate-spin rounded-full border-[3px] border-[#4A413C]/15 " +
-  "border-t-[#B8674A]";
+  "h-9 w-9 animate-spin rounded-full border-[3px] border-[var(--color-text-muted)]/15 " +
+  "border-t-[var(--color-accent)]";
 const VIEWFINDER_CONTROLS_CLASS =
   "absolute inset-x-0 bottom-0 flex items-center justify-center px-6 pb-6";
 const LIBRARY_ICON_BUTTON_CLASS =
   "absolute left-6 flex h-12 w-12 items-center justify-center rounded-full " +
-  "bg-[#3E2E29]/40 text-[#FAF9F8] backdrop-blur-sm transition " +
-  "hover:bg-[#3E2E29]/55";
+  "bg-[var(--color-accent-dark)]/40 text-[var(--color-on-dark)] backdrop-blur-sm transition " +
+  "hover:bg-[var(--color-accent-dark)]/55";
 const CAMERA_BUTTON_CLASS =
   "flex h-[72px] w-[72px] items-center justify-center rounded-full " +
-  "border-[4px] border-[#FAF9F8] p-1 " +
+  "border-[4px] border-[var(--color-on-dark)] p-1 " +
   "shadow-[0_6px_18px_rgba(62,46,41,0.35)] transition active:scale-95";
 const VIEWFINDER_OVERLAY_CLASS =
   "absolute inset-0 flex items-center justify-center px-6 text-center";
@@ -282,7 +283,7 @@ export default function CapturePage() {
 
           <div className="flex flex-col items-center gap-3 py-4" role="status">
             <span className={SPINNER_CLASS} />
-            <p className="font-sans text-sm font-medium text-[#4A413C]">
+            <p className="font-sans text-sm font-medium text-[var(--color-text-muted)]">
               Analyzing your item...
             </p>
           </div>
@@ -295,18 +296,25 @@ export default function CapturePage() {
     <main className="relative min-h-screen bg-background px-6 py-8 text-foreground">
       <div aria-hidden="true" className="grain-overlay" />
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-3xl flex-col">
-        <nav>
+        <nav className="flex items-center justify-between gap-4">
           <Link href="/" className="auth-back-link">
             Back
           </Link>
+
+          <ThemeToggle />
         </nav>
 
         <section className="flex flex-1 flex-col justify-center gap-8 py-10">
           <header className="space-y-4 text-center">
-            <h1 className="font-serif text-5xl font-semibold tracking-normal text-[#3E2E29]">
+            <h1
+              className={
+                "font-serif text-5xl font-semibold tracking-normal " +
+                "text-[var(--color-text)]"
+              }
+            >
               Capture your item
             </h1>
-            <p className="mx-auto max-w-sm text-base leading-7 text-[#4A413C]">
+            <p className="mx-auto max-w-sm text-base leading-7 text-[var(--color-text-muted)]">
               Center the item in frame
             </p>
           </header>
@@ -339,7 +347,7 @@ export default function CapturePage() {
                 </PrimaryAction>
               </div>
               {submitError ? (
-                <p className="text-center font-sans text-sm text-[#4A413C]">
+                <p className="text-center font-sans text-sm text-[var(--color-text-muted)]">
                   {submitError}
                 </p>
               ) : null}
@@ -349,23 +357,23 @@ export default function CapturePage() {
               <div className={VIEWFINDER_FRAME_CLASS}>
                 <video
                   autoPlay
-                  className="aspect-[3/4] w-full bg-[#3E2E29] object-cover"
+                  className="aspect-[3/4] w-full bg-[var(--color-accent-dark)] object-cover"
                   muted
                   playsInline
                   ref={videoRef}
                 />
 
                 {isCameraStarting ? (
-                  <div className={`${VIEWFINDER_OVERLAY_CLASS} bg-[#D8D3CC]/80`}>
-                    <p className="font-sans text-sm font-medium text-[#4A413C]">
+                  <div className={`${VIEWFINDER_OVERLAY_CLASS} bg-[var(--color-surface)]/80`}>
+                    <p className="font-sans text-sm font-medium text-[var(--color-text-muted)]">
                       Starting camera...
                     </p>
                   </div>
                 ) : null}
 
                 {cameraError ? (
-                  <div className={`${VIEWFINDER_OVERLAY_CLASS} bg-[#D8D3CC]/90`}>
-                    <p className="max-w-xs text-sm leading-6 text-[#4A413C]">
+                  <div className={`${VIEWFINDER_OVERLAY_CLASS} bg-[var(--color-surface)]/90`}>
+                    <p className="max-w-xs text-sm leading-6 text-[var(--color-text-muted)]">
                       {cameraError}
                     </p>
                   </div>
@@ -401,7 +409,7 @@ export default function CapturePage() {
                       onClick={captureFrame}
                       type="button"
                     >
-                      <span className="h-full w-full rounded-full bg-[#B8674A]" />
+                      <span className="h-full w-full rounded-full bg-[var(--color-accent)]" />
                     </button>
                   ) : null}
                 </div>

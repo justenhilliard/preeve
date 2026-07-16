@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { useAuthenticatedApi } from "./apiClient";
 import { formatOptionLabel } from "./preferences/components";
+import { ThemeToggle } from "./themeToggle";
 
 type Verdict = "buy" | "maybe" | "skip";
 
@@ -111,34 +112,37 @@ const FAQ_ITEMS = [
 ];
 
 const TOP_BAR_CLASS =
-  "flex flex-col gap-6 border-b border-[#4A413C]/15 pb-6 sm:flex-row " +
+  "flex flex-col gap-6 border-b border-[var(--color-text-muted)]/15 pb-6 sm:flex-row " +
   "sm:items-center sm:justify-between";
 const EMPTY_STATE_CARD_CLASS =
-  "rounded-2xl border border-[#4A413C]/15 bg-[#D8D3CC] p-8 " +
+  "rounded-2xl border border-[var(--color-text-muted)]/15 bg-[var(--color-surface)] p-8 " +
   "shadow-[0_24px_70px_rgba(62,46,41,0.10)]";
 const LANDING_SECTION_CLASS =
   "mx-auto w-full max-w-5xl px-6";
 const LANDING_BAND_CLASS =
-  "scroll-mt-28 border-y border-[#4A413C]/10 bg-[#D8D3CC]/30 py-24";
+  "scroll-mt-28 border-y border-[var(--color-text-muted)]/10 bg-[var(--color-surface)]/30 py-24";
 const LANDING_NAV_CLASS =
   "mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-6";
 const LANDING_CTA_BUTTON_CLASS =
-  "rounded-md bg-[#B8674A] px-6 py-3 font-sans text-sm font-semibold " +
-  "text-[#FAF9F8] transition-[background-color,transform] duration-[160ms] " +
-  "ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-[#a95c42] active:scale-[0.97]";
+  "rounded-md bg-[var(--color-accent)] px-6 py-3 font-sans text-sm font-semibold " +
+  "text-[var(--color-on-dark)] transition-[background-color,transform] duration-[160ms] " +
+  "ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-[var(--color-accent-hover)] active:scale-[0.97]";
 const SIGN_IN_BUTTON_CLASS =
-  "rounded-md bg-[#3E2E29] px-5 py-2.5 font-sans text-sm font-semibold " +
-  "text-[#FAF9F8] transition-[background-color,transform] duration-[160ms] " +
-  "ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-[#2f2320] active:scale-[0.97]";
+  "rounded-md bg-[var(--color-accent-dark)] px-5 py-2.5 font-sans text-sm " +
+  "font-semibold text-[var(--color-on-dark)] " +
+  "transition-[background-color,transform] duration-[160ms] " +
+  "ease-[cubic-bezier(0.23,1,0.32,1)] " +
+  "hover:bg-[var(--color-accent-dark-hover)] active:scale-[0.97]";
 const EMAIL_INPUT_CLASS =
-  "min-h-12 flex-1 rounded-xl border border-[#4A413C]/20 bg-[#FAF9F8] px-4 " +
-  "font-sans text-sm text-[#3E2E29] outline-none transition " +
-  "placeholder:text-[#4A413C]/65 focus:border-[#B8674A]";
+  "min-h-12 flex-1 rounded-xl border border-[var(--color-text-muted)]/20 " +
+  "bg-[var(--color-bg)] px-4 font-sans text-sm text-[var(--color-text)] " +
+  "outline-none transition placeholder:text-[var(--color-text-muted)]/65 " +
+  "focus:border-[var(--color-accent)]";
 const HERO_HEADLINE_CLASS =
   "font-serif text-6xl font-semibold leading-[1.05] tracking-normal " +
-  "text-[#FAF9F8] sm:text-7xl lg:text-8xl";
+  "text-[var(--color-on-dark)] sm:text-7xl lg:text-8xl";
 const CTA_BANNER_CLASS =
-  "rounded-2xl border border-[#4A413C]/15 bg-[#D8D3CC]/45 p-8 " +
+  "rounded-2xl border border-[var(--color-text-muted)]/15 bg-[var(--color-surface)]/45 p-8 " +
   "shadow-[0_24px_70px_rgba(62,46,41,0.10)]";
 const FOOTER_LAYOUT_CLASS =
   "flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between";
@@ -146,38 +150,38 @@ const LOADING_HOME_CLASS =
   "mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-5xl items-center " +
   "justify-center";
 const BADGE_CLASS =
-  "rounded-full px-4 py-2 font-sans text-sm font-semibold text-[#FAF9F8]";
+  "rounded-full px-4 py-2 font-sans text-sm font-semibold text-[var(--color-on-dark)]";
 const VERDICT_BADGE_CLASS =
   "inline-flex rounded-full px-3 py-1 font-sans text-xs font-semibold";
 const VERDICT_STYLES: Record<Verdict, string> = {
-  buy: "bg-[#8A9A7B] text-[#FAF9F8]",
-  maybe: "bg-[#C9A66B] text-[#FAF9F8]",
-  skip: "bg-[#3E2E29] text-[#FAF9F8]",
+  buy: "bg-[var(--color-sage)] text-[var(--color-on-dark)]",
+  maybe: "bg-[var(--color-ochre)] text-[var(--color-on-dark)]",
+  skip: "bg-[var(--color-accent-dark)] text-[var(--color-on-dark)]",
 };
 const VERDICT_BORDER_STYLES: Record<Verdict, string> = {
-  buy: "border-[#8A9A7B]",
-  maybe: "border-[#C9A66B]",
-  skip: "border-[#3E2E29]",
+  buy: "border-[var(--color-sage)]",
+  maybe: "border-[var(--color-ochre)]",
+  skip: "border-[var(--color-accent-dark)]",
 };
 const SCAN_CTA_CLASS =
-  "flex items-center gap-4 rounded-md bg-[#B8674A] px-6 py-4 text-left " +
-  "text-[#FAF9F8] transition-[background-color,transform] duration-[160ms] " +
-  "ease-[var(--ease-out)] hover:bg-[#a95c42] active:scale-[0.97]";
+  "flex items-center gap-4 rounded-md bg-[var(--color-accent)] px-6 py-4 text-left " +
+  "text-[var(--color-on-dark)] transition-[background-color,transform] duration-[160ms] " +
+  "ease-[var(--ease-out)] hover:bg-[var(--color-accent-hover)] active:scale-[0.97]";
 const DASHBOARD_SPINNER_CLASS =
-  "h-9 w-9 animate-spin rounded-full border-[3px] border-[#4A413C]/15 " +
-  "border-t-[#B8674A]";
+  "h-9 w-9 animate-spin rounded-full border-[3px] border-[var(--color-text-muted)]/15 " +
+  "border-t-[var(--color-accent)]";
 
 function HomeTopBar() {
   return (
     <nav className={TOP_BAR_CLASS}>
       <Link
-        className="font-serif text-5xl font-semibold tracking-normal text-[#3E2E29]"
+        className="font-serif text-5xl font-semibold tracking-normal text-[var(--color-text)]"
         href="/"
       >
         Preeve
       </Link>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {NAV_ITEMS.map((item) => {
           const isActive = item.href === "/";
 
@@ -185,8 +189,8 @@ function HomeTopBar() {
             <Link
               className={`rounded-full px-4 py-2 font-sans text-sm font-semibold transition ${
                 isActive
-                  ? "bg-[#B8674A] text-[#FAF9F8]"
-                  : "text-[#4A413C] hover:bg-[#D8D3CC]/45"
+                  ? "bg-[var(--color-accent)] text-[var(--color-on-dark)]"
+                  : "text-[var(--color-text-muted)] hover:bg-[var(--color-surface)]/45"
               }`}
               href={item.href}
               key={item.href}
@@ -195,6 +199,7 @@ function HomeTopBar() {
             </Link>
           );
         })}
+        <ThemeToggle />
       </div>
     </nav>
   );
@@ -220,14 +225,19 @@ function HomeGreeting() {
 
   if (!isLoaded) {
     return (
-      <p className="font-sans text-sm font-medium text-[#4A413C]">
+      <p className="font-sans text-sm font-medium text-[var(--color-text-muted)]">
         Loading your style space...
       </p>
     );
   }
 
   return (
-    <h1 className="font-serif text-5xl font-semibold tracking-normal text-[#3E2E29] sm:text-6xl">
+    <h1
+      className={
+        "font-serif text-5xl font-semibold tracking-normal " +
+        "text-[var(--color-text)] sm:text-6xl"
+      }
+    >
       {getGreetingWord()}
       {firstName ? `, ${firstName}` : ""}
     </h1>
@@ -263,7 +273,7 @@ function ScanItemCta() {
       <CameraIcon />
       <span className="flex flex-col items-start">
         <span className="font-sans text-base font-semibold">Scan item</span>
-        <span className="font-sans text-xs font-medium text-[#FAF9F8]/75">
+        <span className="font-sans text-xs font-medium text-[var(--color-on-dark)]/75">
           Photo to verdict in seconds
         </span>
       </span>
@@ -276,10 +286,15 @@ function ScanNowBanner() {
     <section className={EMPTY_STATE_CARD_CLASS}>
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-2">
-          <h2 className="font-serif text-3xl font-semibold tracking-normal text-[#3E2E29]">
+          <h2
+            className={
+              "font-serif text-3xl font-semibold tracking-normal " +
+              "text-[var(--color-text)]"
+            }
+          >
             Heading out to shop?
           </h2>
-          <p className="max-w-md text-base leading-7 text-[#4A413C]">
+          <p className="max-w-md text-base leading-7 text-[var(--color-text-muted)]">
             Keep Preeve open and scan anything that catches your eye. You&apos;ll
             know in seconds if it&apos;s worth it.
           </p>
@@ -318,7 +333,7 @@ function EmptyStateCard() {
       <div className="mx-auto flex max-w-xl flex-col items-center gap-6 text-center">
         <svg
           aria-hidden="true"
-          className="h-9 w-9 text-[#8A9A7B]"
+          className="h-9 w-9 text-[var(--color-sage)]"
           fill="none"
           stroke="currentColor"
           strokeLinecap="round"
@@ -335,13 +350,18 @@ function EmptyStateCard() {
             }
           />
         </svg>
-        <p className="font-sans text-sm font-semibold uppercase tracking-[0.18em] text-[#4A413C]">
+        <p
+          className={
+            "font-sans text-sm font-semibold uppercase tracking-[0.18em] " +
+            "text-[var(--color-text-muted)]"
+          }
+        >
           Ready when you are
         </p>
-        <h2 className="font-serif text-4xl font-semibold tracking-normal text-[#3E2E29]">
+        <h2 className="font-serif text-4xl font-semibold tracking-normal text-[var(--color-text)]">
           Scan your first item.
         </h2>
-        <p className="max-w-md text-base leading-7 text-[#4A413C]">
+        <p className="max-w-md text-base leading-7 text-[var(--color-text-muted)]">
           Start with one piece you are considering and keep your wardrobe
           decisions grounded in your preferences.
         </p>
@@ -355,7 +375,12 @@ function DashboardActivityLoading() {
   return (
     <section className={EMPTY_STATE_CARD_CLASS}>
       <div className="mx-auto flex max-w-xl flex-col items-center gap-4 text-center">
-        <p className="font-sans text-sm font-semibold uppercase tracking-[0.18em] text-[#4A413C]">
+        <p
+          className={
+            "font-sans text-sm font-semibold uppercase tracking-[0.18em] " +
+            "text-[var(--color-text-muted)]"
+          }
+        >
           Checking your wardrobe
         </p>
         <span className={DASHBOARD_SPINNER_CLASS} />
@@ -391,7 +416,7 @@ function RecentActivityItem({ item }: Readonly<{ item: WardrobeItem }>) {
       aria-label={`Open ${formatCategoryColor(item)}`}
       className={
         "group block overflow-hidden rounded-2xl border " +
-        "border-[#4A413C]/15 bg-[#FAF9F8] transition duration-[200ms] " +
+        "border-[var(--color-text-muted)]/15 bg-[var(--color-bg)] transition duration-[200ms] " +
         "ease-[var(--ease-out)] hover:shadow-[0_18px_48px_rgba(62,46,41,0.14)]"
       }
       href={`/items/${item.id}`}
@@ -422,19 +447,24 @@ function RecentActivityItem({ item }: Readonly<{ item: WardrobeItem }>) {
 
       <div className="space-y-3 p-4">
         <div className="space-y-0.5">
-          <p className="font-sans text-base font-semibold text-[#3E2E29]">
+          <p className="font-sans text-base font-semibold text-[var(--color-text)]">
             {formatCategoryColor(item)}
           </p>
-          <p className="font-sans text-xs text-[#4A413C]">
+          <p className="font-sans text-xs text-[var(--color-text-muted)]">
             {formatScanDate(item.createdAt)}
           </p>
         </div>
 
         {item.rationale ? (
           <p
-            className={`border-l-2 py-1 pl-3 text-sm leading-6 text-[#4A413C] ${
-              item.verdict ? VERDICT_BORDER_STYLES[item.verdict] : "border-[#4A413C]/20"
-            }`}
+            className={
+              "border-l-2 py-1 pl-3 text-sm leading-6 " +
+              `text-[var(--color-text-muted)] ${
+                item.verdict
+                  ? VERDICT_BORDER_STYLES[item.verdict]
+                  : "border-[var(--color-text-muted)]/20"
+              }`
+            }
           >
             {item.rationale}
           </p>
@@ -452,7 +482,7 @@ function RecentActivityRow({ items }: Readonly<{ items: WardrobeItem[] }>) {
           <p
             className={
               "flex items-center gap-2 font-sans text-sm font-semibold " +
-              "uppercase tracking-[0.18em] text-[#4A413C]"
+              "uppercase tracking-[0.18em] text-[var(--color-text-muted)]"
             }
           >
             <ClockIcon />
@@ -460,8 +490,8 @@ function RecentActivityRow({ items }: Readonly<{ items: WardrobeItem[] }>) {
           </p>
           <Link
             className={
-              "font-sans text-sm font-semibold text-[#B8674A] " +
-              "transition hover:text-[#a95c42]"
+              "font-sans text-sm font-semibold text-[var(--color-accent)] " +
+              "transition hover:text-[var(--color-accent-hover)]"
             }
             href="/wardrobe"
           >
@@ -513,7 +543,7 @@ function HomeDashboard() {
             "C840,38 960,62 1080,50 C1200,38 1320,62 1440,50 " +
             "L1440,100 L0,100 Z"
           }
-          fill="#3E2E29"
+          fill="var(--color-accent-dark)"
         />
         <path
           className={
@@ -525,7 +555,7 @@ function HomeDashboard() {
             "C840,38 960,62 1080,50 C1200,38 1320,62 1440,50"
           }
           fill="none"
-          stroke="#8A9A7B"
+          stroke="var(--color-sage)"
           strokeLinecap="round"
           strokeWidth={4}
         />
@@ -544,7 +574,7 @@ function HomeDashboard() {
             <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
               <div className="space-y-4">
                 <HomeGreeting />
-                <p className="max-w-2xl text-lg leading-8 text-[#4A413C]">
+                <p className="max-w-2xl text-lg leading-8 text-[var(--color-text-muted)]">
                   {subtitleText}
                 </p>
               </div>
@@ -556,7 +586,7 @@ function HomeDashboard() {
               <Link
                 className={
                   "inline-block font-sans text-sm font-semibold " +
-                  "text-[#B8674A] transition hover:text-[#a95c42]"
+                  "text-[var(--color-accent)] transition hover:text-[var(--color-accent-hover)]"
                 }
                 href="/preferences/colors"
               >
@@ -624,23 +654,23 @@ function FaqItem({ item }: Readonly<{ item: (typeof FAQ_ITEMS)[number] }>) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <article className="border-b border-[#4A413C]/15 first:pt-0 last:border-b-0">
+    <article className="border-b border-[var(--color-text-muted)]/15 first:pt-0 last:border-b-0">
       <button
         aria-expanded={isOpen}
         className={
           "flex w-full items-center justify-between gap-4 px-3 py-5 " +
           "text-left transition-colors duration-[200ms] " +
-          "ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-[#D8D3CC]/35"
+          "ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-[var(--color-surface)]/35"
         }
         onClick={() => setIsOpen((currentValue) => !currentValue)}
         type="button"
       >
-        <h3 className="font-sans text-base font-semibold text-[#3E2E29]">
+        <h3 className="font-sans text-base font-semibold text-[var(--color-text)]">
           {item.question}
         </h3>
         <svg
           aria-hidden="true"
-          className={`h-4 w-4 shrink-0 text-[#4A413C] transition-transform ` +
+          className={`h-4 w-4 shrink-0 text-[var(--color-text-muted)] transition-transform ` +
             `duration-[200ms] ease-[cubic-bezier(0.23,1,0.32,1)] ${
               isOpen ? "rotate-180" : ""
             }`}
@@ -660,7 +690,7 @@ function FaqItem({ item }: Readonly<{ item: (typeof FAQ_ITEMS)[number] }>) {
             isOpen ? "mb-5 grid-rows-[1fr]" : "grid-rows-[0fr]"
           }`}
       >
-        <p className="overflow-hidden text-base leading-7 text-[#4A413C]">
+        <p className="overflow-hidden text-base leading-7 text-[var(--color-text-muted)]">
           {item.answer}
         </p>
       </div>
@@ -674,16 +704,16 @@ function ScanScreen() {
       <div
         className={
           "relative aspect-[3/4] w-full overflow-hidden rounded-2xl border " +
-          "border-[#4A413C]/15 bg-[#D8D3CC]/60"
+          "border-[var(--color-text-muted)]/15 bg-[var(--color-surface)]/60"
         }
       >
         <div
           className={
-            "absolute inset-x-6 top-1/2 h-0.5 -translate-y-1/2 bg-[#B8674A]"
+            "absolute inset-x-6 top-1/2 h-0.5 -translate-y-1/2 bg-[var(--color-accent)]"
           }
         />
       </div>
-      <p className="text-center font-sans text-sm font-semibold text-[#4A413C]">
+      <p className="text-center font-sans text-sm font-semibold text-[var(--color-text-muted)]">
         Scanning your item...
       </p>
     </>
@@ -694,18 +724,28 @@ function VerdictScreen() {
   return (
     <>
       <div className="flex justify-center gap-2">
-        <span className={`${BADGE_CLASS} bg-[#8A9A7B]`}>Buy</span>
-        <span className={`${BADGE_CLASS} bg-[#C9A66B]/55 text-[#4A413C]`}>
+        <span className={`${BADGE_CLASS} bg-[var(--color-sage)]`}>Buy</span>
+        <span
+          className={
+            `${BADGE_CLASS} bg-[var(--color-ochre)]/55 ` +
+            "text-[var(--color-text-muted)]"
+          }
+        >
           Maybe
         </span>
-        <span className={`${BADGE_CLASS} bg-[#3E2E29]/35 text-[#4A413C]`}>
+        <span
+          className={
+            `${BADGE_CLASS} bg-[var(--color-accent-dark)]/35 ` +
+            "text-[var(--color-text-muted)]"
+          }
+        >
           Skip
         </span>
       </div>
-      <p className="text-center font-serif text-3xl font-semibold text-[#3E2E29]">
+      <p className="text-center font-serif text-3xl font-semibold text-[var(--color-text)]">
         Buy
       </p>
-      <p className="text-center text-sm leading-6 text-[#4A413C]">
+      <p className="text-center text-sm leading-6 text-[var(--color-text-muted)]">
         Navy fits the palette you saved.
       </p>
     </>
@@ -714,9 +754,14 @@ function VerdictScreen() {
 
 function PairingScreen() {
   return (
-    <div className="rounded-2xl border border-[#4A413C]/15 bg-[#FAF9F8] p-4">
-      <div className="mb-3 h-20 rounded-xl bg-[#D8D3CC]/70" />
-      <p className="text-sm leading-6 text-[#4A413C]">
+    <div
+      className={
+        "rounded-2xl border border-[var(--color-text-muted)]/15 " +
+        "bg-[var(--color-bg)] p-4"
+      }
+    >
+      <div className="mb-3 h-20 rounded-xl bg-[var(--color-surface)]/70" />
+      <p className="text-sm leading-6 text-[var(--color-text-muted)]">
         Pair it with tan or white pieces for an easy repeat outfit.
       </p>
     </div>
@@ -735,17 +780,22 @@ function PhoneMockup({ activeStep }: Readonly<{ activeStep: number }>) {
       <div
         className={
           "relative overflow-hidden rounded-[2.5rem] border-[10px] " +
-          "border-[#3E2E29] bg-[#3E2E29] " +
+          "border-[var(--color-accent-dark)] bg-[var(--color-accent-dark)] " +
           "shadow-[0_32px_80px_rgba(62,46,41,0.25)]"
         }
       >
         <div
           className={
             "absolute left-1/2 top-0 z-10 h-6 w-32 -translate-x-1/2 " +
-            "rounded-b-2xl bg-[#3E2E29]"
+            "rounded-b-2xl bg-[var(--color-accent-dark)]"
           }
         />
-        <div className="relative aspect-[9/19.5] overflow-hidden rounded-[2rem] bg-[#FAF9F8]">
+        <div
+          className={
+            "relative aspect-[9/19.5] overflow-hidden rounded-[2rem] " +
+            "bg-[var(--color-bg)]"
+          }
+        >
           {PHONE_SCREENS.map(({ Screen, key }, index) => (
             <div
               className={
@@ -771,8 +821,8 @@ function PhoneMockup({ activeStep }: Readonly<{ activeStep: number }>) {
               "h-2 rounded-full transition-[width,background-color] " +
               "duration-[300ms] ease-[cubic-bezier(0.23,1,0.32,1)] " +
               (activeStep === index
-                ? "w-6 bg-[#B8674A]"
-                : "w-2 bg-[#4A413C]/20")
+                ? "w-6 bg-[var(--color-accent)]"
+                : "w-2 bg-[var(--color-text-muted)]/20")
             }
             key={key}
           />
@@ -829,17 +879,22 @@ function HowItWorksScroll() {
               <span
                 className={
                   "flex h-12 w-12 shrink-0 items-center justify-center " +
-                  "rounded-full bg-[#B8674A] font-serif text-xl " +
-                  "font-semibold text-[#FAF9F8]"
+                  "rounded-full bg-[var(--color-accent)] font-serif text-xl " +
+                  "font-semibold text-[var(--color-on-dark)]"
                 }
               >
                 {index + 1}
               </span>
-              <h3 className="font-serif text-4xl font-semibold tracking-normal text-[#3E2E29]">
+              <h3
+                className={
+                  "font-serif text-4xl font-semibold tracking-normal " +
+                  "text-[var(--color-text)]"
+                }
+              >
                 {step.title}
               </h3>
             </div>
-            <p className="mt-3 max-w-md text-lg leading-8 text-[#4A413C]">
+            <p className="mt-3 max-w-md text-lg leading-8 text-[var(--color-text-muted)]">
               {step.copy}
             </p>
           </div>
@@ -862,13 +917,13 @@ function LandingPage() {
 
       <div
         className={
-          "sticky top-0 z-50 border-b border-[#4A413C]/10 " +
-          "bg-[#FAF9F8]/85 backdrop-blur-md"
+          "sticky top-0 z-50 border-b border-[var(--color-text-muted)]/10 " +
+          "bg-[var(--color-bg)]/85 backdrop-blur-md"
         }
       >
         <nav className={LANDING_NAV_CLASS}>
           <Link
-            className="font-serif text-5xl font-semibold tracking-normal text-[#3E2E29]"
+            className="font-serif text-5xl font-semibold tracking-normal text-[var(--color-text)]"
             href="/"
           >
             Preeve
@@ -878,8 +933,8 @@ function LandingPage() {
             {LANDING_NAV_LINKS.map((navLink) => (
               <a
                 className={
-                  "font-sans text-sm font-semibold text-[#4A413C] " +
-                  "transition-colors duration-[160ms] hover:text-[#B8674A]"
+                  "font-sans text-sm font-semibold text-[var(--color-text-muted)] " +
+                  "transition-colors duration-[160ms] hover:text-[var(--color-accent)]"
                 }
                 href={navLink.href}
                 key={navLink.href}
@@ -889,9 +944,12 @@ function LandingPage() {
             ))}
           </div>
 
-          <Link className={SIGN_IN_BUTTON_CLASS} href="/sign-in">
-            Sign in
-          </Link>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <Link className={SIGN_IN_BUTTON_CLASS} href="/sign-in">
+              Sign in
+            </Link>
+          </div>
         </nav>
       </div>
 
@@ -934,7 +992,7 @@ function LandingPage() {
                 "C840,20 960,80 1080,50 C1200,20 1320,80 1440,50 " +
                 "L1440,100 L0,100 Z"
               }
-              fill="#FAF9F8"
+              fill="var(--color-bg)"
             />
             <path
               className={
@@ -946,7 +1004,7 @@ function LandingPage() {
                 "C840,20 960,80 1080,50 C1200,20 1320,80 1440,50"
               }
               fill="none"
-              stroke="#8A9A7B"
+              stroke="var(--color-sage)"
               strokeLinecap="round"
               strokeWidth={16}
             />
@@ -963,7 +1021,7 @@ function LandingPage() {
             <p
               className={
                 "animate-fade-up max-w-lg text-xl leading-9 " +
-                "text-[#FAF9F8]/85"
+                "text-[var(--color-on-dark)]/85"
               }
               style={{ animationDelay: "90ms" }}
             >
@@ -989,15 +1047,20 @@ function LandingPage() {
           <p
             className={
               "font-sans text-sm font-semibold uppercase " +
-              "tracking-[0.28em] text-[#B8674A]"
+              "tracking-[0.28em] text-[var(--color-accent)]"
             }
           >
             Why Preeve
           </p>
-          <h2 className="font-serif text-5xl font-semibold tracking-normal text-[#3E2E29]">
+          <h2
+            className={
+              "font-serif text-5xl font-semibold tracking-normal " +
+              "text-[var(--color-text)]"
+            }
+          >
             Built for the pause before you buy.
           </h2>
-          <p className="text-xl leading-9 text-[#4A413C]">
+          <p className="text-xl leading-9 text-[var(--color-text-muted)]">
             Impulse buys pile up fast: in a cart, in a fitting room, in a
             closet you already forgot about. Preeve gives you one honest
             look before a piece is yours, so you know it actually fits the
@@ -1010,7 +1073,12 @@ function LandingPage() {
       <section className={LANDING_BAND_CLASS} id="how-it-works">
         <div className={LANDING_SECTION_CLASS}>
           <div className="mb-4 space-y-3">
-            <h2 className="font-serif text-5xl font-semibold tracking-normal text-[#3E2E29]">
+            <h2
+              className={
+                "font-serif text-5xl font-semibold tracking-normal " +
+                "text-[var(--color-text)]"
+              }
+            >
               How Preeve works
             </h2>
           </div>
@@ -1028,7 +1096,7 @@ function LandingPage() {
         <div className="mx-auto flex max-w-2xl flex-col items-center gap-5">
           <svg
             aria-hidden="true"
-            className="h-9 w-9 text-[#8A9A7B]"
+            className="h-9 w-9 text-[var(--color-sage)]"
             fill="none"
             stroke="currentColor"
             strokeLinecap="round"
@@ -1042,15 +1110,20 @@ function LandingPage() {
           <p
             className={
               "font-sans text-sm font-semibold uppercase " +
-              "tracking-[0.28em] text-[#8A9A7B]"
+              "tracking-[0.28em] text-[var(--color-sage)]"
             }
           >
             Privacy
           </p>
-          <h2 className="font-serif text-5xl font-semibold tracking-normal text-[#3E2E29]">
+          <h2
+            className={
+              "font-serif text-5xl font-semibold tracking-normal " +
+              "text-[var(--color-text)]"
+            }
+          >
             Your photos stay private, by design.
           </h2>
-          <p className="text-xl leading-9 text-[#4A413C]">
+          <p className="text-xl leading-9 text-[var(--color-text-muted)]">
             Every photo you scan is stored in a private bucket that only
             Preeve&apos;s backend can reach. When you need to see it again,
             we generate a short-lived link just for you. There&apos;s no
@@ -1062,7 +1135,12 @@ function LandingPage() {
 
       <section className={LANDING_BAND_CLASS} id="faq">
         <div className={LANDING_SECTION_CLASS}>
-          <h2 className="mb-10 font-serif text-5xl font-semibold tracking-normal text-[#3E2E29]">
+          <h2
+            className={
+              "mb-10 font-serif text-5xl font-semibold tracking-normal " +
+              "text-[var(--color-text)]"
+            }
+          >
             Frequently Asked Questions
           </h2>
           <div className="mx-auto flex max-w-2xl flex-col">
@@ -1076,10 +1154,15 @@ function LandingPage() {
       <section className={`${LANDING_SECTION_CLASS} py-24`}>
         <div className={CTA_BANNER_CLASS}>
           <div className="mx-auto flex max-w-2xl flex-col items-center gap-6 text-center">
-            <h2 className="font-serif text-5xl font-semibold tracking-normal text-[#3E2E29]">
+            <h2
+              className={
+                "font-serif text-5xl font-semibold tracking-normal " +
+                "text-[var(--color-text)]"
+              }
+            >
               Preeve it before you bring it home.
             </h2>
-            <p className="text-lg leading-8 text-[#4A413C]">
+            <p className="text-lg leading-8 text-[var(--color-text-muted)]">
               Snap a pic, get the verdict, skip the regret.
             </p>
             <EmailSignupForm compact />
@@ -1087,24 +1170,32 @@ function LandingPage() {
         </div>
       </section>
 
-      <footer className="bg-[#3E2E29] py-14">
+      <footer className="bg-[var(--color-accent-dark)] py-14">
         <div className={LANDING_SECTION_CLASS}>
           <div className={FOOTER_LAYOUT_CLASS}>
             <div className="space-y-2">
-              <p className="font-serif text-4xl font-semibold tracking-normal text-[#FAF9F8]">
+              <p
+                className={
+                  "font-serif text-4xl font-semibold tracking-normal " +
+                  "text-[var(--color-on-dark)]"
+                }
+              >
                 Preeve
               </p>
-              <p className="text-base text-[#D8D3CC]">
+              <p className="text-base text-[var(--color-on-dark-muted)]">
                 A pause before every purchase.
               </p>
-              <p className="font-sans text-sm text-[#D8D3CC]/70">
+              <p className="font-sans text-sm text-[var(--color-on-dark-muted)]/70">
                 {currentYear} Preeve
               </p>
             </div>
 
             <div className="flex gap-4 font-sans text-sm font-semibold">
               <a
-                className="text-[#D8D3CC] transition hover:text-[#B8674A]"
+                className={
+                  "text-[var(--color-on-dark-muted)] transition " +
+                  "hover:text-[var(--color-accent)]"
+                }
                 href="https://github.com/justenhilliard"
                 rel="noreferrer"
                 target="_blank"
@@ -1112,7 +1203,10 @@ function LandingPage() {
                 GitHub
               </a>
               <a
-                className="text-[#D8D3CC] transition hover:text-[#B8674A]"
+                className={
+                  "text-[var(--color-on-dark-muted)] transition " +
+                  "hover:text-[var(--color-accent)]"
+                }
                 href="https://www.linkedin.com/in/justen-hilliard"
                 rel="noreferrer"
                 target="_blank"
@@ -1120,7 +1214,10 @@ function LandingPage() {
                 LinkedIn
               </a>
               <a
-                className="text-[#D8D3CC] transition hover:text-[#B8674A]"
+                className={
+                  "text-[var(--color-on-dark-muted)] transition " +
+                  "hover:text-[var(--color-accent)]"
+                }
                 href="mailto:justenkhilliard@gmail.com"
               >
                 Contact
@@ -1137,7 +1234,7 @@ function LoadingHome() {
   return (
     <main className="min-h-screen bg-background px-6 py-8 text-foreground">
       <div className={LOADING_HOME_CLASS}>
-        <p className="font-sans text-sm font-medium text-[#4A413C]">
+        <p className="font-sans text-sm font-medium text-[var(--color-text-muted)]">
           Loading Preeve...
         </p>
       </div>

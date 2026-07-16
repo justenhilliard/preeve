@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ThemeToggle } from "../themeToggle";
 
 type StepShellProps = Readonly<{
   backHref: string;
@@ -31,23 +32,23 @@ type PrimaryLinkProps = Readonly<{
 }>;
 
 const PRIMARY_ACTION_CLASS =
-  "rounded-md bg-[#B8674A] px-6 py-3 font-sans text-sm font-semibold " +
-  "text-[#FAF9F8] transition-[background-color,transform] duration-[160ms] " +
-  "ease-[var(--ease-out)] hover:bg-[#a95c42] active:scale-[0.97]";
+  "rounded-md bg-[var(--color-accent)] px-6 py-3 font-sans text-sm font-semibold " +
+  "text-[var(--color-on-dark)] transition-[background-color,transform] duration-[160ms] " +
+  "ease-[var(--ease-out)] hover:bg-[var(--color-accent-hover)] active:scale-[0.97]";
 const DISABLED_PRIMARY_ACTION_CLASS =
   "disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100";
 const OPTION_BUTTON_BASE_CLASS =
   "flex items-center justify-between gap-3 rounded-xl border-2 " +
-  "border-[#4A413C]/15 bg-[#FAF9F8] px-4 py-3 font-sans text-sm " +
-  "font-medium text-[#3E2E29] shadow-[0_3px_8px_rgba(62,46,41,0.22)] " +
+  "border-[var(--color-text-muted)]/15 bg-[var(--color-bg)] px-4 py-3 font-sans text-sm " +
+  "font-medium text-[var(--color-text)] shadow-[0_3px_8px_rgba(62,46,41,0.22)] " +
   "outline outline-[3px] outline-offset-[3px] transition";
 const COLOR_SWATCH_BASE_CLASS =
   "relative flex h-16 w-16 items-center justify-center rounded-full border " +
-  "border-[#4A413C]/20 shadow-[0_3px_8px_rgba(62,46,41,0.22)] " +
+  "border-[var(--color-text-muted)]/20 shadow-[0_3px_8px_rgba(62,46,41,0.22)] " +
   "outline outline-[3px] outline-offset-[3px] transition";
 const LOADING_SPINNER_CLASS =
-  "h-9 w-9 animate-spin rounded-full border-[3px] border-[#4A413C]/15 " +
-  "border-t-[#B8674A]";
+  "h-9 w-9 animate-spin rounded-full border-[3px] border-[var(--color-text-muted)]/15 " +
+  "border-t-[var(--color-accent)]";
 
 export function StepShell({
   backHref,
@@ -67,14 +68,22 @@ export function StepShell({
             Back
           </Link>
 
-          {isLoading ? null : (
-            <div className="w-36 pt-2">
-              <ProgressBar step={step} />
-              <p className="mt-2 text-right font-sans text-xs font-medium text-[#4A413C]">
-                Step {step} of 3
-              </p>
-            </div>
-          )}
+          <div className="flex items-center gap-4">
+            {isLoading ? null : (
+              <div className="w-36 pt-2">
+                <ProgressBar step={step} />
+                <p
+                  className={
+                    "mt-2 text-right font-sans text-xs font-medium " +
+                    "text-[var(--color-text-muted)]"
+                  }
+                >
+                  Step {step} of 3
+                </p>
+              </div>
+            )}
+            <ThemeToggle />
+          </div>
         </nav>
 
         <section className="flex flex-1 flex-col justify-center gap-10 py-10">
@@ -84,10 +93,20 @@ export function StepShell({
             <>
               <div className="space-y-4">
                 <header className="space-y-4 text-center">
-                  <h1 className="font-serif text-5xl font-semibold tracking-normal text-[#3E2E29]">
+                  <h1
+                    className={
+                      "font-serif text-5xl font-semibold tracking-normal " +
+                      "text-[var(--color-text)]"
+                    }
+                  >
                     {title}
                   </h1>
-                  <p className="mx-auto max-w-sm font-sans text-sm font-medium text-[#4A413C]">
+                  <p
+                    className={
+                      "mx-auto max-w-sm font-sans text-sm font-medium " +
+                      "text-[var(--color-text-muted)]"
+                    }
+                  >
                     {subtitle}
                   </p>
                 </header>
@@ -96,7 +115,7 @@ export function StepShell({
               {children}
 
               {errorMessage ? (
-                <p className="text-center font-sans text-sm text-[#4A413C]">
+                <p className="text-center font-sans text-sm text-[var(--color-text-muted)]">
                   {errorMessage}
                 </p>
               ) : null}
@@ -127,7 +146,7 @@ export function ProgressBar({ step }: Readonly<{ step: number }>) {
       {[1, 2, 3].map((currentStep) => (
         <div
           className={`h-2 rounded-full ${
-            currentStep <= step ? "bg-[#B8674A]" : "bg-[#D8D3CC]"
+            currentStep <= step ? "bg-[var(--color-accent)]" : "bg-[var(--color-surface)]"
           }`}
           key={currentStep}
         />
@@ -145,7 +164,7 @@ export function OptionButton({
     <button
       className={`${OPTION_BUTTON_BASE_CLASS} ${
         isSelected
-          ? "outline-[#B8674A] shadow-[0_5px_14px_rgba(184,103,74,0.35)]"
+          ? "outline-[var(--color-accent)] shadow-[0_5px_14px_rgba(184,103,74,0.35)]"
           : "outline-transparent"
       }`}
       onClick={onClick}
@@ -157,7 +176,7 @@ export function OptionButton({
           aria-hidden="true"
           className="h-5 w-5 flex-shrink-0"
           fill="none"
-          stroke="#B8674A"
+          stroke="var(--color-accent)"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={3}
@@ -212,7 +231,7 @@ export function ColorSwatchButton({
       <span
         className={`${COLOR_SWATCH_BASE_CLASS} ${
           isSelected
-            ? "outline-[#B8674A] shadow-[0_5px_14px_rgba(184,103,74,0.35)]"
+            ? "outline-[var(--color-accent)] shadow-[0_5px_14px_rgba(184,103,74,0.35)]"
             : "outline-transparent"
         }`}
         style={{ background: hex }}
@@ -236,7 +255,7 @@ export function ColorSwatchButton({
       {/* Label lives on the fixed cream background, not the color fill —
           guarantees consistent, WCAG-passing contrast regardless of which
           color is shown, unlike text overlaid directly on the swatch. */}
-      <span className="font-sans text-xs font-semibold capitalize text-[#3E2E29]">
+      <span className="font-sans text-xs font-semibold capitalize text-[var(--color-text)]">
         {colorName}
       </span>
     </button>
