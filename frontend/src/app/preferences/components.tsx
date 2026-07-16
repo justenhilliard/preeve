@@ -31,7 +31,7 @@ type PrimaryLinkProps = Readonly<{
 }>;
 
 const PRIMARY_ACTION_CLASS =
-  "rounded-xl bg-[#B8674A] px-6 py-3 font-sans text-sm font-semibold " +
+  "rounded-md bg-[#B8674A] px-6 py-3 font-sans text-sm font-semibold " +
   "text-[#FAF9F8] transition-[background-color,transform] duration-[160ms] " +
   "ease-[var(--ease-out)] hover:bg-[#a95c42] active:scale-[0.97]";
 const DISABLED_PRIMARY_ACTION_CLASS =

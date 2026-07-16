@@ -123,11 +123,11 @@ const LANDING_BAND_CLASS =
 const LANDING_NAV_CLASS =
   "mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-6";
 const LANDING_CTA_BUTTON_CLASS =
-  "rounded-xl bg-[#B8674A] px-6 py-3 font-sans text-sm font-semibold " +
+  "rounded-md bg-[#B8674A] px-6 py-3 font-sans text-sm font-semibold " +
   "text-[#FAF9F8] transition-[background-color,transform] duration-[160ms] " +
   "ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-[#a95c42] active:scale-[0.97]";
 const SIGN_IN_BUTTON_CLASS =
-  "rounded-xl bg-[#3E2E29] px-5 py-2.5 font-sans text-sm font-semibold " +
+  "rounded-md bg-[#3E2E29] px-5 py-2.5 font-sans text-sm font-semibold " +
   "text-[#FAF9F8] transition-[background-color,transform] duration-[160ms] " +
   "ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-[#2f2320] active:scale-[0.97]";
 const EMAIL_INPUT_CLASS =
@@ -160,7 +160,7 @@ const VERDICT_BORDER_STYLES: Record<Verdict, string> = {
   skip: "border-[#3E2E29]",
 };
 const SCAN_CTA_CLASS =
-  "flex items-center gap-4 rounded-xl bg-[#B8674A] px-6 py-4 text-left " +
+  "flex items-center gap-4 rounded-md bg-[#B8674A] px-6 py-4 text-left " +
   "text-[#FAF9F8] transition-[background-color,transform] duration-[160ms] " +
   "ease-[var(--ease-out)] hover:bg-[#a95c42] active:scale-[0.97]";
 const DASHBOARD_SPINNER_CLASS =

@@ -14,7 +14,7 @@ const PREVIEW_FRAME_CLASS =
   "overflow-hidden rounded-2xl border border-[#4A413C]/15 bg-[#D8D3CC]/45 " +
   "shadow-[0_24px_70px_rgba(62,46,41,0.10)]";
 const SECONDARY_ACTION_CLASS =
-  "rounded-xl border border-[#4A413C]/20 px-6 py-3 font-sans text-sm " +
+  "rounded-md border border-[#4A413C]/20 px-6 py-3 font-sans text-sm " +
   "font-semibold text-[#3E2E29] transition hover:bg-[#D8D3CC]/45";
 const VIEWFINDER_FRAME_CLASS =
   "relative overflow-hidden rounded-2xl border border-[#4A413C]/15 " +

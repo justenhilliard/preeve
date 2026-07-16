@@ -62,10 +62,10 @@ const SPINNER_CLASS =
   "h-9 w-9 animate-spin rounded-full border-[3px] border-[#4A413C]/15 " +
   "border-t-[#B8674A]";
 const DISCARD_BUTTON_CLASS =
-  "rounded-xl border border-[#4A413C]/20 px-6 py-3 font-sans text-sm " +
+  "rounded-md border border-[#4A413C]/20 px-6 py-3 font-sans text-sm " +
   "font-semibold text-[#3E2E29] transition hover:bg-[#D8D3CC]/45";
 const DELETE_BUTTON_CLASS =
-  "rounded-xl border border-[#B8674A]/45 px-6 py-3 font-sans text-sm " +
+  "rounded-md border border-[#B8674A]/45 px-6 py-3 font-sans text-sm " +
   "font-semibold text-[#3E2E29] transition hover:bg-[#B8674A]/10";
 const OVERRIDE_BUTTON_CLASS =
   "w-fit rounded-full border border-[#4A413C]/20 px-4 py-2 font-sans " +

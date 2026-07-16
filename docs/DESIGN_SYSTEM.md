@@ -53,9 +53,9 @@ Rule of thumb: if it's a headline or the logo, Cormorant Garamond. If it's somet
 
 ## Shape & Spacing
 
-Soft and rounded is the base language — cards, inputs, badges, and buttons should never feel sharp, with no exceptions. The landing page's own CTA buttons (`Button/Primary-CTA`: the hero and CTA-banner "Preeve it" buttons, plus the landing nav's "Sign in" button) previously carried a clipped top-right corner as a signature accent; it's been removed in favor of the same plain rounded rectangle used everywhere else in the app.
+Soft and rounded is the base language for cards, inputs, and badges/pills — none of these should feel sharp. Buttons are the one deliberate exception: a slight `6px` corner rounding keeps them reading as rectangles rather than soft pills, a small visual contrast against the rounder cards and inputs they sit on. The landing page's own CTA buttons (`Button/Primary-CTA`: the hero and CTA-banner "Preeve it" buttons, plus the landing nav's "Sign in" button) previously carried a clipped top-right corner as a signature accent; that's been removed in favor of this same slightly-rounded rectangle used for every button in the app.
 
-- **Corner radius:** soft and rounded for cards (`16px`), inputs (`12px`), badges/pills (fully rounded, `9999px`), and buttons (`12px`) — uniformly, everywhere.
+- **Corner radius:** soft and rounded for cards (`16px`), inputs (`12px`), and badges/pills (fully rounded, `9999px`) — but buttons (`6px`) are intentionally more rectangular, a deliberate contrast against the softer cards and pills rather than matching them.
 - **Borders:** thin (`1px`), `color-charcoal` at low opacity rather than heavy strokes — let color and spacing do the work, not bold outlines.
 - **Whitespace:** generous. Editorial/boutique aesthetics read as premium partly through restraint — don't crowd elements. Prefer more padding over more content density.
 - **Imagery:** warm, soft-lit photography (coffee/vintage-clothing-rack style references — drop any floral/rose imagery from the moodboard going forward, it's the other half of the gendered signal the palette just moved away from) — avoid harsh flash-lit or clinical product photos when real item photos start populating the wardrobe log; this is a note for future photography choices, not something enforceable in code.

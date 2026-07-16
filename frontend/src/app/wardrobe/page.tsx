@@ -67,7 +67,7 @@ const EMPTY_STATE_CLASS =
   "rounded-2xl border border-[#4A413C]/15 bg-[#D8D3CC]/45 p-8 text-center " +
   "shadow-[0_24px_70px_rgba(62,46,41,0.10)]";
 const CLEAR_FILTERS_BUTTON_CLASS =
-  "rounded-xl bg-[#B8674A] px-6 py-3 font-sans text-sm font-semibold " +
+  "rounded-md bg-[#B8674A] px-6 py-3 font-sans text-sm font-semibold " +
   "text-[#FAF9F8] transition hover:bg-[#a95c42]";
 const PAGE_HEADING_CLASS =
   "font-serif text-5xl font-semibold tracking-normal text-[#3E2E29] " +

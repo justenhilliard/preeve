@@ -21,7 +21,7 @@ export const authAppearance = {
     },
     formButtonPrimary: {
       backgroundColor: "#B8674A",
-      borderRadius: "12px",
+      borderRadius: "6px",
       color: "#FAF9F8",
       fontFamily: "var(--font-inter), ui-sans-serif, system-ui, sans-serif",
       fontWeight: "600",
@@ -63,7 +63,7 @@ export const authAppearance = {
     socialButtonsBlockButton: {
       backgroundColor: "#FAF9F8",
       borderColor: "rgb(74 65 60 / 0.24)",
-      borderRadius: "12px",
+      borderRadius: "6px",
       color: "#3E2E29",
       fontFamily: "var(--font-inter), ui-sans-serif, system-ui, sans-serif",
       fontWeight: "600",
