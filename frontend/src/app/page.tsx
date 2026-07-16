@@ -238,27 +238,33 @@ function HomeGreeting() {
   );
 }
 
+function CameraIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-6 w-6 shrink-0"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      viewBox="0 0 24 24"
+    >
+      <path
+        d={
+          "M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 " +
+          "0 0 1-1-1V9a1 1 0 0 1 1-1Z"
+        }
+      />
+      <circle cx="12" cy="13.5" r="3.5" />
+    </svg>
+  );
+}
+
 function ScanItemCta() {
   return (
     <Link className={SCAN_CTA_CLASS} href="/capture">
-      <svg
-        aria-hidden="true"
-        className="h-6 w-6 shrink-0"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        viewBox="0 0 24 24"
-      >
-        <path
-          d={
-            "M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 " +
-            "0 0 1-1-1V9a1 1 0 0 1 1-1Z"
-          }
-        />
-        <circle cx="12" cy="13.5" r="3.5" />
-      </svg>
+      <CameraIcon />
       <span className="flex flex-col items-start">
         <span className="font-sans text-base font-semibold">Scan item</span>
         <span className="font-sans text-xs font-medium text-[#FAF9F8]/75">
@@ -266,6 +272,29 @@ function ScanItemCta() {
         </span>
       </span>
     </Link>
+  );
+}
+
+function ScanNowBanner() {
+  return (
+    <section className={EMPTY_STATE_CARD_CLASS}>
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-2">
+          <h2 className="font-serif text-3xl font-semibold tracking-normal text-[#3E2E29]">
+            Heading out to shop?
+          </h2>
+          <p className="max-w-md text-base leading-7 text-[#4A413C]">
+            Keep Preeve open and scan anything that catches your eye. You&apos;ll
+            know in seconds if it&apos;s worth it.
+          </p>
+        </div>
+
+        <Link className={SCAN_CTA_CLASS} href="/capture">
+          <CameraIcon />
+          <span className="font-sans text-base font-semibold">Scan now</span>
+        </Link>
+      </div>
+    </section>
   );
 }
 
@@ -543,7 +572,10 @@ function HomeDashboard() {
           {wardrobeQuery.isLoading ? (
             <DashboardActivityLoading />
           ) : recentItems.length > 0 ? (
-            <RecentActivityRow items={recentItems} />
+            <>
+              <RecentActivityRow items={recentItems} />
+              <ScanNowBanner />
+            </>
           ) : (
             <EmptyStateCard />
           )}
