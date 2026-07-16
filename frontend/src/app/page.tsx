@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { useAuthenticatedApi } from "./apiClient";
-import { formatOptionLabel, PrimaryLink } from "./preferences/components";
+import { formatOptionLabel } from "./preferences/components";
 
 type Verdict = "buy" | "maybe" | "skip";
 
@@ -18,6 +18,7 @@ type WardrobeItem = {
   id: string;
   isFavorited: boolean;
   photoUrl: string;
+  rationale: string | null;
   verdict: Verdict | null;
 };
 
@@ -157,6 +158,15 @@ const VERDICT_STYLES: Record<Verdict, string> = {
   maybe: "bg-[#C9A66B] text-[#FAF9F8]",
   skip: "bg-[#3E2E29] text-[#FAF9F8]",
 };
+const VERDICT_BORDER_STYLES: Record<Verdict, string> = {
+  buy: "border-[#8A9A7B]",
+  maybe: "border-[#C9A66B]",
+  skip: "border-[#3E2E29]",
+};
+const SCAN_CTA_CLASS =
+  "flex items-center gap-4 rounded-xl bg-[#B8674A] px-6 py-4 text-left " +
+  "text-[#FAF9F8] transition-[background-color,transform] duration-[160ms] " +
+  "ease-[var(--ease-out)] hover:bg-[#a95c42] active:scale-[0.97]";
 const DASHBOARD_SPINNER_CLASS =
   "h-9 w-9 animate-spin rounded-full border-[3px] border-[#4A413C]/15 " +
   "border-t-[#B8674A]";
@@ -213,6 +223,55 @@ function HomeGreeting() {
   );
 }
 
+function ScanItemCta() {
+  return (
+    <Link className={SCAN_CTA_CLASS} href="/capture">
+      <svg
+        aria-hidden="true"
+        className="h-6 w-6 shrink-0"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        viewBox="0 0 24 24"
+      >
+        <path
+          d={
+            "M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 " +
+            "0 0 1-1-1V9a1 1 0 0 1 1-1Z"
+          }
+        />
+        <circle cx="12" cy="13.5" r="3.5" />
+      </svg>
+      <span className="flex flex-col items-start">
+        <span className="font-sans text-base font-semibold">Scan item</span>
+        <span className="font-sans text-xs font-medium text-[#FAF9F8]/75">
+          Photo to verdict in seconds
+        </span>
+      </span>
+    </Link>
+  );
+}
+
+function ClockIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      viewBox="0 0 24 24"
+    >
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </svg>
+  );
+}
+
 function EmptyStateCard() {
   return (
     <section className={EMPTY_STATE_CARD_CLASS}>
@@ -227,7 +286,7 @@ function EmptyStateCard() {
           Start with one piece you are considering and keep your wardrobe
           decisions grounded in your preferences.
         </p>
-        <PrimaryLink href="/capture">Scan item</PrimaryLink>
+        <ScanItemCta />
       </div>
     </section>
   );
@@ -271,40 +330,53 @@ function RecentActivityItem({ item }: Readonly<{ item: WardrobeItem }>) {
   return (
     <Link
       aria-label={`Open ${formatCategoryColor(item)}`}
-      className="w-40 shrink-0 snap-start"
+      className={
+        "block overflow-hidden rounded-2xl border border-[#4A413C]/15 " +
+        "bg-[#FAF9F8] transition duration-[200ms] " +
+        "ease-[var(--ease-out)] hover:shadow-[0_18px_48px_rgba(62,46,41,0.14)]"
+      }
       href={`/items/${item.id}`}
     >
-      <div className="overflow-hidden rounded-2xl border border-[#4A413C]/15 bg-[#FAF9F8]">
-        <div className="relative aspect-[3/4] w-full">
-          <Image
-            alt={formatCategoryColor(item)}
-            className="object-cover"
-            fill
-            sizes="160px"
-            src={item.photoUrl}
-            unoptimized
-          />
-        </div>
-      </div>
-
-      <div className="mt-3 space-y-1.5">
-        <p className="font-sans text-sm font-semibold text-[#3E2E29]">
-          {formatCategoryColor(item)}
-        </p>
+      <div className="relative aspect-[4/3] w-full">
+        <Image
+          alt={formatCategoryColor(item)}
+          className="object-cover"
+          fill
+          sizes="(min-width: 1024px) 320px, (min-width: 640px) 45vw, 100vw"
+          src={item.photoUrl}
+          unoptimized
+        />
         {item.verdict ? (
           <span
-            className={`${VERDICT_BADGE_CLASS} ${VERDICT_STYLES[item.verdict]}`}
+            className={
+              `${VERDICT_BADGE_CLASS} absolute right-3 top-3 ` +
+              `${VERDICT_STYLES[item.verdict]}`
+            }
           >
             {formatVerdict(item.verdict)}
           </span>
-        ) : (
-          <span className="font-sans text-xs font-semibold text-[#4A413C]">
-            No verdict
-          </span>
-        )}
-        <p className="font-sans text-xs text-[#4A413C]">
-          {formatScanDate(item.createdAt)}
-        </p>
+        ) : null}
+      </div>
+
+      <div className="space-y-3 p-4">
+        <div className="space-y-0.5">
+          <p className="font-sans text-base font-semibold text-[#3E2E29]">
+            {formatCategoryColor(item)}
+          </p>
+          <p className="font-sans text-xs text-[#4A413C]">
+            {formatScanDate(item.createdAt)}
+          </p>
+        </div>
+
+        {item.rationale ? (
+          <p
+            className={`border-l-2 py-1 pl-3 text-sm leading-6 text-[#4A413C] ${
+              item.verdict ? VERDICT_BORDER_STYLES[item.verdict] : "border-[#4A413C]/20"
+            }`}
+          >
+            {item.rationale}
+          </p>
+        ) : null}
       </div>
     </Link>
   );
@@ -315,13 +387,27 @@ function RecentActivityRow({ items }: Readonly<{ items: WardrobeItem[] }>) {
     <section className={EMPTY_STATE_CARD_CLASS}>
       <div className="space-y-5">
         <div className="flex items-center justify-between gap-4">
-          <p className="font-sans text-sm font-semibold uppercase tracking-[0.18em] text-[#4A413C]">
+          <p
+            className={
+              "flex items-center gap-2 font-sans text-sm font-semibold " +
+              "uppercase tracking-[0.18em] text-[#4A413C]"
+            }
+          >
+            <ClockIcon />
             Recent activity
           </p>
-          <PrimaryLink href="/wardrobe">View your wardrobe</PrimaryLink>
+          <Link
+            className={
+              "font-sans text-sm font-semibold text-[#B8674A] " +
+              "transition hover:text-[#a95c42]"
+            }
+            href="/wardrobe"
+          >
+            View your wardrobe &rarr;
+          </Link>
         </div>
 
-        <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (
             <RecentActivityItem item={item} key={item.id} />
           ))}
@@ -361,7 +447,7 @@ function HomeDashboard() {
                 </p>
               </div>
 
-              <PrimaryLink href="/capture">Scan item</PrimaryLink>
+              <ScanItemCta />
             </div>
 
             {needsPreferences ? (

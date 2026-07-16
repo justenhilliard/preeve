@@ -500,6 +500,7 @@ async def format_wardrobe_item(scanned_item: ScannedItem) -> dict[str, str | boo
         or scanned_item.detected_category,
         "detectedColor": scanned_item.corrected_color or scanned_item.detected_color,
         "verdict": scanned_item.verdict,
+        "rationale": scanned_item.rationale,
         "isFavorited": scanned_item.is_favorited,
         "createdAt": format_timestamp(scanned_item.created_at),
     }
