@@ -1,10 +1,15 @@
+"use client";
+
 import { SignIn } from "@clerk/nextjs";
 import Link from "next/link";
 
-import { authAppearance } from "../../authAppearance";
+import { getAuthAppearance } from "../../authAppearance";
+import { useTheme } from "../../themeContext";
 import { ThemeToggle } from "../../themeToggle";
 
 export default function SignInPage() {
+  const { theme } = useTheme();
+
   return (
     <main
       className={
@@ -64,7 +69,7 @@ export default function SignInPage() {
           </header>
 
           <SignIn
-            appearance={authAppearance}
+            appearance={getAuthAppearance(theme)}
             path="/sign-in"
             routing="path"
           />

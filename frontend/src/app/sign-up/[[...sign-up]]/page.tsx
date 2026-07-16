@@ -4,12 +4,14 @@ import { SignUp } from "@clerk/nextjs";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
-import { authAppearance } from "../../authAppearance";
+import { getAuthAppearance } from "../../authAppearance";
+import { useTheme } from "../../themeContext";
 import { ThemeToggle } from "../../themeToggle";
 
 export default function SignUpPage() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email") ?? undefined;
+  const { theme } = useTheme();
 
   return (
     <main
@@ -70,7 +72,7 @@ export default function SignUpPage() {
           </header>
 
           <SignUp
-            appearance={authAppearance}
+            appearance={getAuthAppearance(theme)}
             initialValues={email ? { emailAddress: email } : undefined}
             path="/sign-up"
             routing="path"
