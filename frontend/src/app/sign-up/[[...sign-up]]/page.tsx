@@ -30,8 +30,8 @@ export default function SignUpPage() {
         />
         <path
           className={
-            "[filter:drop-shadow(0_10px_8px_rgba(36,26,22,0.6))_" +
-            "drop-shadow(0_24px_28px_rgba(36,26,22,0.4))]"
+            "[filter:drop-shadow(0_14px_10px_rgba(0,0,0,0.55))_" +
+            "drop-shadow(0_28px_32px_rgba(0,0,0,0.4))]"
           }
           d={
             "M0,50 C120,20 240,80 360,50 C480,20 600,80 720,50 " +
@@ -40,7 +40,7 @@ export default function SignUpPage() {
           fill="none"
           stroke="#8A9A7B"
           strokeLinecap="round"
-          strokeWidth={5}
+          strokeWidth={9}
         />
       </svg>
 

@@ -527,7 +527,7 @@ function HomeDashboard() {
           fill="none"
           stroke="#8A9A7B"
           strokeLinecap="round"
-          strokeWidth={7}
+          strokeWidth={9}
         />
       </svg>
 
@@ -948,7 +948,7 @@ function LandingPage() {
               fill="none"
               stroke="#8A9A7B"
               strokeLinecap="round"
-              strokeWidth={11}
+              strokeWidth={9}
             />
           </svg>
         </div>
