@@ -171,7 +171,7 @@ function HomeTopBar() {
   return (
     <nav className={TOP_BAR_CLASS}>
       <Link
-        className="font-serif text-4xl font-semibold tracking-normal text-[#3E2E29]"
+        className="font-serif text-5xl font-semibold tracking-normal text-[#3E2E29]"
         href="/"
       >
         Preeve
@@ -517,8 +517,8 @@ function HomeDashboard() {
         />
         <path
           className={
-            "[filter:drop-shadow(0_10px_8px_rgba(36,26,22,0.6))_" +
-            "drop-shadow(0_24px_28px_rgba(36,26,22,0.4))]"
+            "[filter:drop-shadow(0_14px_10px_rgba(0,0,0,0.55))_" +
+            "drop-shadow(0_28px_32px_rgba(0,0,0,0.4))]"
           }
           d={
             "M0,50 C120,20 240,80 360,50 C480,20 600,80 720,50 " +
@@ -527,7 +527,7 @@ function HomeDashboard() {
           fill="none"
           stroke="#8A9A7B"
           strokeLinecap="round"
-          strokeWidth={5}
+          strokeWidth={7}
         />
       </svg>
 
@@ -540,7 +540,7 @@ function HomeDashboard() {
         <HomeTopBar />
 
         <section className="flex flex-1 flex-col justify-center gap-10 py-8">
-          <div className="space-y-4">
+          <div className="animate-fade-up space-y-4">
             <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
               <div className="space-y-4">
                 <HomeGreeting />
@@ -565,16 +565,21 @@ function HomeDashboard() {
             ) : null}
           </div>
 
-          {wardrobeQuery.isLoading ? (
-            <DashboardActivityLoading />
-          ) : recentItems.length > 0 ? (
-            <>
-              <RecentActivityRow items={recentItems} />
-              <ScanNowBanner />
-            </>
-          ) : (
-            <EmptyStateCard />
-          )}
+          <div
+            className="animate-fade-up flex flex-1 flex-col gap-10"
+            style={{ animationDelay: "90ms" }}
+          >
+            {wardrobeQuery.isLoading ? (
+              <DashboardActivityLoading />
+            ) : recentItems.length > 0 ? (
+              <>
+                <RecentActivityRow items={recentItems} />
+                <ScanNowBanner />
+              </>
+            ) : (
+              <EmptyStateCard />
+            )}
+          </div>
         </section>
       </div>
     </main>
