@@ -67,6 +67,9 @@ const DISCARD_BUTTON_CLASS =
 const DELETE_BUTTON_CLASS =
   "rounded-xl border border-[#B8674A]/45 px-6 py-3 font-sans text-sm " +
   "font-semibold text-[#3E2E29] transition hover:bg-[#B8674A]/10";
+const OVERRIDE_BUTTON_CLASS =
+  "w-fit rounded-full border border-[#4A413C]/20 px-4 py-2 font-sans " +
+  "text-sm font-semibold text-[#3E2E29] transition hover:bg-[#FAF9F8]/70";
 const FAVORITE_BUTTON_CLASS =
   "flex h-11 w-11 items-center justify-center rounded-full border " +
   "border-[#4A413C]/15 bg-[#FAF9F8]/85 text-[#3E2E29] transition " +
@@ -388,6 +391,14 @@ export default function ItemResultPage() {
                     <p className="text-lg leading-8 text-[#4A413C]">
                       {item.rationale}
                     </p>
+
+                    <button
+                      className={OVERRIDE_BUTTON_CLASS}
+                      onClick={() => router.push(`/items/${item.id}/correct`)}
+                      type="button"
+                    >
+                      This looks wrong
+                    </button>
 
                     <PairingSuggestions suggestions={item.pairingSuggestions} />
                   </div>

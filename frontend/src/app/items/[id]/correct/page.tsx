@@ -31,6 +31,8 @@ type CategoryOption = (typeof CATEGORY_OPTIONS)[number];
 type ScannedItemResponse = {
   correctedCategory: CategoryOption | null;
   correctedColor: ColorOption | null;
+  detectedCategory: CategoryOption | null;
+  detectedColor: ColorOption | null;
   id: string;
   photoUrl: string;
 };
@@ -49,6 +51,13 @@ const SPINNER_CLASS =
 
 function getRouteItemId(itemIdParam: string | string[] | undefined) {
   return Array.isArray(itemIdParam) ? itemIdParam[0] : itemIdParam;
+}
+
+function getEffectiveAttribute<Value>(
+  correctedValue: Value | null,
+  detectedValue: Value | null,
+) {
+  return correctedValue ?? detectedValue;
 }
 
 export default function CorrectItemPage() {
@@ -86,8 +95,18 @@ export default function CorrectItemPage() {
         }
 
         setItem(itemResponse);
-        setCategory(itemResponse.correctedCategory);
-        setColor(itemResponse.correctedColor);
+        setCategory(
+          getEffectiveAttribute(
+            itemResponse.correctedCategory,
+            itemResponse.detectedCategory,
+          ),
+        );
+        setColor(
+          getEffectiveAttribute(
+            itemResponse.correctedColor,
+            itemResponse.detectedColor,
+          ),
+        );
       } catch (error) {
         if (!isMounted) {
           return;
