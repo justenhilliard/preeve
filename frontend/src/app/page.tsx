@@ -204,6 +204,20 @@ function HomeTopBar() {
   );
 }
 
+function getGreetingWord() {
+  const hour = new Date().getHours();
+
+  if (hour < 12) {
+    return "Good morning";
+  }
+
+  if (hour < 18) {
+    return "Good afternoon";
+  }
+
+  return "Good evening";
+}
+
 function HomeGreeting() {
   const { isLoaded, user } = useUser();
   const firstName = user?.firstName;
@@ -218,7 +232,8 @@ function HomeGreeting() {
 
   return (
     <h1 className="font-serif text-5xl font-semibold tracking-normal text-[#3E2E29] sm:text-6xl">
-      Hey{firstName ? `, ${firstName}` : ""}
+      {getGreetingWord()}
+      {firstName ? `, ${firstName}` : ""}
     </h1>
   );
 }
@@ -276,6 +291,25 @@ function EmptyStateCard() {
   return (
     <section className={EMPTY_STATE_CARD_CLASS}>
       <div className="mx-auto flex max-w-xl flex-col items-center gap-6 text-center">
+        <svg
+          aria-hidden="true"
+          className="h-9 w-9 text-[#8A9A7B]"
+          fill="none"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={1.5}
+          viewBox="0 0 24 24"
+        >
+          <circle cx="12" cy="4" r="1.3" />
+          <path d="M12 5.3v2" />
+          <path
+            d={
+              "M12 7.3 3.6 13a1.6 1.6 0 0 0 .9 2.9h15a1.6 1.6 0 0 0 " +
+              ".9-2.9L12 7.3Z"
+            }
+          />
+        </svg>
         <p className="font-sans text-sm font-semibold uppercase tracking-[0.18em] text-[#4A413C]">
           Ready when you are
         </p>
@@ -331,16 +365,19 @@ function RecentActivityItem({ item }: Readonly<{ item: WardrobeItem }>) {
     <Link
       aria-label={`Open ${formatCategoryColor(item)}`}
       className={
-        "block overflow-hidden rounded-2xl border border-[#4A413C]/15 " +
-        "bg-[#FAF9F8] transition duration-[200ms] " +
+        "group block overflow-hidden rounded-2xl border " +
+        "border-[#4A413C]/15 bg-[#FAF9F8] transition duration-[200ms] " +
         "ease-[var(--ease-out)] hover:shadow-[0_18px_48px_rgba(62,46,41,0.14)]"
       }
       href={`/items/${item.id}`}
     >
-      <div className="relative aspect-[4/3] w-full">
+      <div className="relative aspect-[4/3] w-full overflow-hidden">
         <Image
           alt={formatCategoryColor(item)}
-          className="object-cover"
+          className={
+            "object-cover transition duration-[300ms] " +
+            "ease-[var(--ease-out)] group-hover:scale-[1.03]"
+          }
           fill
           sizes="(min-width: 1024px) 320px, (min-width: 640px) 45vw, 100vw"
           src={item.photoUrl}
@@ -429,11 +466,52 @@ function HomeDashboard() {
   });
   const recentItems = wardrobeQuery.data?.items.slice(0, 6) ?? [];
   const needsPreferences = meQuery.data?.hasCompletedPreferences === false;
+  const hasActivity = !wardrobeQuery.isLoading && recentItems.length > 0;
+  const subtitleText = hasActivity
+    ? "Welcome back. Here's what you've been circling lately."
+    : "A quiet place to check whether a piece belongs with the style you " +
+      "are building.";
 
   return (
-    <main className="relative min-h-screen bg-background px-6 py-8 text-foreground">
+    <main className="relative min-h-screen overflow-hidden bg-background px-6 py-8 text-foreground">
       <div aria-hidden="true" className="grain-overlay" />
-      <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-5xl flex-col gap-10">
+
+      <svg
+        aria-hidden="true"
+        className="absolute inset-x-0 bottom-0 z-0 h-[48vh] w-full"
+        preserveAspectRatio="none"
+        viewBox="0 0 1440 100"
+      >
+        <path
+          d={
+            "M0,50 C120,20 240,80 360,50 C480,20 600,80 720,50 " +
+            "C840,20 960,80 1080,50 C1200,20 1320,80 1440,50 " +
+            "L1440,100 L0,100 Z"
+          }
+          fill="#3E2E29"
+        />
+        <path
+          className={
+            "[filter:drop-shadow(0_10px_8px_rgba(36,26,22,0.6))_" +
+            "drop-shadow(0_24px_28px_rgba(36,26,22,0.4))]"
+          }
+          d={
+            "M0,50 C120,20 240,80 360,50 C480,20 600,80 720,50 " +
+            "C840,20 960,80 1080,50 C1200,20 1320,80 1440,50"
+          }
+          fill="none"
+          stroke="#8A9A7B"
+          strokeLinecap="round"
+          strokeWidth={5}
+        />
+      </svg>
+
+      <div
+        className={
+          "relative z-10 mx-auto flex min-h-[calc(100vh-4rem)] w-full " +
+          "max-w-5xl flex-col gap-10"
+        }
+      >
         <HomeTopBar />
 
         <section className="flex flex-1 flex-col justify-center gap-10 py-8">
@@ -442,8 +520,7 @@ function HomeDashboard() {
               <div className="space-y-4">
                 <HomeGreeting />
                 <p className="max-w-2xl text-lg leading-8 text-[#4A413C]">
-                  A quiet place to check whether a piece belongs with the
-                  style you are building.
+                  {subtitleText}
                 </p>
               </div>
 
