@@ -40,7 +40,7 @@ export default function SignUpPage() {
           fill="none"
           stroke="#8A9A7B"
           strokeLinecap="round"
-          strokeWidth={9}
+          strokeWidth={4}
         />
       </svg>
 
