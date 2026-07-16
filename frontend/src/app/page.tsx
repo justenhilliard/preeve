@@ -126,14 +126,10 @@ const LANDING_CTA_BUTTON_CLASS =
   "rounded-xl bg-[#B8674A] px-6 py-3 font-sans text-sm font-semibold " +
   "text-[#FAF9F8] transition-[background-color,transform] duration-[160ms] " +
   "ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-[#a95c42] active:scale-[0.97]";
-const CLIPPED_CTA_CLASS =
-  LANDING_CTA_BUTTON_CLASS + " [clip-path:polygon(0_0,calc(100%-14px)_0," +
-  "100%_14px,100%_100%,0_100%)]";
 const SIGN_IN_BUTTON_CLASS =
   "rounded-xl bg-[#3E2E29] px-5 py-2.5 font-sans text-sm font-semibold " +
   "text-[#FAF9F8] transition-[background-color,transform] duration-[160ms] " +
-  "ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-[#2f2320] active:scale-[0.97] " +
-  "[clip-path:polygon(0_0,calc(100%-10px)_0,100%_10px,100%_100%,0_100%)]";
+  "ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-[#2f2320] active:scale-[0.97]";
 const EMAIL_INPUT_CLASS =
   "min-h-12 flex-1 rounded-xl border border-[#4A413C]/20 bg-[#FAF9F8] px-4 " +
   "font-sans text-sm text-[#3E2E29] outline-none transition " +
@@ -612,7 +608,7 @@ function EmailSignupForm({ compact = false }: Readonly<{ compact?: boolean }>) {
         type="email"
         value={email}
       />
-      <button className={CLIPPED_CTA_CLASS} type="submit">
+      <button className={LANDING_CTA_BUTTON_CLASS} type="submit">
         Preeve it
       </button>
     </form>
@@ -937,8 +933,8 @@ function LandingPage() {
             />
             <path
               className={
-                "[filter:drop-shadow(0_10px_8px_rgba(36,26,22,0.6))_" +
-                "drop-shadow(0_24px_28px_rgba(36,26,22,0.4))]"
+                "[filter:drop-shadow(0_14px_10px_rgba(0,0,0,0.55))_" +
+                "drop-shadow(0_28px_32px_rgba(0,0,0,0.4))]"
               }
               d={
                 "M0,50 C120,20 240,80 360,50 C480,20 600,80 720,50 " +
@@ -947,7 +943,7 @@ function LandingPage() {
               fill="none"
               stroke="#8A9A7B"
               strokeLinecap="round"
-              strokeWidth={9}
+              strokeWidth={11}
             />
           </svg>
         </div>
