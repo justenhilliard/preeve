@@ -57,6 +57,7 @@ export default function RootLayout({
     <html
       lang="en"
       className={`h-full antialiased ${cormorantGaramond.variable} ${inter.variable} ${lato.variable}`}
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />

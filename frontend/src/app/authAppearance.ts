@@ -1,10 +1,9 @@
-// Clerk generates its own internal color scales (hover/active states, and
-// any element we don't explicitly override below) from the `variables`
-// block using its own JS color logic - it can't resolve CSS custom
-// properties there, only real color values. So unlike the rest of the app,
-// this file can't just point at var(--color-*) tokens; it needs the actual
-// hex per theme. getAuthAppearance(theme) is called with the live theme
-// from useTheme() in the sign-in/sign-up pages so it updates when toggled.
+import { dark } from "@clerk/themes";
+
+// Clerk generates its own internal color scales from real color values in
+// `variables`; it can't resolve CSS custom properties there. The official
+// dark base theme handles Clerk's internal surfaces, while these hex values
+// keep Preeve's brand palette layered on top.
 type Theme = "light" | "dark";
 
 const PALETTE: Record<
@@ -27,31 +26,46 @@ const PALETTE: Record<
   dark: {
     accent: "#D9835F",
     bg: "#17120F",
-    onAccent: "#F3ECE6",
-    text: "#F3ECE6",
-    textMuted: "#C9BFB6",
+    onAccent: "#FFFFFF",
+    text: "#FFFFFF",
+    textMuted: "#D9D2CB",
   },
 };
 
 const FONT_SANS = "var(--font-inter), ui-sans-serif, system-ui, sans-serif";
 const FONT_BODY = "var(--font-lato), ui-sans-serif, system-ui, sans-serif";
 
+// Only the sign-in/sign-up pages have their own custom "Preeve" / "Log in
+// to your account" header above the embedded Clerk form, so only those
+// pages should hide Clerk's own header - merge this into their appearance
+// prop on top of the global one from ClerkProvider (which must NOT hide
+// headers everywhere, since that risked taking other page titles, like
+// UserProfile's "Account" heading, down with it).
+export const HIDE_CLERK_HEADER = {
+  elements: {
+    header: {
+      display: "none",
+    },
+  },
+};
+
 export function getAuthAppearance(theme: Theme) {
   const c = PALETTE[theme];
 
   return {
+    ...(theme === "dark" ? { baseTheme: dark } : {}),
     variables: {
       borderRadius: "12px",
       colorBackground: c.bg,
-      // colorNeutral drives most of Clerk's un-overridden neutral chrome
-      // (dividers, hint text, OTP boxes, secondary icons) - leaving this
-      // unset was the main cause of low-contrast text in dark mode, since
-      // Clerk then falls back to a gray tuned for a light background.
       colorDanger: "#C4634F",
+      colorForeground: c.text,
+      colorInput: c.bg,
       colorInputBackground: c.bg,
+      colorInputForeground: c.text,
       colorInputText: c.text,
       colorNeutral: c.textMuted,
       colorPrimary: c.accent,
+      colorPrimaryForeground: c.onAccent,
       colorSuccess: "#8A9A7B",
       colorText: c.text,
       colorTextOnPrimaryBackground: c.onAccent,
@@ -133,16 +147,6 @@ export function getAuthAppearance(theme: Theme) {
       formResendCodeLink: {
         color: c.accent,
         fontFamily: FONT_SANS,
-      },
-      header: {
-        display: "none",
-      },
-      headerSubtitle: {
-        color: c.textMuted,
-        fontFamily: FONT_BODY,
-      },
-      headerTitle: {
-        color: c.text,
       },
       identityPreviewEditButton: {
         color: c.accent,

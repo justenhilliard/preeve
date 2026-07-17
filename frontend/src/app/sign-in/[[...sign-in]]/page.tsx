@@ -3,12 +3,17 @@
 import { SignIn } from "@clerk/nextjs";
 import Link from "next/link";
 
-import { getAuthAppearance } from "../../authAppearance";
+import { getAuthAppearance, HIDE_CLERK_HEADER } from "../../authAppearance";
 import { useTheme } from "../../themeContext";
 import { ThemeToggle } from "../../themeToggle";
 
 export default function SignInPage() {
   const { theme } = useTheme();
+  const baseAppearance = getAuthAppearance(theme);
+  const appearance = {
+    ...baseAppearance,
+    elements: { ...baseAppearance.elements, ...HIDE_CLERK_HEADER.elements },
+  };
 
   return (
     <main
@@ -69,7 +74,7 @@ export default function SignInPage() {
           </header>
 
           <SignIn
-            appearance={getAuthAppearance(theme)}
+            appearance={appearance}
             path="/sign-in"
             routing="path"
           />

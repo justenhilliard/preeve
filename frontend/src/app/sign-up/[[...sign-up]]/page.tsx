@@ -4,7 +4,7 @@ import { SignUp } from "@clerk/nextjs";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
-import { getAuthAppearance } from "../../authAppearance";
+import { getAuthAppearance, HIDE_CLERK_HEADER } from "../../authAppearance";
 import { useTheme } from "../../themeContext";
 import { ThemeToggle } from "../../themeToggle";
 
@@ -12,6 +12,11 @@ export default function SignUpPage() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email") ?? undefined;
   const { theme } = useTheme();
+  const baseAppearance = getAuthAppearance(theme);
+  const appearance = {
+    ...baseAppearance,
+    elements: { ...baseAppearance.elements, ...HIDE_CLERK_HEADER.elements },
+  };
 
   return (
     <main
@@ -72,7 +77,7 @@ export default function SignUpPage() {
           </header>
 
           <SignUp
-            appearance={getAuthAppearance(theme)}
+            appearance={appearance}
             initialValues={email ? { emailAddress: email } : undefined}
             path="/sign-up"
             routing="path"
