@@ -32,9 +32,9 @@ type PrimaryLinkProps = Readonly<{
 }>;
 
 const PRIMARY_ACTION_CLASS =
-  "rounded-md bg-[var(--color-accent)] px-6 py-3 font-sans text-sm font-semibold " +
-  "text-[var(--color-on-accent)] transition-[background-color,transform] duration-[160ms] " +
-  "ease-[var(--ease-out)] hover:bg-[var(--color-accent)] active:scale-[0.97]";
+  "rounded-md bg-[var(--color-accent-button)] px-6 py-3 font-sans text-sm font-semibold " +
+  "text-[var(--color-on-dark)] transition-[background-color,transform] duration-[160ms] " +
+  "ease-[var(--ease-out)] hover:bg-[var(--color-accent-button-hover)] active:scale-[0.97]";
 const DISABLED_PRIMARY_ACTION_CLASS =
   "disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100";
 const OPTION_BUTTON_BASE_CLASS =

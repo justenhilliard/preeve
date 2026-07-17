@@ -13,15 +13,16 @@
   --color-text-muted: #4a413c;
   --color-accent: #b8674a;
   --color-accent-hover: #a95c42;
+  --color-accent-button: #9d583f;
+  --color-accent-button-hover: #aa5f44;
   --color-accent-dark: #3e2e29;
   --color-accent-dark-hover: #2f2320;
-  --color-on-accent: #000000;
   --color-on-dark: #faf9f8;
   --color-on-dark-muted: #d8d3cc;
-  --color-on-ochre: #000000;
-  --color-on-sage: #000000;
   --color-sage: #8a9a7b;
+  --color-sage-badge: #6a765e;
   --color-ochre: #c9a66b;
+  --color-ochre-badge: #867047;
   --background: var(--color-bg);
   --foreground: var(--color-text);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
@@ -35,15 +36,16 @@
   --color-text-muted: #c9bfb6;
   --color-accent: #d9835f;
   --color-accent-hover: #e7997a;
+  --color-accent-button: #8a543c;
+  --color-accent-button-hover: #965b41;
   --color-accent-dark: #4a3830;
   --color-accent-dark-hover: #5c463c;
-  --color-on-accent: #000000;
   --color-on-dark: #f3ece6;
   --color-on-dark-muted: #d8d3cc;
-  --color-on-ochre: #000000;
-  --color-on-sage: #000000;
   --color-sage: #a3b693;
+  --color-sage-badge: #636f59;
   --color-ochre: #d8bb86;
+  --color-ochre-badge: #786949;
 }
 
 @theme inline {
@@ -107,13 +109,13 @@ html {
 }
 
 .home-auth-link-primary {
-  background-color: var(--color-accent);
-  color: var(--color-on-accent);
+  background-color: var(--color-accent-button);
+  color: var(--color-on-dark);
   font-weight: 600;
 }
 
 .home-auth-link-primary:hover {
-  background-color: var(--color-accent);
+  background-color: var(--color-accent-button-hover);
 }
 
 /* Entrance animation used on the landing page. Rare/first-time per-visit

@@ -123,9 +123,10 @@ const LANDING_BAND_CLASS =
 const LANDING_NAV_CLASS =
   "mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-4 px-6 py-6";
 const LANDING_CTA_BUTTON_CLASS =
-  "rounded-md bg-[var(--color-accent)] px-6 py-3 font-sans text-sm font-semibold " +
-  "text-[var(--color-on-accent)] transition-[background-color,transform] duration-[160ms] " +
-  "ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-[var(--color-accent)] active:scale-[0.97]";
+  "rounded-md bg-[var(--color-accent-button)] px-6 py-3 font-sans text-sm font-semibold " +
+  "text-[var(--color-on-dark)] transition-[background-color,transform] duration-[160ms] " +
+  "ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-[var(--color-accent-button-hover)] " +
+  "active:scale-[0.97]";
 const SIGN_IN_BUTTON_CLASS =
   "rounded-md bg-[var(--color-accent-dark)] px-5 py-2.5 font-sans text-sm " +
   "font-semibold text-[var(--color-on-dark)] " +
@@ -155,8 +156,8 @@ const BADGE_CLASS =
 const VERDICT_BADGE_CLASS =
   "inline-flex rounded-full px-3 py-1 font-sans text-xs font-semibold";
 const VERDICT_STYLES: Record<Verdict, string> = {
-  buy: "bg-[var(--color-sage)] text-[var(--color-on-sage)]",
-  maybe: "bg-[var(--color-ochre)] text-[var(--color-on-ochre)]",
+  buy: "bg-[var(--color-sage-badge)] text-[var(--color-on-dark)]",
+  maybe: "bg-[var(--color-ochre-badge)] text-[var(--color-on-dark)]",
   skip: "bg-[var(--color-accent-dark)] text-[var(--color-on-dark)]",
 };
 const VERDICT_BORDER_STYLES: Record<Verdict, string> = {
@@ -165,9 +166,9 @@ const VERDICT_BORDER_STYLES: Record<Verdict, string> = {
   skip: "border-[var(--color-accent-dark)]",
 };
 const SCAN_CTA_CLASS =
-  "flex items-center gap-4 rounded-md bg-[var(--color-accent)] px-6 py-4 text-left " +
-  "text-[var(--color-on-accent)] transition-[background-color,transform] duration-[160ms] " +
-  "ease-[var(--ease-out)] hover:bg-[var(--color-accent)] active:scale-[0.97]";
+  "flex items-center gap-4 rounded-md bg-[var(--color-accent-button)] px-6 py-4 text-left " +
+  "text-[var(--color-on-dark)] transition-[background-color,transform] duration-[160ms] " +
+  "ease-[var(--ease-out)] hover:bg-[var(--color-accent-button-hover)] active:scale-[0.97]";
 const DASHBOARD_SPINNER_CLASS =
   "h-9 w-9 animate-spin rounded-full border-[3px] border-[var(--color-text-muted)]/15 " +
   "border-t-[var(--color-accent)]";
@@ -197,7 +198,8 @@ function HomeTopBar() {
                 <Link
                   className={`rounded-full px-4 py-2 font-sans text-sm font-semibold transition ${
                     isActive
-                      ? "bg-[var(--color-accent)] text-[var(--color-on-accent)]"
+                      ? "bg-[var(--color-accent-button)] text-[var(--color-on-dark)] " +
+                        "hover:bg-[var(--color-accent-button-hover)]"
                       : "text-[var(--color-text-muted)] hover:bg-[var(--color-surface)]/45"
                   }`}
                   href={item.href}
@@ -253,7 +255,8 @@ function HomeTopBar() {
             <Link
               className={`rounded-xl px-3 py-3 font-sans text-sm font-semibold transition-colors ${
                 isActive
-                  ? "bg-[var(--color-accent)] text-[var(--color-on-accent)]"
+                  ? "bg-[var(--color-accent-button)] text-[var(--color-on-dark)] " +
+                    "hover:bg-[var(--color-accent-button-hover)]"
                   : "text-[var(--color-text-muted)] hover:bg-[var(--color-surface)]/45"
               }`}
               href={item.href}
@@ -337,7 +340,7 @@ function ScanItemCta() {
       <CameraIcon />
       <span className="flex flex-col items-start">
         <span className="font-sans text-base font-semibold">Scan item</span>
-        <span className="font-sans text-xs font-medium text-[var(--color-on-accent)]">
+        <span className="font-sans text-xs font-medium text-[var(--color-on-dark)]">
           Photo to verdict in seconds
         </span>
       </span>
@@ -763,7 +766,9 @@ function VerdictScreen() {
   return (
     <>
       <div className="flex justify-center gap-2">
-        <span className={`${BADGE_CLASS} bg-[var(--color-sage)] text-[var(--color-on-sage)]`}>
+        <span
+          className={`${BADGE_CLASS} bg-[var(--color-sage-badge)] text-[var(--color-on-dark)]`}
+        >
           Buy
         </span>
         <span
@@ -920,8 +925,8 @@ function HowItWorksScroll() {
               <span
                 className={
                   "flex h-12 w-12 shrink-0 items-center justify-center " +
-                  "rounded-full bg-[var(--color-accent)] font-serif text-xl " +
-                  "font-semibold text-[var(--color-on-accent)]"
+                  "rounded-full bg-[var(--color-accent-button)] font-serif text-xl " +
+                  "font-semibold text-[var(--color-on-dark)]"
                 }
               >
                 {index + 1}

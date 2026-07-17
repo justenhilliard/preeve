@@ -28,6 +28,12 @@ The base palette is deliberately tonal and has no green/amber/red — adding lou
 
 Badge text on any of these three uses `color-cream` (light text on the saturated fill), matching the existing light-on-dark contrast pattern already in the palette.
 
+In implementation, solid CTA and verdict badge fills use supplementary
+CSS-only background roles (`--color-accent-button`, `--color-sage-badge`,
+`--color-ochre-badge`) when cream text sits directly on top. These are
+darker accessibility variants of the same palette family; decorative,
+link, border, focus-ring, and icon uses keep the base palette tokens above.
+
 ### Usage rules
 
 - Backgrounds: `color-cream` for the page, `color-stone` for cards/elevated surfaces sitting on top of it.

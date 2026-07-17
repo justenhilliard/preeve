@@ -88,8 +88,8 @@ const RESULT_HEADING_CLASS =
 const VERDICT_BADGE_CLASS =
   "inline-flex rounded-full px-5 py-2 font-sans text-sm font-semibold";
 const VERDICT_STYLES: Record<Verdict, string> = {
-  buy: "bg-[var(--color-sage)] text-[var(--color-on-sage)]",
-  maybe: "bg-[var(--color-ochre)] text-[var(--color-on-ochre)]",
+  buy: "bg-[var(--color-sage-badge)] text-[var(--color-on-dark)]",
+  maybe: "bg-[var(--color-ochre-badge)] text-[var(--color-on-dark)]",
   skip: "bg-[var(--color-accent-dark)] text-[var(--color-on-dark)]",
 };
 
