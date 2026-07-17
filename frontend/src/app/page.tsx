@@ -894,11 +894,7 @@ function HowItWorksScroll() {
   }, []);
 
   return (
-    <div
-      className={
-        "flex flex-col gap-16 lg:grid lg:grid-cols-[0.95fr_1.05fr] lg:items-start"
-      }
-    >
+    <div className="grid gap-16 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
       <div className="flex flex-col gap-16 sm:gap-24 lg:gap-40 lg:py-32">
         {HOW_IT_WORKS_STEPS.map((step, index) => (
           <div
@@ -937,7 +933,7 @@ function HowItWorksScroll() {
         ))}
       </div>
 
-      <div className="sticky top-24 order-first lg:order-none lg:self-start">
+      <div className="hidden lg:sticky lg:top-24 lg:block lg:self-start">
         <PhoneMockup activeStep={activeStep} />
       </div>
     </div>
