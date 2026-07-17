@@ -63,6 +63,7 @@ One row per scan. Covers FR-3 (classification), FR-4 (verdict), and FR-6 (wardro
 | `photo_key` | `varchar(512)` | `NOT NULL` | **Object key, not a URL.** Format: `items/{userId}/{itemId}.{ext}` (e.g. `items/3f1b2c4d.../8a1c2e3d....jpg`), `{ext}` derived from the validated upload MIME type (`jpg` or `png`). The bucket is strictly private — see `docs/prd.md` Security & Privacy NFR. The API layer converts this key into a short-lived pre-signed URL at response time; nothing here is ever a permanent public link. |
 | `detected_category` | `varchar(20)` | `CHECK (detected_category IN ('top','bottom','dress','outerwear','shoes','accessory'))`, nullable | Zero-shot CLIP output (FR-3.2). Null only if classification failed and the user hasn't yet supplied a manual fallback value. |
 | `detected_color` | `varchar(20)` | `CHECK (detected_color IN ('black','white','gray','navy','blue','red','green','olive','brown','tan','beige','pink','purple','yellow','orange','burgundy','multicolor'))`, nullable | Same as above. |
+| `visual_attributes` | `jsonb` | nullable | Best-effort structured perception metadata from the vision LLM: `garmentType`, `primaryColor`, `secondaryColors`, and `pattern`. Null when extraction fails or has not run. Not used by the verdict engine. |
 | `corrected_category` | `varchar(20)` | same `CHECK` list as `detected_category`, nullable | Set only if the user overrides via "This looks wrong" (FR-3.5) or the manual-fallback flow (FR-3.4). |
 | `corrected_color` | `varchar(20)` | same `CHECK` list as `detected_color`, nullable | Same as above. |
 | `verdict` | `varchar(10)` | `CHECK (verdict IN ('buy', 'maybe', 'skip'))`, nullable until computed | FR-4.2, computed by the deterministic rule matrix in `docs/prd.md` FR-4. |
@@ -134,6 +135,7 @@ backend/
 
 - **`0001_initial_schema.py`** — runs `CREATE EXTENSION IF NOT EXISTS pgcrypto;`, then creates `users`, `preferences`, `scanned_items`, `pairing_suggestions` with every constraint and both indexes listed above, in that table order (respects FK dependencies).
 - **`0002_seed_pairing_suggestions.py`** — a data migration (not schema) that inserts the 36-row blueprint below. Keeping it as its own migration, separate from `0001`, means the seed data can be amended later (`0003_add_more_pairings.py`, etc.) without touching the schema migration.
+- **`0003_add_visual_attributes.py`** — adds nullable `scanned_items.visual_attributes` JSONB storage for structured visual attributes. No `CHECK` constraint is used because these fields are intentionally free-form perception metadata, separate from the locked CLIP taxonomies.
 - No `pgvector` migration exists in v1 — see `docs/prd.md` Section 10 for when that changes.
 
 ---

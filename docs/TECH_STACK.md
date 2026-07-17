@@ -45,7 +45,11 @@ This document closes out every "e.g., X or Y" option left open in `docs/prd.md`'
 | Component | Choice | Notes |
 |---|---|---|
 | Classification approach | Zero-shot CLIP | Per `docs/prd.md` FR-3 — no fine-tuning, no self-hosted model weights. |
+| Background removal | Replicate `cjwbw/rembg` | Hosted preprocessing. |
 | Hosting | Replicate | Concrete pick over Hugging Face Inference Endpoints: simple pay-per-call REST API, no need to manage a persistently warm endpoint for a low-traffic personal project. Call it server-side from FastAPI, never directly from the Next.js client. |
+
+Background removal is a hosted preprocessing step only. It removes distracting
+surroundings without adding self-hosted segmentation weights.
 
 ## Hosting & Deployment
 

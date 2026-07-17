@@ -29,13 +29,22 @@ const CATEGORY_OPTIONS = [
 
 type CategoryOption = (typeof CATEGORY_OPTIONS)[number];
 
+type VisualAttributes = {
+  garmentType: string;
+  pattern: string | null;
+  primaryColor: string;
+  secondaryColors: string[];
+};
+
 type ScannedItemResponse = {
+  closetInsight: string | null;
   correctedCategory: CategoryOption | null;
   correctedColor: ColorOption | null;
   detectedCategory: CategoryOption | null;
   detectedColor: ColorOption | null;
   id: string;
   photoUrl: string;
+  visualAttributes: VisualAttributes | null;
 };
 
 type CorrectionPayload = {
@@ -61,7 +70,28 @@ function getEffectiveAttribute<Value>(
   return correctedValue ?? detectedValue;
 }
 
-function formatScannedItemAlt(item: ScannedItemResponse) {
+function formatVisualAttribute(value: string) {
+  return value
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+function formatVisualAttributesLabel(visualAttributes: VisualAttributes) {
+  const colors = [
+    visualAttributes.primaryColor,
+    ...visualAttributes.secondaryColors,
+  ]
+    .filter((color) => color.trim())
+    .map(formatVisualAttribute)
+    .join("/");
+  const garmentType = formatVisualAttribute(visualAttributes.garmentType);
+
+  return colors ? `${colors} ${garmentType}` : garmentType;
+}
+
+function formatFallbackItemLabel(item: ScannedItemResponse) {
   const effectiveCategory = getEffectiveAttribute(
     item.correctedCategory,
     item.detectedCategory,
@@ -72,12 +102,22 @@ function formatScannedItemAlt(item: ScannedItemResponse) {
   );
 
   if (!effectiveCategory || !effectiveColor) {
-    return "Photo of the item you're correcting";
+    return null;
   }
 
   return `${formatOptionLabel(effectiveColor)} ${formatOptionLabel(
     effectiveCategory,
   )}`;
+}
+
+function formatItemDisplayLabel(item: ScannedItemResponse) {
+  return item.visualAttributes
+    ? formatVisualAttributesLabel(item.visualAttributes)
+    : formatFallbackItemLabel(item);
+}
+
+function formatScannedItemAlt(item: ScannedItemResponse) {
+  return formatItemDisplayLabel(item) ?? "Photo of the item you're correcting";
 }
 
 export default function CorrectItemPage() {
@@ -224,9 +264,24 @@ export default function CorrectItemPage() {
                     unoptimized
                   />
                 </div>
+                {formatItemDisplayLabel(item) ? (
+                  <p
+                    className={
+                      "px-4 py-4 text-center font-sans text-sm font-semibold " +
+                      "text-[var(--color-text-muted)]"
+                    }
+                  >
+                    {formatItemDisplayLabel(item)}
+                  </p>
+                ) : null}
               </div>
 
               <div className="space-y-8">
+                {item.closetInsight ? (
+                  <p className="text-base leading-7 text-[var(--color-text-muted)]">
+                    {item.closetInsight}
+                  </p>
+                ) : null}
                 <section className="space-y-4">
                   <h2
                     className={

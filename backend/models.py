@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, String, Text, text
-from sqlalchemy.dialects.postgresql import ARRAY, UUID
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
@@ -72,7 +72,8 @@ class Preference(Base):
     __tablename__ = "preferences"
     __table_args__ = (
         CheckConstraint(
-            f"formality_preference IS NULL OR {_check_values('formality_preference', FORMALITY_VALUES)}",
+            "formality_preference IS NULL OR "
+            f"{_check_values('formality_preference', FORMALITY_VALUES)}",
             name="ck_preferences_formality_preference",
         ),
     )
@@ -146,6 +147,7 @@ class ScannedItem(Base):
     photo_key: Mapped[str] = mapped_column(String(512), nullable=False)
     detected_category: Mapped[str | None] = mapped_column(String(20), nullable=True)
     detected_color: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    visual_attributes: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     corrected_category: Mapped[str | None] = mapped_column(String(20), nullable=True)
     corrected_color: Mapped[str | None] = mapped_column(String(20), nullable=True)
     verdict: Mapped[str | None] = mapped_column(String(10), nullable=True)

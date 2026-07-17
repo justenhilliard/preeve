@@ -170,7 +170,12 @@ Upsert — used for both initial questionnaire submission (FR-2.1/2.2) and later
 
 ## `POST /api/items/scan`
 
-Multipart upload. Validates the file, compresses it (Pillow, per `docs/TECH_STACK.md`), uploads to R2 under `items/{userId}/{itemId}.{ext}`, calls the CLIP inference API (via Replicate) for zero-shot classification, computes the verdict via the rule matrix in `docs/prd.md` FR-4, looks up a pairing suggestion, and persists the row — all synchronously in one request.
+Multipart upload. Validates the file, compresses it (Pillow, per
+`docs/TECH_STACK.md`), uploads to R2 under `items/{userId}/{itemId}.{ext}`,
+calls the CLIP inference API (via Replicate) for zero-shot classification,
+extracts narrow structured visual attributes via OpenAI Structured Outputs,
+computes the verdict via the rule matrix in `docs/prd.md` FR-4, looks up a
+pairing suggestion, and persists the row — all synchronously in one request.
 
 **Request** — `multipart/form-data`
 ```
@@ -193,10 +198,17 @@ photo: <binary image file>
   "photoUrl": "https://<account_id>.r2.cloudflarestorage.com/preeve-items/items/3f1b2c4d.../8a1c2e3d....jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=3600&X-Amz-Signature=...",
   "detectedCategory": "outerwear",
   "detectedColor": "navy",
+  "visualAttributes": {
+    "garmentType": "blazer",
+    "primaryColor": "navy",
+    "secondaryColors": [],
+    "pattern": null
+  },
   "correctedCategory": null,
   "correctedColor": null,
   "verdict": "buy",
   "rationale": "navy is in your preferred palette, and outerwear fits your business_casual preference.",
+  "closetInsight": "You already have 2 other navy outerwear items in your wardrobe.",
   "pairingSuggestions": [
     {
       "id": "1d2e3f4a-5b6c-7d8e-9f0a-1b2c3d4e5f6a",
@@ -223,10 +235,12 @@ Array has 1 or 2 entries per FR-5.1 — an exact category+color match is always 
   "photoUrl": "https://<account_id>.r2.cloudflarestorage.com/preeve-items/items/3f1b2c4d.../8a1c2e3d....jpg?...",
   "detectedCategory": null,
   "detectedColor": null,
+  "visualAttributes": null,
   "correctedCategory": null,
   "correctedColor": null,
   "verdict": null,
   "rationale": null,
+  "closetInsight": null,
   "pairingSuggestions": [],
   "savedToWardrobe": false,
   "createdAt": "2026-07-09T19:00:00Z",
@@ -243,6 +257,11 @@ Array has 1 or 2 entries per FR-5.1 — an exact category+color match is always 
 ```json
 { "error": { "code": "unsupported_media_type", "message": "Only image/jpeg and image/png are accepted." } }
 ```
+
+`visualAttributes` is best-effort structured perception metadata and may be `null`
+without affecting the CLIP-driven verdict flow. It is never used for verdict
+computation. `closetInsight` is computed live from the user's current saved
+wardrobe items and is not stored.
 
 **Error — 502** (CLIP upstream unavailable — distinct from a low-confidence result, which is handled as `classificationFailed: true` above, not an HTTP error)
 ```json
@@ -278,10 +297,17 @@ Both fields are required together — there's no partial-correction endpoint in 
   "id": "8a1c2e3d-4567-4f89-9a0b-1c2d3e4f5a6b",
   "detectedCategory": "outerwear",
   "detectedColor": "navy",
+  "visualAttributes": {
+    "garmentType": "blazer",
+    "primaryColor": "navy",
+    "secondaryColors": [],
+    "pattern": null
+  },
   "correctedCategory": "top",
   "correctedColor": "burgundy",
   "verdict": "skip",
   "rationale": "burgundy isn't in your preferred palette (navy, black, olive).",
+  "closetInsight": "This adds burgundy to your wardrobe - you haven't saved anything in that color yet.",
   "pairingSuggestions": [],
   "savedToWardrobe": false
 }
@@ -342,6 +368,10 @@ Both can be combined, e.g. `GET /api/items?verdict=buy&favorited=true` — favor
 ```
 
 Note: generating a pre-signed URL for every item in this list on every request is acceptable at v1's scale (personal project, small wardrobe logs). If this list ever grows into the hundreds, batch-sign or cache signed URLs — not a v1 concern.
+
+This list endpoint intentionally does not include `visualAttributes` or
+`closetInsight`; those fields are only returned by single-item detail,
+scan, and correction responses.
 
 ---
 

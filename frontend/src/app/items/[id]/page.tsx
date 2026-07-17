@@ -20,8 +20,16 @@ type PairingSuggestion = {
   suggestionText: string;
 };
 
+type VisualAttributes = {
+  garmentType: string;
+  pattern: string | null;
+  primaryColor: string;
+  secondaryColors: string[];
+};
+
 type ScannedItemResponse = {
   classificationFailed?: boolean;
+  closetInsight: string | null;
   correctedCategory: string | null;
   correctedColor: string | null;
   detectedCategory: string | null;
@@ -32,6 +40,7 @@ type ScannedItemResponse = {
   photoUrl: string;
   rationale: string | null;
   savedToWardrobe: boolean;
+  visualAttributes: VisualAttributes | null;
   verdict: Verdict | null;
   createdAt: string;
 };
@@ -108,7 +117,28 @@ function formatScanDate(createdAt: string) {
   }).format(new Date(createdAt));
 }
 
-function formatScannedItemAlt(item: ScannedItemResponse) {
+function formatVisualAttribute(value: string) {
+  return value
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+function formatVisualAttributesLabel(visualAttributes: VisualAttributes) {
+  const colors = [
+    visualAttributes.primaryColor,
+    ...visualAttributes.secondaryColors,
+  ]
+    .filter((color) => color.trim())
+    .map(formatVisualAttribute)
+    .join("/");
+  const garmentType = formatVisualAttribute(visualAttributes.garmentType);
+
+  return colors ? `${colors} ${garmentType}` : garmentType;
+}
+
+function formatFallbackItemLabel(item: ScannedItemResponse) {
   const effectiveCategory = getEffectiveAttribute(
     item.correctedCategory,
     item.detectedCategory,
@@ -119,12 +149,22 @@ function formatScannedItemAlt(item: ScannedItemResponse) {
   );
 
   if (!effectiveCategory || !effectiveColor) {
-    return "Photo of the scanned item";
+    return null;
   }
 
   return `${formatOptionLabel(effectiveColor)} ${formatOptionLabel(
     effectiveCategory,
   )}`;
+}
+
+function formatItemDisplayLabel(item: ScannedItemResponse) {
+  return item.visualAttributes
+    ? formatVisualAttributesLabel(item.visualAttributes)
+    : formatFallbackItemLabel(item);
+}
+
+function formatScannedItemAlt(item: ScannedItemResponse) {
+  return formatItemDisplayLabel(item) ?? "Photo of the scanned item";
 }
 
 function formatPairingSuggestionAlt(suggestion: PairingSuggestion) {
@@ -381,28 +421,16 @@ export default function ItemResultPage() {
                           <FavoriteHeart isFavorited={item.isFavorited} />
                         </button>
                       </div>
-                      {(() => {
-                        const effectiveCategory = getEffectiveAttribute(
-                          item.correctedCategory,
-                          item.detectedCategory,
-                        );
-                        const effectiveColor = getEffectiveAttribute(
-                          item.correctedColor,
-                          item.detectedColor,
-                        );
-
-                        return effectiveCategory && effectiveColor ? (
-                          <p
-                            className={
-                              "font-sans text-base font-semibold " +
-                              "text-[var(--color-text-muted)]"
-                            }
-                          >
-                            {formatOptionLabel(effectiveColor)}{" "}
-                            {formatOptionLabel(effectiveCategory)}
-                          </p>
-                        ) : null;
-                      })()}
+                      {formatItemDisplayLabel(item) ? (
+                        <p
+                          className={
+                            "font-sans text-base font-semibold " +
+                            "text-[var(--color-text-muted)]"
+                          }
+                        >
+                          {formatItemDisplayLabel(item)}
+                        </p>
+                      ) : null}
                       <p className="font-sans text-sm font-medium text-[var(--color-text-muted)]">
                         Scanned {formatScanDate(item.createdAt)}
                       </p>
@@ -422,6 +450,11 @@ export default function ItemResultPage() {
                     <p className="text-lg leading-8 text-[var(--color-text-muted)]">
                       {item.rationale}
                     </p>
+                    {item.closetInsight ? (
+                      <p className="text-base leading-7 text-[var(--color-text-muted)]">
+                        {item.closetInsight}
+                      </p>
+                    ) : null}
 
                     <button
                       className={OVERRIDE_BUTTON_CLASS}

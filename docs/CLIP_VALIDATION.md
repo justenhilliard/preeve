@@ -101,3 +101,24 @@ the category accuracy is not strong enough to remove manual correction or
 low-confidence fallback behavior. Next review should decide whether to tune prompts
 for `top` vs. `dress`/`outerwear`, test a direct image-classification or stronger
 vision-language model, or accept CLIP with conservative fallback thresholds for v1.
+
+## Addendum — Background Removal Preprocessing (2026-07-17)
+
+Background removal was added before CLIP classification to address the documented
+skin/background color-confusion failure modes above, especially `jorts1.jpeg`
+predicting `tan` for blue/navy denim and `sunglasses1.jpeg` being distracted by
+bright sky/background regions. The implementation uses hosted Replicate model
+`cjwbw/rembg`, then composites the segmented subject onto a white JPEG so CLIP and
+the structured vision extractor still receive normal photo bytes rather than a
+transparent PNG.
+
+This is an input preprocessing change only: the CLIP category/color taxonomies,
+prompts, confidence gates, and verdict engine remain unchanged. The user-visible
+stored wardrobe photo also remains the original compressed upload, not the
+background-stripped cutout.
+
+Informal verification against sample images produced changed background-removed
+JPEGs for `jorts1.jpeg` in 4.15s, `jeans1.jpeg` in 11.99s, and
+`sunglasses1.jpeg` in 10.35s. The sunglasses image still retains the hands
+holding the glasses, so this reduces scene/background noise but does not isolate
+only the product in every real-world photo.

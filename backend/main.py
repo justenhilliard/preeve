@@ -17,13 +17,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from svix.webhooks import Webhook, WebhookVerificationError
 
 from auth import ApiError, format_timestamp, get_current_user
+from background_removal import remove_background
 from clip_classifier import (
     InferenceUnavailableError,
     classify_image_bytes,
     get_label_embeddings,
 )
+from closet_insight import compute_closet_insight
 from database import get_async_session
 from image_processing import compress_image, validate_upload_metadata
+from item_description import extract_visual_attributes
 from models import CATEGORY_VALUES, PairingSuggestion, Preference, ScannedItem, User
 from object_storage import delete_item_photo, generate_photo_url, upload_item_photo
 from pairing_lookup import find_pairing_suggestions
@@ -465,6 +468,7 @@ def format_scanned_item(
     photo_url: str,
     classification_failed: bool,
     pairing_suggestions: list[dict[str, str | None]] | None = None,
+    closet_insight: str | None = None,
 ) -> dict[str, Any]:
     """Convert a scanned item row into the documented scan response shape."""
     # Routes that do not perform a pairing lookup still use the shared item
@@ -474,10 +478,12 @@ def format_scanned_item(
         "photoUrl": photo_url,
         "detectedCategory": scanned_item.detected_category,
         "detectedColor": scanned_item.detected_color,
+        "visualAttributes": scanned_item.visual_attributes,
         "correctedCategory": scanned_item.corrected_category,
         "correctedColor": scanned_item.corrected_color,
         "verdict": scanned_item.verdict,
         "rationale": scanned_item.rationale,
+        "closetInsight": closet_insight,
         "pairingSuggestions": pairing_suggestions or [],
         "savedToWardrobe": scanned_item.saved_to_wardrobe,
         "isFavorited": scanned_item.is_favorited,
@@ -537,6 +543,28 @@ async def get_formatted_pairing_suggestions(
     """Look up and format pairing suggestions for item response payloads."""
     pairing_suggestions = await find_pairing_suggestions(session, category, color)
     return await format_pairing_suggestions(pairing_suggestions)
+
+
+async def get_closet_insight_for_item(
+    session: AsyncSession,
+    current_user: User,
+    scanned_item: ScannedItem,
+) -> str | None:
+    """Compute closet insight for an item's effective category and color."""
+    effective_category = (
+        scanned_item.corrected_category or scanned_item.detected_category
+    )
+    effective_color = scanned_item.corrected_color or scanned_item.detected_color
+    if not effective_category or not effective_color:
+        return None
+
+    return await compute_closet_insight(
+        session,
+        current_user,
+        effective_category,
+        effective_color,
+        exclude_item_id=scanned_item.id,
+    )
 
 
 def is_unresolved_classification(scanned_item: ScannedItem) -> bool:
@@ -638,6 +666,7 @@ async def get_item(
         photo_url,
         is_unresolved_classification(scanned_item),
         pairing_suggestions,
+        await get_closet_insight_for_item(session, current_user, scanned_item),
     )
 
 
@@ -669,7 +698,13 @@ async def patch_item_correction(
         correction_request.corrected_category,
         correction_request.corrected_color,
     )
-    return format_scanned_item(scanned_item, photo_url, False, pairing_suggestions)
+    return format_scanned_item(
+        scanned_item,
+        photo_url,
+        False,
+        pairing_suggestions,
+        await get_closet_insight_for_item(session, current_user, scanned_item),
+    )
 
 
 @app.get("/api/pairings")
@@ -768,18 +803,30 @@ async def post_item_scan(
 
     validate_upload_metadata(photo.content_type, len(uploaded_image))
     compressed_image = await asyncio.to_thread(compress_image, uploaded_image)
+    classification_image = await asyncio.to_thread(remove_background, compressed_image)
+    visual_attributes_task = asyncio.create_task(
+        asyncio.to_thread(
+            extract_visual_attributes,
+            classification_image,
+        ),
+    )
+    classification_task = asyncio.create_task(
+        asyncio.to_thread(
+            classify_image_bytes,
+            classification_image,
+        ),
+    )
 
     try:
-        classification = await asyncio.to_thread(
-            classify_image_bytes,
-            compressed_image,
-        )
+        classification = await classification_task
     except InferenceUnavailableError as error:
+        visual_attributes_task.cancel()
         raise ApiError(
             status_code=502,
             code="inference_unavailable",
             message="Classification service is temporarily unavailable. Try again shortly.",
         ) from error
+    visual_attributes = await visual_attributes_task
 
     item_id = uuid.uuid4()
     photo_key = f"items/{current_user.id}/{item_id}.jpg"
@@ -791,6 +838,9 @@ async def post_item_scan(
         photo_key=photo_key,
         detected_category=classification.detected_category,
         detected_color=classification.detected_color,
+        visual_attributes=(
+            visual_attributes.to_api_dict() if visual_attributes is not None else None
+        ),
         verdict=None,
         rationale=None,
     )
@@ -824,4 +874,5 @@ async def post_item_scan(
         photo_url,
         classification.classification_failed,
         pairing_suggestions,
+        await get_closet_insight_for_item(session, current_user, scanned_item),
     )
