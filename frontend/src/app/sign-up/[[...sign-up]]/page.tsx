@@ -90,6 +90,18 @@ export default function SignUpPage() {
             path="/sign-up"
             routing="path"
           />
+
+          <p className="max-w-xs text-center text-xs text-[var(--color-text-muted)]">
+            By creating an account, you agree to our{" "}
+            <Link className="font-semibold text-[var(--color-accent)]" href="/terms">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link className="font-semibold text-[var(--color-accent)]" href="/privacy">
+              Privacy Policy
+            </Link>
+            .
+          </p>
         </section>
       </div>
     </main>

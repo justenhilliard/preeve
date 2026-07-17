@@ -48,8 +48,7 @@ const VERDICT_FILTERS: { label: string; value: VerdictFilter }[] = [
 ];
 
 const TOP_BAR_CLASS =
-  "flex flex-col gap-6 border-b border-[var(--color-text-muted)]/15 pb-6 sm:flex-row " +
-  "sm:items-center sm:justify-between";
+  "flex flex-wrap items-center gap-3 border-b border-[var(--color-text-muted)]/15 pb-6";
 const CHIP_BASE_CLASS =
   "min-h-11 rounded-full px-4 py-2.5 font-sans text-sm font-semibold transition";
 const CARD_CLASS =
@@ -85,34 +84,94 @@ const VERDICT_STYLES: Record<Verdict, string> = {
   skip: "bg-[var(--color-accent-dark)] text-[var(--color-on-dark)]",
 };
 function WardrobeTopBar() {
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+
   return (
     <nav className={TOP_BAR_CLASS}>
-      <Link
-        className="font-serif text-4xl font-semibold tracking-normal text-[var(--color-text)]"
-        href="/"
-      >
-        Preeve
-      </Link>
+      <div className="flex w-full items-center justify-between gap-4">
+        <Link
+          className="font-serif text-4xl font-semibold tracking-normal text-[var(--color-text)]"
+          href="/"
+        >
+          Preeve
+        </Link>
 
-      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2">
+          <div className="hidden items-center gap-2 sm:flex">
+            {NAV_ITEMS.map((item) => {
+              const isActive = item.href === "/wardrobe";
+
+              return (
+                <Link
+                  className={`rounded-full px-4 py-2 font-sans text-sm font-semibold transition ${
+                    isActive
+                      ? "bg-[var(--color-accent)] text-[var(--color-on-dark)]"
+                      : "text-[var(--color-text-muted)] hover:bg-[var(--color-surface)]/45"
+                  }`}
+                  href={item.href}
+                  key={item.href}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+          <ThemeToggle />
+          <button
+            aria-controls="wardrobe-mobile-nav"
+            aria-expanded={isMobileNavOpen}
+            aria-label="Toggle navigation"
+            className={
+              "flex h-11 w-11 items-center justify-center rounded-full " +
+              "border border-[var(--color-text-muted)]/15 " +
+              "text-[var(--color-text)] transition hover:bg-[var(--color-surface)]/45 sm:hidden"
+            }
+            onClick={() => setIsMobileNavOpen((currentValue) => !currentValue)}
+            type="button"
+          >
+            <svg
+              aria-hidden="true"
+              className="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              {isMobileNavOpen ? (
+                <path d="M6 6l12 12M18 6 6 18" />
+              ) : (
+                <path d="M4 7h16M4 12h16M4 17h16" />
+              )}
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div
+        className={`w-full flex-col gap-2 border-t border-[var(--color-text-muted)]/10 ` +
+          `pt-3 sm:hidden ${isMobileNavOpen ? "flex" : "hidden"}`}
+        id="wardrobe-mobile-nav"
+      >
         {NAV_ITEMS.map((item) => {
           const isActive = item.href === "/wardrobe";
 
           return (
             <Link
-              className={`rounded-full px-4 py-2 font-sans text-sm font-semibold transition ${
+              className={`rounded-xl px-3 py-3 font-sans text-sm font-semibold transition-colors ${
                 isActive
                   ? "bg-[var(--color-accent)] text-[var(--color-on-dark)]"
                   : "text-[var(--color-text-muted)] hover:bg-[var(--color-surface)]/45"
               }`}
               href={item.href}
               key={item.href}
+              onClick={() => setIsMobileNavOpen(false)}
             >
               {item.label}
             </Link>
           );
         })}
-        <ThemeToggle />
       </div>
     </nav>
   );
