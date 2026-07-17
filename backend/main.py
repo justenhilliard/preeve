@@ -27,7 +27,14 @@ from closet_insight import compute_closet_insight
 from database import get_async_session
 from image_processing import compress_image, validate_upload_metadata
 from item_description import extract_visual_attributes
-from models import CATEGORY_VALUES, PairingSuggestion, Preference, ScannedItem, User
+from models import (
+    CATEGORY_VALUES,
+    FIT_VALUES,
+    PairingSuggestion,
+    Preference,
+    ScannedItem,
+    User,
+)
 from object_storage import delete_item_photo, generate_photo_url, upload_item_photo
 from pairing_lookup import find_pairing_suggestions
 from verdict_engine import VerdictPreferences, compute_verdict
@@ -52,16 +59,6 @@ COLOR_VALUES = (
     "orange",
     "burgundy",
     "multicolor",
-)
-FIT_VALUES = (
-    "baggy",
-    "oversized",
-    "relaxed",
-    "cropped",
-    "fitted",
-    "slim",
-    "tailored",
-    "straight",
 )
 FORMALITY_VALUES = (
     "athleisure",
@@ -522,11 +519,19 @@ async def apply_verdict_to_item(
 ) -> None:
     """Compute and attach the current user's verdict for one item."""
     preference = await get_user_preferences(session, current_user)
+    visual_attributes = scanned_item.visual_attributes or {}
+    fit = (
+        visual_attributes.get("fit")
+        if isinstance(visual_attributes.get("fit"), str)
+        else None
+    )
     verdict_result = compute_verdict(
         category=category,
         color=color,
+        fit=fit,
         preferences=VerdictPreferences(
             preferred_colors=preference.preferred_colors if preference else [],
+            preferred_fits=preference.preferred_fits if preference else [],
             formality_preference=(
                 preference.formality_preference if preference else None
             ),

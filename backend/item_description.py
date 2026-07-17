@@ -8,6 +8,8 @@ from typing import Any
 
 from openai import OpenAI
 
+from models import FIT_VALUES
+
 OPENAI_VISION_MODEL = "gpt-4.1-mini"
 REQUEST_TIMEOUT_SECONDS = 20
 
@@ -22,12 +24,14 @@ VISUAL_ATTRIBUTES_SCHEMA = {
             "items": {"type": "string"},
         },
         "pattern": {"type": ["string", "null"]},
+        "fit": {"enum": [*FIT_VALUES, None]},
     },
     "required": [
         "garmentType",
         "primaryColor",
         "secondaryColors",
         "pattern",
+        "fit",
     ],
 }
 
@@ -38,6 +42,7 @@ class VisualAttributes:
     primary_color: str
     secondary_colors: list[str]
     pattern: str | None
+    fit: str | None
 
     def to_api_dict(self) -> dict[str, str | list[str] | None]:
         """Return the stored/API camelCase shape for visual attributes."""
@@ -46,6 +51,7 @@ class VisualAttributes:
             "primaryColor": self.primary_color,
             "secondaryColors": self.secondary_colors,
             "pattern": self.pattern,
+            "fit": self.fit,
         }
 
 
@@ -88,6 +94,7 @@ def parse_visual_attributes(payload: Any) -> VisualAttributes:
     primary_color = payload.get("primaryColor")
     secondary_colors = payload.get("secondaryColors")
     pattern = payload.get("pattern")
+    fit = payload.get("fit")
 
     if not isinstance(garment_type, str) or not garment_type.strip():
         raise ValueError("garmentType must be a non-empty string.")
@@ -104,11 +111,15 @@ def parse_visual_attributes(payload: Any) -> VisualAttributes:
     if pattern is not None and (not isinstance(pattern, str) or not pattern.strip()):
         raise ValueError("pattern must be null or a non-empty string.")
 
+    if fit is not None and fit not in FIT_VALUES:
+        raise ValueError("fit must be null or a supported fit value.")
+
     return VisualAttributes(
         garment_type=garment_type.strip(),
         primary_color=primary_color.strip(),
         secondary_colors=[color.strip() for color in secondary_colors],
         pattern=pattern.strip() if isinstance(pattern, str) else None,
+        fit=fit,
     )
 
 
@@ -151,7 +162,11 @@ def extract_visual_attributes(image_bytes: bytes) -> VisualAttributes | None:
                             "text": (
                                 "Identify the single main item's specific garment "
                                 "type, primary color, any secondary colors, and any "
-                                "notable pattern or material visible in the image."
+                                "notable pattern or material visible in the image. "
+                                "Also identify the garment's fit or silhouette if "
+                                "visually apparent, such as slim, oversized, cropped, "
+                                "or relaxed. Return null for fit if it is not "
+                                "visually clear from the photo."
                             ),
                         },
                         {

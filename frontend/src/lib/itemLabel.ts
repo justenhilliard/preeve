@@ -1,4 +1,5 @@
 export type VisualAttributes = {
+  fit: string | null;
   garmentType: string;
   pattern: string | null;
   primaryColor: string;

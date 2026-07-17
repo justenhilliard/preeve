@@ -1,14 +1,25 @@
 from verdict_engine import VerdictPreferences, VerdictResult, compute_verdict
 
 
-def test_onboarding_incomplete_returns_maybe() -> None:
+def make_preferences(
+    preferred_colors: list[str] | None = None,
+    preferred_fits: list[str] | None = None,
+    formality_preference: str | None = None,
+) -> VerdictPreferences:
+    """Build verdict preferences with concise test defaults."""
+    return VerdictPreferences(
+        preferred_colors=preferred_colors or [],
+        preferred_fits=preferred_fits or [],
+        formality_preference=formality_preference,
+    )
+
+
+def test_no_applicable_signals_returns_maybe() -> None:
     result = compute_verdict(
         category="top",
         color="blue",
-        preferences=VerdictPreferences(
-            preferred_colors=[],
-            formality_preference=None,
-        ),
+        fit=None,
+        preferences=make_preferences(),
     )
 
     assert result == VerdictResult(
@@ -17,65 +28,131 @@ def test_onboarding_incomplete_returns_maybe() -> None:
     )
 
 
-def test_rule_one_skips_color_outside_palette_before_formality() -> None:
+def test_all_applicable_signals_match_returns_buy() -> None:
+    result = compute_verdict(
+        category="top",
+        color="blue",
+        fit="slim",
+        preferences=make_preferences(
+            preferred_colors=["blue", "black"],
+            preferred_fits=["slim", "tailored"],
+            formality_preference="smart_casual",
+        ),
+    )
+
+    assert result == VerdictResult(
+        verdict="buy",
+        rationale=(
+            "blue is in your preferred palette, this slim fit matches your "
+            "style, and top fits your smart casual preference."
+        ),
+    )
+
+
+def test_all_applicable_signals_fail_returns_skip() -> None:
     result = compute_verdict(
         category="dress",
         color="red",
-        preferences=VerdictPreferences(
+        fit="slim",
+        preferences=make_preferences(
             preferred_colors=["blue", "black"],
-            formality_preference="athleisure",
+            preferred_fits=["relaxed", "oversized"],
+            formality_preference="casual",
         ),
     )
 
     assert result == VerdictResult(
         verdict="skip",
-        rationale="red isn't in your preferred palette (blue, black).",
+        rationale=(
+            "red isn't in your preferred palette (blue, black), this slim fit "
+            "isn't among your preferred fits (relaxed, oversized), and dress "
+            "typically leans more toward smart casual than your casual "
+            "preference."
+        ),
     )
 
 
-def test_rule_two_top_with_formal_preference_returns_maybe() -> None:
+def test_color_match_and_fit_mismatch_returns_maybe() -> None:
+    result = compute_verdict(
+        category="shoes",
+        color="black",
+        fit="fitted",
+        preferences=make_preferences(
+            preferred_colors=["black"],
+            preferred_fits=["relaxed"],
+        ),
+    )
+
+    assert result == VerdictResult(
+        verdict="maybe",
+        rationale=(
+            "black is in your preferred palette, but this fitted fit isn't "
+            "among your preferred fits (relaxed)."
+        ),
+    )
+
+
+def test_color_mismatch_and_fit_match_returns_maybe() -> None:
+    result = compute_verdict(
+        category="bottom",
+        color="tan",
+        fit="baggy",
+        preferences=make_preferences(
+            preferred_colors=["blue", "navy"],
+            preferred_fits=["baggy", "relaxed"],
+        ),
+    )
+
+    assert result == VerdictResult(
+        verdict="maybe",
+        rationale=(
+            "this baggy fit matches your style, but tan isn't in your "
+            "preferred palette (blue, navy)."
+        ),
+    )
+
+
+def test_fit_without_preference_is_not_applicable() -> None:
     result = compute_verdict(
         category="top",
         color="blue",
-        preferences=VerdictPreferences(
-            preferred_colors=["blue"],
-            formality_preference="formal",
-        ),
+        fit="slim",
+        preferences=make_preferences(preferred_colors=["blue"]),
     )
 
     assert result == VerdictResult(
-        verdict="maybe",
-        rationale=(
-            "blue matches your palette, but top typically leans more toward "
-            "business casual than your formal preference."
-        ),
+        verdict="buy",
+        rationale="blue is in your preferred palette.",
     )
 
 
-def test_rule_two_bottom_with_formal_preference_returns_maybe() -> None:
+def test_missing_item_fit_is_not_applicable() -> None:
     result = compute_verdict(
-        category="bottom",
-        color="navy",
-        preferences=VerdictPreferences(
-            preferred_colors=["navy"],
-            formality_preference="formal",
+        category="top",
+        color="tan",
+        fit=None,
+        preferences=make_preferences(
+            preferred_colors=["blue"],
+            preferred_fits=["slim"],
+            formality_preference="business_casual",
         ),
     )
 
     assert result == VerdictResult(
         verdict="maybe",
         rationale=(
-            "navy matches your palette, but bottom typically leans more toward "
-            "business casual than your formal preference."
+            "top fits your business casual preference, but tan isn't in your "
+            "preferred palette (blue)."
         ),
     )
 
 
-def test_rule_two_dress_with_athleisure_preference_returns_maybe() -> None:
+def test_formality_incompatible_color_match_returns_maybe() -> None:
     result = compute_verdict(
         category="dress",
         color="black",
-        preferences=VerdictPreferences(
+        fit=None,
+        preferences=make_preferences(
             preferred_colors=["black"],
             formality_preference="athleisure",
         ),
@@ -84,67 +161,27 @@ def test_rule_two_dress_with_athleisure_preference_returns_maybe() -> None:
     assert result == VerdictResult(
         verdict="maybe",
         rationale=(
-            "black matches your palette, but dress typically leans more toward "
-            "smart casual than your athleisure preference."
+            "black is in your preferred palette, but dress typically leans "
+            "more toward smart casual than your athleisure preference."
         ),
     )
 
 
-def test_rule_two_dress_with_casual_preference_returns_maybe() -> None:
+def test_formality_only_match_returns_buy() -> None:
     result = compute_verdict(
-        category="dress",
-        color="green",
-        preferences=VerdictPreferences(
-            preferred_colors=["green"],
-            formality_preference="casual",
-        ),
-    )
-
-    assert result == VerdictResult(
-        verdict="maybe",
-        rationale=(
-            "green matches your palette, but dress typically leans more toward "
-            "smart casual than your casual preference."
-        ),
-    )
-
-
-def test_rule_three_plain_buy_without_formality() -> None:
-    result = compute_verdict(
-        category="shoes",
-        color="white",
-        preferences=VerdictPreferences(
-            preferred_colors=["white"],
-            formality_preference=None,
-        ),
+        category="outerwear",
+        color="orange",
+        fit=None,
+        preferences=make_preferences(formality_preference="formal"),
     )
 
     assert result == VerdictResult(
         verdict="buy",
-        rationale="white is in your preferred palette.",
+        rationale="outerwear fits your formal preference.",
     )
 
 
-def test_rule_three_buy_appends_formality_clause() -> None:
-    result = compute_verdict(
-        category="top",
-        color="olive",
-        preferences=VerdictPreferences(
-            preferred_colors=["olive"],
-            formality_preference="smart_casual",
-        ),
-    )
-
-    assert result == VerdictResult(
-        verdict="buy",
-        rationale=(
-            "olive is in your preferred palette, and top fits your "
-            "smart casual preference."
-        ),
-    )
-
-
-def test_coarse_categories_never_trigger_rule_two() -> None:
+def test_coarse_categories_never_fail_formality_signal() -> None:
     for category in ("outerwear", "shoes", "accessory"):
         for formality_preference in (
             "athleisure",
@@ -156,7 +193,8 @@ def test_coarse_categories_never_trigger_rule_two() -> None:
             result = compute_verdict(
                 category=category,
                 color="black",
-                preferences=VerdictPreferences(
+                fit=None,
+                preferences=make_preferences(
                     preferred_colors=["black"],
                     formality_preference=formality_preference,
                 ),
@@ -167,13 +205,14 @@ def test_coarse_categories_never_trigger_rule_two() -> None:
 
 
 def test_verdict_engine_is_deterministic() -> None:
-    preferences = VerdictPreferences(
+    preferences = make_preferences(
         preferred_colors=["blue", "black"],
+        preferred_fits=["tailored"],
         formality_preference="business_casual",
     )
 
-    first_result = compute_verdict("top", "blue", preferences)
-    second_result = compute_verdict("top", "blue", preferences)
+    first_result = compute_verdict("top", "blue", "tailored", preferences)
+    second_result = compute_verdict("top", "blue", "tailored", preferences)
 
     assert first_result == second_result
     assert first_result.rationale == second_result.rationale

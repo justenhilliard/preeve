@@ -248,7 +248,8 @@ the current page session.
     "garmentType": "blazer",
     "primaryColor": "navy",
     "secondaryColors": [],
-    "pattern": null
+    "pattern": null,
+    "fit": "tailored"
   },
   "correctedCategory": null,
   "correctedColor": null,
@@ -313,8 +314,9 @@ match, same category with different color or vice versa, also finds something.
 
 `visualAttributes` is best-effort structured perception metadata and may be `null`
 without affecting the CLIP-driven verdict flow. It is never used for verdict
-computation. `closetInsight` is computed live from the user's current saved
-wardrobe items and is not stored.
+category/color correction. Its `fit` value, when present, participates in the
+fit-aware verdict matrix. `closetInsight` is computed live from the user's
+current saved wardrobe items and is not stored.
 
 **Error — 502** (CLIP upstream unavailable — distinct from a low-confidence
 result, which is handled as `classificationFailed: true` above, not an HTTP
@@ -364,7 +366,8 @@ v1; the user resubmits both category and color even if only one was wrong.
     "garmentType": "blazer",
     "primaryColor": "navy",
     "secondaryColors": [],
-    "pattern": null
+    "pattern": null,
+    "fit": "tailored"
   },
   "correctedCategory": "top",
   "correctedColor": "burgundy",
@@ -427,7 +430,8 @@ favorited items that are also a Buy.
         "garmentType": "blazer",
         "primaryColor": "navy",
         "secondaryColors": [],
-        "pattern": null
+        "pattern": null,
+        "fit": "tailored"
       },
       "verdict": "buy",
       "isFavorited": true,

@@ -34,6 +34,16 @@ FORMALITY_VALUES = (
     "business_casual",
     "formal",
 )
+FIT_VALUES = (
+    "baggy",
+    "oversized",
+    "relaxed",
+    "cropped",
+    "fitted",
+    "slim",
+    "tailored",
+    "straight",
+)
 VERDICT_VALUES = ("buy", "maybe", "skip")
 
 
