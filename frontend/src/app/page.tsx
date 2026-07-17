@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useId, useRef, useState } from "react";
 import { useAuthenticatedApi } from "./apiClient";
 import { formatOptionLabel } from "./preferences/components";
 import { ThemeToggle } from "./themeToggle";
@@ -124,8 +124,8 @@ const LANDING_NAV_CLASS =
   "mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-4 px-6 py-6";
 const LANDING_CTA_BUTTON_CLASS =
   "rounded-md bg-[var(--color-accent)] px-6 py-3 font-sans text-sm font-semibold " +
-  "text-[var(--color-on-dark)] transition-[background-color,transform] duration-[160ms] " +
-  "ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-[var(--color-accent-hover)] active:scale-[0.97]";
+  "text-[var(--color-on-accent)] transition-[background-color,transform] duration-[160ms] " +
+  "ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-[var(--color-accent)] active:scale-[0.97]";
 const SIGN_IN_BUTTON_CLASS =
   "rounded-md bg-[var(--color-accent-dark)] px-5 py-2.5 font-sans text-sm " +
   "font-semibold text-[var(--color-on-dark)] " +
@@ -136,7 +136,9 @@ const EMAIL_INPUT_CLASS =
   "min-h-12 flex-1 rounded-xl border border-[var(--color-text-muted)]/20 " +
   "bg-[var(--color-bg)] px-4 font-sans text-sm text-[var(--color-text)] " +
   "outline-none transition placeholder:text-[var(--color-text-muted)] " +
-  "focus:border-[var(--color-accent)]";
+  "focus-visible:border-[var(--color-accent)] focus-visible:ring-2 " +
+  "focus-visible:ring-[var(--color-accent-dark)] focus-visible:ring-offset-2 " +
+  "focus-visible:ring-offset-[var(--color-bg)]";
 const HERO_HEADLINE_CLASS =
   "font-serif text-4xl font-semibold leading-[1.05] tracking-normal " +
   "text-[var(--color-on-dark)] sm:text-6xl lg:text-8xl";
@@ -149,12 +151,12 @@ const LOADING_HOME_CLASS =
   "mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-5xl items-center " +
   "justify-center";
 const BADGE_CLASS =
-  "rounded-full px-4 py-2 font-sans text-sm font-semibold text-[var(--color-on-dark)]";
+  "rounded-full px-4 py-2 font-sans text-sm font-semibold";
 const VERDICT_BADGE_CLASS =
   "inline-flex rounded-full px-3 py-1 font-sans text-xs font-semibold";
 const VERDICT_STYLES: Record<Verdict, string> = {
-  buy: "bg-[var(--color-sage)] text-[var(--color-on-dark)]",
-  maybe: "bg-[var(--color-ochre)] text-[var(--color-on-dark)]",
+  buy: "bg-[var(--color-sage)] text-[var(--color-on-sage)]",
+  maybe: "bg-[var(--color-ochre)] text-[var(--color-on-ochre)]",
   skip: "bg-[var(--color-accent-dark)] text-[var(--color-on-dark)]",
 };
 const VERDICT_BORDER_STYLES: Record<Verdict, string> = {
@@ -164,8 +166,8 @@ const VERDICT_BORDER_STYLES: Record<Verdict, string> = {
 };
 const SCAN_CTA_CLASS =
   "flex items-center gap-4 rounded-md bg-[var(--color-accent)] px-6 py-4 text-left " +
-  "text-[var(--color-on-dark)] transition-[background-color,transform] duration-[160ms] " +
-  "ease-[var(--ease-out)] hover:bg-[var(--color-accent-hover)] active:scale-[0.97]";
+  "text-[var(--color-on-accent)] transition-[background-color,transform] duration-[160ms] " +
+  "ease-[var(--ease-out)] hover:bg-[var(--color-accent)] active:scale-[0.97]";
 const DASHBOARD_SPINNER_CLASS =
   "h-9 w-9 animate-spin rounded-full border-[3px] border-[var(--color-text-muted)]/15 " +
   "border-t-[var(--color-accent)]";
@@ -195,7 +197,7 @@ function HomeTopBar() {
                 <Link
                   className={`rounded-full px-4 py-2 font-sans text-sm font-semibold transition ${
                     isActive
-                      ? "bg-[var(--color-accent)] text-[var(--color-on-dark)]"
+                      ? "bg-[var(--color-accent)] text-[var(--color-on-accent)]"
                       : "text-[var(--color-text-muted)] hover:bg-[var(--color-surface)]/45"
                   }`}
                   href={item.href}
@@ -251,7 +253,7 @@ function HomeTopBar() {
             <Link
               className={`rounded-xl px-3 py-3 font-sans text-sm font-semibold transition-colors ${
                 isActive
-                  ? "bg-[var(--color-accent)] text-[var(--color-on-dark)]"
+                  ? "bg-[var(--color-accent)] text-[var(--color-on-accent)]"
                   : "text-[var(--color-text-muted)] hover:bg-[var(--color-surface)]/45"
               }`}
               href={item.href}
@@ -335,7 +337,7 @@ function ScanItemCta() {
       <CameraIcon />
       <span className="flex flex-col items-start">
         <span className="font-sans text-base font-semibold">Scan item</span>
-        <span className="font-sans text-xs font-medium text-[var(--color-on-dark)]/75">
+        <span className="font-sans text-xs font-medium text-[var(--color-on-accent)]">
           Photo to verdict in seconds
         </span>
       </span>
@@ -650,6 +652,7 @@ function HomeDashboard() {
 
 function EmailSignupForm({ compact = false }: Readonly<{ compact?: boolean }>) {
   const router = useRouter();
+  const emailInputId = useId();
   const [email, setEmail] = useState("");
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -668,8 +671,12 @@ function EmailSignupForm({ compact = false }: Readonly<{ compact?: boolean }>) {
       }`}
       onSubmit={handleSubmit}
     >
+      <label className="sr-only" htmlFor={emailInputId}>
+        Email address
+      </label>
       <input
         className={EMAIL_INPUT_CLASS}
+        id={emailInputId}
         onChange={(event) => setEmail(event.target.value)}
         placeholder="Email address"
         type="email"
@@ -756,11 +763,13 @@ function VerdictScreen() {
   return (
     <>
       <div className="flex justify-center gap-2">
-        <span className={`${BADGE_CLASS} bg-[var(--color-sage)]`}>Buy</span>
+        <span className={`${BADGE_CLASS} bg-[var(--color-sage)] text-[var(--color-on-sage)]`}>
+          Buy
+        </span>
         <span
           className={
             `${BADGE_CLASS} bg-[var(--color-ochre)]/55 ` +
-            "text-[var(--color-text-muted)]"
+            "text-[var(--color-text)]"
           }
         >
           Maybe
@@ -912,7 +921,7 @@ function HowItWorksScroll() {
                 className={
                   "flex h-12 w-12 shrink-0 items-center justify-center " +
                   "rounded-full bg-[var(--color-accent)] font-serif text-xl " +
-                  "font-semibold text-[var(--color-on-dark)]"
+                  "font-semibold text-[var(--color-on-accent)]"
                 }
               >
                 {index + 1}

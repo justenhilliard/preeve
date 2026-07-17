@@ -33,15 +33,17 @@ type PrimaryLinkProps = Readonly<{
 
 const PRIMARY_ACTION_CLASS =
   "rounded-md bg-[var(--color-accent)] px-6 py-3 font-sans text-sm font-semibold " +
-  "text-[var(--color-on-dark)] transition-[background-color,transform] duration-[160ms] " +
-  "ease-[var(--ease-out)] hover:bg-[var(--color-accent-hover)] active:scale-[0.97]";
+  "text-[var(--color-on-accent)] transition-[background-color,transform] duration-[160ms] " +
+  "ease-[var(--ease-out)] hover:bg-[var(--color-accent)] active:scale-[0.97]";
 const DISABLED_PRIMARY_ACTION_CLASS =
   "disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100";
 const OPTION_BUTTON_BASE_CLASS =
   "flex min-h-11 items-center justify-between gap-3 rounded-xl border-2 " +
   "border-[var(--color-text-muted)]/15 bg-[var(--color-bg)] px-4 py-3 font-sans text-sm " +
   "font-medium text-[var(--color-text)] shadow-[0_3px_8px_rgba(62,46,41,0.22)] " +
-  "outline outline-[3px] outline-offset-[3px] transition";
+  "outline outline-[3px] outline-offset-[3px] transition focus-visible:ring-2 " +
+  "focus-visible:ring-[var(--color-accent-dark)] focus-visible:ring-offset-4 " +
+  "focus-visible:ring-offset-[var(--color-bg)]";
 const COLOR_SWATCH_BASE_CLASS =
   "relative flex h-16 w-16 items-center justify-center rounded-full border " +
   "border-[var(--color-text-muted)]/20 shadow-[0_3px_8px_rgba(62,46,41,0.22)] " +
@@ -162,6 +164,7 @@ export function OptionButton({
 }: OptionButtonProps) {
   return (
     <button
+      aria-pressed={isSelected}
       className={`${OPTION_BUTTON_BASE_CLASS} ${
         isSelected
           ? "outline-[var(--color-accent)] shadow-[0_5px_14px_rgba(184,103,74,0.35)]"
@@ -224,7 +227,12 @@ export function ColorSwatchButton({
 
   return (
     <button
-      className="flex flex-col items-center gap-2"
+      aria-pressed={isSelected}
+      className={
+        "flex flex-col items-center gap-2 rounded-xl focus-visible:outline-none " +
+        "focus-visible:ring-2 focus-visible:ring-[var(--color-accent-dark)] " +
+        "focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--color-bg)]"
+      }
       onClick={onClick}
       type="button"
     >

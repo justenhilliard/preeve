@@ -35,8 +35,8 @@ const SECONDARY_BUTTON_CLASS =
   "hover:bg-[var(--color-surface)]/60";
 const DELETE_BUTTON_CLASS =
   "rounded-md bg-[var(--color-accent)] px-6 py-3 font-sans text-sm " +
-  "font-semibold text-[var(--color-on-dark)] transition " +
-  "hover:bg-[var(--color-accent-hover)]";
+  "font-semibold text-[var(--color-on-accent)] transition " +
+  "hover:bg-[var(--color-accent)]";
 const LOADING_SHELL_CLASS =
   "mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-5xl items-center " +
   "justify-center";
@@ -63,7 +63,7 @@ function SettingsTopBar() {
                 <Link
                   className={`rounded-full px-4 py-2 font-sans text-sm font-semibold transition ${
                     isActive
-                      ? "bg-[var(--color-accent)] text-[var(--color-on-dark)]"
+                      ? "bg-[var(--color-accent)] text-[var(--color-on-accent)]"
                       : "text-[var(--color-text-muted)] hover:bg-[var(--color-surface)]/45"
                   }`}
                   href={item.href}
@@ -119,7 +119,7 @@ function SettingsTopBar() {
             <Link
               className={`rounded-xl px-3 py-3 font-sans text-sm font-semibold transition-colors ${
                 isActive
-                  ? "bg-[var(--color-accent)] text-[var(--color-on-dark)]"
+                  ? "bg-[var(--color-accent)] text-[var(--color-on-accent)]"
                   : "text-[var(--color-text-muted)] hover:bg-[var(--color-surface)]/45"
               }`}
               href={item.href}

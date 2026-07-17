@@ -61,6 +61,25 @@ function getEffectiveAttribute<Value>(
   return correctedValue ?? detectedValue;
 }
 
+function formatScannedItemAlt(item: ScannedItemResponse) {
+  const effectiveCategory = getEffectiveAttribute(
+    item.correctedCategory,
+    item.detectedCategory,
+  );
+  const effectiveColor = getEffectiveAttribute(
+    item.correctedColor,
+    item.detectedColor,
+  );
+
+  if (!effectiveCategory || !effectiveColor) {
+    return "Photo of the item you're correcting";
+  }
+
+  return `${formatOptionLabel(effectiveColor)} ${formatOptionLabel(
+    effectiveCategory,
+  )}`;
+}
+
 export default function CorrectItemPage() {
   const authenticatedApi = useAuthenticatedApi();
   const params = useParams();
@@ -197,7 +216,7 @@ export default function CorrectItemPage() {
               <div className={PREVIEW_FRAME_CLASS}>
                 <div className="relative aspect-[3/4] w-full">
                   <Image
-                    alt="Scanned item"
+                    alt={formatScannedItemAlt(item)}
                     className="object-cover"
                     fill
                     sizes="(min-width: 1024px) 380px, 100vw"

@@ -69,7 +69,7 @@ const EMPTY_STATE_CLASS =
   "shadow-[0_24px_70px_rgba(62,46,41,0.10)]";
 const CLEAR_FILTERS_BUTTON_CLASS =
   "rounded-md bg-[var(--color-accent)] px-6 py-3 font-sans text-sm font-semibold " +
-  "text-[var(--color-on-dark)] transition hover:bg-[var(--color-accent-hover)]";
+  "text-[var(--color-on-accent)] transition hover:bg-[var(--color-accent)]";
 const PAGE_HEADING_CLASS =
   "font-serif text-5xl font-semibold tracking-normal text-[var(--color-text)] " +
   "sm:text-6xl";
@@ -79,8 +79,8 @@ const SPINNER_CLASS =
 const VERDICT_BADGE_CLASS =
   "inline-flex rounded-full px-3 py-1 font-sans text-xs font-semibold";
 const VERDICT_STYLES: Record<Verdict, string> = {
-  buy: "bg-[var(--color-sage)] text-[var(--color-on-dark)]",
-  maybe: "bg-[var(--color-ochre)] text-[var(--color-on-dark)]",
+  buy: "bg-[var(--color-sage)] text-[var(--color-on-sage)]",
+  maybe: "bg-[var(--color-ochre)] text-[var(--color-on-ochre)]",
   skip: "bg-[var(--color-accent-dark)] text-[var(--color-on-dark)]",
 };
 function WardrobeTopBar() {
@@ -105,7 +105,7 @@ function WardrobeTopBar() {
                 <Link
                   className={`rounded-full px-4 py-2 font-sans text-sm font-semibold transition ${
                     isActive
-                      ? "bg-[var(--color-accent)] text-[var(--color-on-dark)]"
+                      ? "bg-[var(--color-accent)] text-[var(--color-on-accent)]"
                       : "text-[var(--color-text-muted)] hover:bg-[var(--color-surface)]/45"
                   }`}
                   href={item.href}
@@ -161,7 +161,7 @@ function WardrobeTopBar() {
             <Link
               className={`rounded-xl px-3 py-3 font-sans text-sm font-semibold transition-colors ${
                 isActive
-                  ? "bg-[var(--color-accent)] text-[var(--color-on-dark)]"
+                  ? "bg-[var(--color-accent)] text-[var(--color-on-accent)]"
                   : "text-[var(--color-text-muted)] hover:bg-[var(--color-surface)]/45"
               }`}
               href={item.href}
@@ -364,7 +364,7 @@ export default function WardrobePage() {
                 aria-pressed={favoritesOnly}
                 className={`${CHIP_BASE_CLASS} inline-flex items-center gap-2 ${
                   favoritesOnly
-                    ? "bg-[var(--color-accent)] text-[var(--color-on-dark)]"
+                    ? "bg-[var(--color-accent)] text-[var(--color-on-accent)]"
                     : "bg-[var(--color-bg)] text-[var(--color-text-muted)] " +
                       "hover:bg-[var(--color-surface)]/45"
                 }`}
@@ -394,7 +394,7 @@ export default function WardrobePage() {
                     aria-pressed={isActive}
                     className={`${CHIP_BASE_CLASS} ${
                       isActive
-                        ? "bg-[var(--color-accent)] text-[var(--color-on-dark)]"
+                        ? "bg-[var(--color-accent)] text-[var(--color-on-accent)]"
                         : "bg-[var(--color-bg)] text-[var(--color-text-muted)] " +
                           "hover:bg-[var(--color-surface)]/45"
                     }`}

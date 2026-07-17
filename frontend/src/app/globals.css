@@ -15,8 +15,11 @@
   --color-accent-hover: #a95c42;
   --color-accent-dark: #3e2e29;
   --color-accent-dark-hover: #2f2320;
+  --color-on-accent: #000000;
   --color-on-dark: #faf9f8;
   --color-on-dark-muted: #d8d3cc;
+  --color-on-ochre: #000000;
+  --color-on-sage: #000000;
   --color-sage: #8a9a7b;
   --color-ochre: #c9a66b;
   --background: var(--color-bg);
@@ -34,8 +37,11 @@
   --color-accent-hover: #e7997a;
   --color-accent-dark: #4a3830;
   --color-accent-dark-hover: #5c463c;
+  --color-on-accent: #000000;
   --color-on-dark: #f3ece6;
   --color-on-dark-muted: #d8d3cc;
+  --color-on-ochre: #000000;
+  --color-on-sage: #000000;
   --color-sage: #a3b693;
   --color-ochre: #d8bb86;
 }
@@ -102,12 +108,12 @@ html {
 
 .home-auth-link-primary {
   background-color: var(--color-accent);
-  color: var(--color-on-dark);
+  color: var(--color-on-accent);
   font-weight: 600;
 }
 
 .home-auth-link-primary:hover {
-  background-color: var(--color-accent-hover);
+  background-color: var(--color-accent);
 }
 
 /* Entrance animation used on the landing page. Rare/first-time per-visit

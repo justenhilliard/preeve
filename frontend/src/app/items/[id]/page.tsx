@@ -88,8 +88,8 @@ const RESULT_HEADING_CLASS =
 const VERDICT_BADGE_CLASS =
   "inline-flex rounded-full px-5 py-2 font-sans text-sm font-semibold";
 const VERDICT_STYLES: Record<Verdict, string> = {
-  buy: "bg-[var(--color-sage)] text-[var(--color-on-dark)]",
-  maybe: "bg-[var(--color-ochre)] text-[var(--color-on-dark)]",
+  buy: "bg-[var(--color-sage)] text-[var(--color-on-sage)]",
+  maybe: "bg-[var(--color-ochre)] text-[var(--color-on-ochre)]",
   skip: "bg-[var(--color-accent-dark)] text-[var(--color-on-dark)]",
 };
 
@@ -108,6 +108,29 @@ function formatScanDate(createdAt: string) {
   }).format(new Date(createdAt));
 }
 
+function formatScannedItemAlt(item: ScannedItemResponse) {
+  const effectiveCategory = getEffectiveAttribute(
+    item.correctedCategory,
+    item.detectedCategory,
+  );
+  const effectiveColor = getEffectiveAttribute(
+    item.correctedColor,
+    item.detectedColor,
+  );
+
+  if (!effectiveCategory || !effectiveColor) {
+    return "Photo of the scanned item";
+  }
+
+  return `${formatOptionLabel(effectiveColor)} ${formatOptionLabel(
+    effectiveCategory,
+  )}`;
+}
+
+function formatPairingSuggestionAlt(suggestion: PairingSuggestion) {
+  return `Suggested pairing: ${suggestion.suggestionText}`;
+}
+
 function PairingSuggestions({
   suggestions,
 }: Readonly<{ suggestions: PairingSuggestion[] }>) {
@@ -122,7 +145,7 @@ function PairingSuggestions({
               {suggestion.imageUrl ? (
                 <div className="relative aspect-[16/9] w-full">
                   <Image
-                    alt="Suggested pairing"
+                    alt={formatPairingSuggestionAlt(suggestion)}
                     className="object-cover"
                     fill
                     sizes="(min-width: 1024px) 520px, 100vw"
@@ -328,7 +351,7 @@ export default function ItemResultPage() {
               <div className={PREVIEW_FRAME_CLASS}>
                 <div className="relative aspect-[3/4] w-full">
                   <Image
-                    alt="Scanned item"
+                    alt={formatScannedItemAlt(item)}
                     className="object-cover"
                     fill
                     sizes="(min-width: 1024px) 460px, 100vw"

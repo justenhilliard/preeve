@@ -274,7 +274,7 @@ export default function CapturePage() {
           <div className={PREVIEW_FRAME_CLASS}>
             <div className="relative aspect-[3/4] w-full">
               <Image
-                alt="Captured item"
+                alt="Photo of the item you're about to scan"
                 className="object-cover"
                 fill
                 sizes="(min-width: 768px) 768px, 100vw"
@@ -342,7 +342,7 @@ export default function CapturePage() {
               <div className={PREVIEW_FRAME_CLASS}>
                 <div className="relative aspect-[3/4] w-full">
                   <Image
-                    alt="Selected item preview"
+                    alt="Photo of the item you're about to scan"
                     className="object-cover"
                     fill
                     sizes="(min-width: 768px) 768px, 100vw"
@@ -440,6 +440,7 @@ export default function CapturePage() {
             className="sr-only"
             onChange={handleFileChange}
             ref={fileInputRef}
+            tabIndex={-1}
             type="file"
           />
           <canvas aria-hidden="true" className="hidden" ref={canvasRef} />

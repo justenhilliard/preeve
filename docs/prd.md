@@ -176,6 +176,20 @@ Each requirement includes acceptance criteria — the bar for "this is done," no
 7. **Wardrobe log** — save, view, and delete scanned items.
 8. **UI polish** — responsive design pass, PWA installability, loading and error states.
 9. **Deployment & documentation** — finalized hosting, testing pass, and project documentation.
+   **Pre-launch legal checklist:** `/terms` and `/privacy` (added ahead of this
+   phase, alongside dark mode/UI polish) are placeholder-filled and not yet
+   ready for real users. Before going live, fill in:
+   - Legal entity/name and public contact email (`frontend/src/app/terms/page.tsx`
+     and `frontend/src/app/privacy/page.tsx`, both marked `[your contact email]`).
+   - Governing law state (`terms/page.tsx`, Section 12, marked `[Your State]`).
+   - A named arbitration provider/rules (e.g. AAA Consumer Arbitration Rules) —
+     `terms/page.tsx` Section 11 is currently unenforceable without this.
+   - Limitation-of-liability placeholder amount (`terms/page.tsx`, Section 10).
+   - DMCA designated agent: register one at dmca.copyright.gov (real-world
+     action, not a code change) and add the resulting contact info to
+     `terms/page.tsx` Section 8.
+   - Have both pages reviewed by an actual lawyer — they're a solid starting
+     template, not legal advice.
 
 ---
 
