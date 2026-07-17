@@ -36,23 +36,38 @@ frontend.
 
 ## Results
 
-| Image | Eyeball category/color | Predicted category | Category similarity | Predicted color | Color similarity | Latency ms | Notes |
-|---|---|---|---:|---|---:|---:|---|
-| `bracelets1.jpeg` | accessory, tan/gold/pink | accessory | 0.1887 | tan | 0.2172 | 1087 | Category right; color acceptable for jewelry/tan tones. |
-| `hat1.jpeg` | accessory, yellow | accessory | 0.2247 | yellow | 0.2626 | 941 | Correct. |
-| `jacket1.jpeg` | outerwear, tan/brown | dress | 0.2267 | brown | 0.2546 | 890 | Color reasonable; category wrong. |
-| `jeans1.jpeg` | bottom, blue | bottom | 0.2807 | blue | 0.2267 | 988 | Correct. |
-| `jorts1.jpeg` | bottom, blue/navy | bottom | 0.2698 | tan | 0.2144 | 1115 | Category right; color wrong. |
-| `longskirt1.jpeg` | bottom, navy | bottom | 0.2549 | navy | 0.2214 | 955 | Correct. |
-| `polo1.jpeg` | top, navy/blue | top | 0.2751 | blue | 0.2577 | 748 | Correct. |
-| `shoes1.jpeg` | shoes, green/olive | shoes | 0.2215 | green | 0.2375 | 1163 | Correct. |
-| `shoes2.jpeg` | shoes, black/brown | shoes | 0.2544 | olive | 0.2340 | 919 | Category right; color wrong or weak. |
-| `shoes3.jpeg` | shoes, white/gray | shoes | 0.2186 | beige | 0.2088 | 923 | Category right; color close but not ideal. |
-| `stripedsweater1.jpeg` | top, brown/gray/multicolor | top | 0.2376 | brown | 0.2684 | 1312 | Category right; color acceptable. |
-| `stripedsweater2.jpeg` | top/outerwear, red/white | dress | 0.2353 | red | 0.2798 | 793 | Color right; category wrong. |
-| `sunglasses1.jpeg` | accessory, black/brown | accessory | 0.2001 | white | 0.1522 | 1063 | Category right; color wrong, likely distracted by sky/background. |
-| `tank1.jpeg` | top, white/beige | dress | 0.2465 | beige | 0.2654 | 901 | Color acceptable; category wrong. |
-| `tshirt1.jpeg` | top, blue | dress | 0.2267 | blue | 0.2426 | 821 | Color right; category wrong. |
+- `bracelets1.jpeg`: eyeball accessory, tan/gold/pink. Predicted accessory
+  (`0.1887`) and tan (`0.2172`) in 1087 ms. Category right; color acceptable
+  for jewelry/tan tones.
+- `hat1.jpeg`: eyeball accessory, yellow. Predicted accessory (`0.2247`) and
+  yellow (`0.2626`) in 941 ms. Correct.
+- `jacket1.jpeg`: eyeball outerwear, tan/brown. Predicted dress (`0.2267`) and
+  brown (`0.2546`) in 890 ms. Color reasonable; category wrong.
+- `jeans1.jpeg`: eyeball bottom, blue. Predicted bottom (`0.2807`) and blue
+  (`0.2267`) in 988 ms. Correct.
+- `jorts1.jpeg`: eyeball bottom, blue/navy. Predicted bottom (`0.2698`) and tan
+  (`0.2144`) in 1115 ms. Category right; color wrong.
+- `longskirt1.jpeg`: eyeball bottom, navy. Predicted bottom (`0.2549`) and navy
+  (`0.2214`) in 955 ms. Correct.
+- `polo1.jpeg`: eyeball top, navy/blue. Predicted top (`0.2751`) and blue
+  (`0.2577`) in 748 ms. Correct.
+- `shoes1.jpeg`: eyeball shoes, green/olive. Predicted shoes (`0.2215`) and
+  green (`0.2375`) in 1163 ms. Correct.
+- `shoes2.jpeg`: eyeball shoes, black/brown. Predicted shoes (`0.2544`) and
+  olive (`0.2340`) in 919 ms. Category right; color wrong or weak.
+- `shoes3.jpeg`: eyeball shoes, white/gray. Predicted shoes (`0.2186`) and
+  beige (`0.2088`) in 923 ms. Category right; color close but not ideal.
+- `stripedsweater1.jpeg`: eyeball top, brown/gray/multicolor. Predicted top
+  (`0.2376`) and brown (`0.2684`) in 1312 ms. Category right; color acceptable.
+- `stripedsweater2.jpeg`: eyeball top/outerwear, red/white. Predicted dress
+  (`0.2353`) and red (`0.2798`) in 793 ms. Color right; category wrong.
+- `sunglasses1.jpeg`: eyeball accessory, black/brown. Predicted accessory
+  (`0.2001`) and white (`0.1522`) in 1063 ms. Category right; color wrong,
+  likely distracted by sky/background.
+- `tank1.jpeg`: eyeball top, white/beige. Predicted dress (`0.2465`) and beige
+  (`0.2654`) in 901 ms. Color acceptable; category wrong.
+- `tshirt1.jpeg`: eyeball top, blue. Predicted dress (`0.2267`) and blue
+  (`0.2426`) in 821 ms. Color right; category wrong.
 
 ## Observations
 
@@ -122,3 +137,14 @@ JPEGs for `jorts1.jpeg` in 4.15s, `jeans1.jpeg` in 11.99s, and
 `sunglasses1.jpeg` in 10.35s. The sunglasses image still retains the hands
 holding the glasses, so this reduces scene/background noise but does not isolate
 only the product in every real-world photo.
+
+## Addendum — Wrong-Subject Vision Extraction (2026-07-17)
+
+Real-world testing found a stronger version of the same multi-object ambiguity:
+a scan intended to show sunglasses was described by the structured vision pass as
+a white/gold bracelet because jewelry was visible on the hand holding the item.
+The prompt now instructs the vision model to describe one primary subject item,
+preferring the largest, most centered, most in-focus, or deliberately posed
+wearable object, and to treat incidental worn jewelry/clothing as background
+context. This is only a prompt refinement; without object detection or a human
+review step, genuinely ambiguous photos can still select the wrong subject.

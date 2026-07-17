@@ -128,8 +128,9 @@ function formatVisualAttribute(value: string) {
 function formatVisualAttributesLabel(visualAttributes: VisualAttributes) {
   const colors = [
     visualAttributes.primaryColor,
-    ...visualAttributes.secondaryColors,
+    visualAttributes.secondaryColors[0],
   ]
+    .filter((color): color is string => Boolean(color))
     .filter((color) => color.trim())
     .map(formatVisualAttribute)
     .join("/");

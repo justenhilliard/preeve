@@ -128,10 +128,17 @@ def extract_visual_attributes(image_bytes: bytes) -> VisualAttributes | None:
                         {
                             "type": "input_text",
                             "text": (
-                                "Extract only visible garment attributes from the "
-                                "photo. Return structured fields only. Do not give "
-                                "opinions, recommendations, styling advice, or "
-                                "prose analysis."
+                                "Extract only visible garment attributes for one "
+                                "primary clothing or accessory item in the photo. "
+                                "If multiple wearable items are visible, choose the "
+                                "item that appears intentionally framed: largest, "
+                                "most centered, most in focus, or deliberately held "
+                                "up for the camera. Treat jewelry or clothing worn "
+                                "incidentally by a hand or person holding another "
+                                "item as background context unless it is clearly "
+                                "the main subject. Return structured fields only. "
+                                "Do not give opinions, recommendations, styling "
+                                "advice, or prose analysis."
                             ),
                         },
                     ],
@@ -142,9 +149,9 @@ def extract_visual_attributes(image_bytes: bytes) -> VisualAttributes | None:
                         {
                             "type": "input_text",
                             "text": (
-                                "Identify the item's specific garment type, primary "
-                                "color, any secondary colors, and any notable "
-                                "pattern or material visible in the image."
+                                "Identify the single main item's specific garment "
+                                "type, primary color, any secondary colors, and any "
+                                "notable pattern or material visible in the image."
                             ),
                         },
                         {
