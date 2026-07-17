@@ -37,6 +37,11 @@ def format_preferred_colors(preferred_colors: list[str]) -> str:
     return ", ".join(preferred_colors)
 
 
+def format_formality_label(formality_value: str) -> str:
+    """Format a stored formality enum value for human-readable rationale text."""
+    return formality_value.replace("_", " ")
+
+
 def resolve_implied_formality_label(category: str, formality_preference: str) -> str:
     """Choose the nearest compatible formality label for an incompatible category."""
     compatible_values = CATEGORY_FORMALITY_MAP[category]
@@ -88,8 +93,8 @@ def compute_verdict(
             verdict="maybe",
             rationale=(
                 f"{color} matches your palette, but {category} typically "
-                f"leans more toward {implied_formality_label} than your "
-                f"{formality_preference} preference."
+                f"leans more toward {format_formality_label(implied_formality_label)} "
+                f"than your {format_formality_label(formality_preference)} preference."
             ),
         )
 
@@ -97,7 +102,7 @@ def compute_verdict(
     if formality_preference is not None:
         rationale = (
             f"{color} is in your preferred palette, and {category} fits "
-            f"your {formality_preference} preference."
+            f"your {format_formality_label(formality_preference)} preference."
         )
 
     return VerdictResult(verdict="buy", rationale=rationale)

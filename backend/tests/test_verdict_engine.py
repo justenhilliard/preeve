@@ -47,7 +47,7 @@ def test_rule_two_top_with_formal_preference_returns_maybe() -> None:
         verdict="maybe",
         rationale=(
             "blue matches your palette, but top typically leans more toward "
-            "business_casual than your formal preference."
+            "business casual than your formal preference."
         ),
     )
 
@@ -66,7 +66,7 @@ def test_rule_two_bottom_with_formal_preference_returns_maybe() -> None:
         verdict="maybe",
         rationale=(
             "navy matches your palette, but bottom typically leans more toward "
-            "business_casual than your formal preference."
+            "business casual than your formal preference."
         ),
     )
 
@@ -85,7 +85,7 @@ def test_rule_two_dress_with_athleisure_preference_returns_maybe() -> None:
         verdict="maybe",
         rationale=(
             "black matches your palette, but dress typically leans more toward "
-            "smart_casual than your athleisure preference."
+            "smart casual than your athleisure preference."
         ),
     )
 
@@ -104,7 +104,7 @@ def test_rule_two_dress_with_casual_preference_returns_maybe() -> None:
         verdict="maybe",
         rationale=(
             "green matches your palette, but dress typically leans more toward "
-            "smart_casual than your casual preference."
+            "smart casual than your casual preference."
         ),
     )
 
@@ -139,7 +139,7 @@ def test_rule_three_buy_appends_formality_clause() -> None:
         verdict="buy",
         rationale=(
             "olive is in your preferred palette, and top fits your "
-            "smart_casual preference."
+            "smart casual preference."
         ),
     )
 
