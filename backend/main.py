@@ -496,7 +496,7 @@ def format_scanned_item(
     return response
 
 
-async def format_wardrobe_item(scanned_item: ScannedItem) -> dict[str, str | bool | None]:
+async def format_wardrobe_item(scanned_item: ScannedItem) -> dict[str, Any]:
     """Convert a saved scanned item row into the wardrobe list shape."""
     photo_url = await asyncio.to_thread(generate_photo_url, scanned_item.photo_key)
     return {
@@ -505,6 +505,7 @@ async def format_wardrobe_item(scanned_item: ScannedItem) -> dict[str, str | boo
         "detectedCategory": scanned_item.corrected_category
         or scanned_item.detected_category,
         "detectedColor": scanned_item.corrected_color or scanned_item.detected_color,
+        "visualAttributes": scanned_item.visual_attributes,
         "verdict": scanned_item.verdict,
         "rationale": scanned_item.rationale,
         "isFavorited": scanned_item.is_favorited,

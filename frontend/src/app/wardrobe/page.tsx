@@ -5,9 +5,13 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import {
+  formatItemDisplayLabel,
+  type VisualAttributes,
+} from "../../lib/itemLabel";
 import { useAuthenticatedApi } from "../apiClient";
 import { FavoriteHeart, HEART_PATH } from "../favoriteHeart";
-import { formatOptionLabel, PrimaryLink } from "../preferences/components";
+import { PrimaryLink } from "../preferences/components";
 import { ThemeToggle } from "../themeToggle";
 
 type Verdict = "buy" | "maybe" | "skip";
@@ -22,6 +26,7 @@ type WardrobeItem = {
   isFavorited: boolean;
   photoUrl: string;
   verdict: Verdict | null;
+  visualAttributes: VisualAttributes | null;
 };
 
 type WardrobeItemsResponse = {
@@ -183,16 +188,6 @@ function formatVerdict(verdict: Verdict) {
   return verdict.charAt(0).toUpperCase() + verdict.slice(1);
 }
 
-function formatCategoryColor(item: WardrobeItem) {
-  if (!item.detectedCategory || !item.detectedColor) {
-    return "Unlabeled item";
-  }
-
-  return `${formatOptionLabel(item.detectedColor)} ${formatOptionLabel(
-    item.detectedCategory,
-  )}`;
-}
-
 function WardrobeCard({
   item,
   onToggleFavorite,
@@ -200,19 +195,21 @@ function WardrobeCard({
   item: WardrobeItem;
   onToggleFavorite: (item: WardrobeItem) => void;
 }>) {
+  const itemLabel = formatItemDisplayLabel(item);
+
   return (
     <article className={CARD_CLASS}>
-      <Link aria-label={`Open ${formatCategoryColor(item)}`} href={`/items/${item.id}`}>
+      <Link aria-label={`Open ${itemLabel}`} href={`/items/${item.id}`}>
         <div className="relative aspect-[3/4] w-full">
           <Image
-            alt={formatCategoryColor(item)}
+            alt={itemLabel}
             className="object-cover transition duration-300 group-hover:scale-[1.03]"
             fill
             sizes="(min-width: 1024px) 300px, (min-width: 640px) 45vw, 100vw"
             src={item.photoUrl}
             unoptimized
           />
-          <span className={HANG_TAG_CLASS}>{formatCategoryColor(item)}</span>
+          <span className={HANG_TAG_CLASS}>{itemLabel}</span>
         </div>
 
         <div className="flex items-center justify-end px-4 py-4">

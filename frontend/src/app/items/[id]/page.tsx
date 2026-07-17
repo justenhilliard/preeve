@@ -3,13 +3,13 @@
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import {
+  formatItemDisplayLabel,
+  type VisualAttributes,
+} from "../../../lib/itemLabel";
 import { ApiRequestError, useAuthenticatedApi } from "../../apiClient";
 import { FavoriteHeart } from "../../favoriteHeart";
-import {
-  formatOptionLabel,
-  PrimaryAction,
-  PrimaryLink,
-} from "../../preferences/components";
+import { PrimaryAction, PrimaryLink } from "../../preferences/components";
 import { ThemeToggle } from "../../themeToggle";
 
 type Verdict = "buy" | "maybe" | "skip";
@@ -18,13 +18,6 @@ type PairingSuggestion = {
   id: string;
   imageUrl: string | null;
   suggestionText: string;
-};
-
-type VisualAttributes = {
-  garmentType: string;
-  pattern: string | null;
-  primaryColor: string;
-  secondaryColors: string[];
 };
 
 type ScannedItemResponse = {
@@ -44,13 +37,6 @@ type ScannedItemResponse = {
   verdict: Verdict | null;
   createdAt: string;
 };
-
-function getEffectiveAttribute(
-  correctedValue: string | null,
-  detectedValue: string | null,
-) {
-  return correctedValue ?? detectedValue;
-}
 
 type SaveItemResponse = {
   id: string;
@@ -117,55 +103,8 @@ function formatScanDate(createdAt: string) {
   }).format(new Date(createdAt));
 }
 
-function formatVisualAttribute(value: string) {
-  return value
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
-
-function formatVisualAttributesLabel(visualAttributes: VisualAttributes) {
-  const colors = [
-    visualAttributes.primaryColor,
-    visualAttributes.secondaryColors[0],
-  ]
-    .filter((color): color is string => Boolean(color))
-    .filter((color) => color.trim())
-    .map(formatVisualAttribute)
-    .join("/");
-  const garmentType = formatVisualAttribute(visualAttributes.garmentType);
-
-  return colors ? `${colors} ${garmentType}` : garmentType;
-}
-
-function formatFallbackItemLabel(item: ScannedItemResponse) {
-  const effectiveCategory = getEffectiveAttribute(
-    item.correctedCategory,
-    item.detectedCategory,
-  );
-  const effectiveColor = getEffectiveAttribute(
-    item.correctedColor,
-    item.detectedColor,
-  );
-
-  if (!effectiveCategory || !effectiveColor) {
-    return null;
-  }
-
-  return `${formatOptionLabel(effectiveColor)} ${formatOptionLabel(
-    effectiveCategory,
-  )}`;
-}
-
-function formatItemDisplayLabel(item: ScannedItemResponse) {
-  return item.visualAttributes
-    ? formatVisualAttributesLabel(item.visualAttributes)
-    : formatFallbackItemLabel(item);
-}
-
 function formatScannedItemAlt(item: ScannedItemResponse) {
-  return formatItemDisplayLabel(item) ?? "Photo of the scanned item";
+  return formatItemDisplayLabel(item);
 }
 
 function formatPairingSuggestionAlt(suggestion: PairingSuggestion) {
@@ -422,16 +361,14 @@ export default function ItemResultPage() {
                           <FavoriteHeart isFavorited={item.isFavorited} />
                         </button>
                       </div>
-                      {formatItemDisplayLabel(item) ? (
-                        <p
-                          className={
-                            "font-sans text-base font-semibold " +
-                            "text-[var(--color-text-muted)]"
-                          }
-                        >
-                          {formatItemDisplayLabel(item)}
-                        </p>
-                      ) : null}
+                      <p
+                        className={
+                          "font-sans text-base font-semibold " +
+                          "text-[var(--color-text-muted)]"
+                        }
+                      >
+                        {formatItemDisplayLabel(item)}
+                      </p>
                       <p className="font-sans text-sm font-medium text-[var(--color-text-muted)]">
                         Scanned {formatScanDate(item.createdAt)}
                       </p>

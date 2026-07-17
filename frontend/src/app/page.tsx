@@ -6,8 +6,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useId, useRef, useState } from "react";
+import {
+  formatItemDisplayLabel,
+  type VisualAttributes,
+} from "../lib/itemLabel";
 import { useAuthenticatedApi } from "./apiClient";
-import { formatOptionLabel } from "./preferences/components";
 import { ThemeToggle } from "./themeToggle";
 
 type Verdict = "buy" | "maybe" | "skip";
@@ -21,6 +24,7 @@ type WardrobeItem = {
   photoUrl: string;
   rationale: string | null;
   verdict: Verdict | null;
+  visualAttributes: VisualAttributes | null;
 };
 
 type WardrobeItemsResponse = {
@@ -460,16 +464,6 @@ function formatVerdict(verdict: Verdict) {
   return verdict.charAt(0).toUpperCase() + verdict.slice(1);
 }
 
-function formatCategoryColor(item: WardrobeItem) {
-  if (!item.detectedCategory || !item.detectedColor) {
-    return "Unlabeled item";
-  }
-
-  return `${formatOptionLabel(item.detectedColor)} ${formatOptionLabel(
-    item.detectedCategory,
-  )}`;
-}
-
 function formatScanDate(createdAt: string) {
   return new Intl.DateTimeFormat(undefined, {
     dateStyle: "medium",
@@ -478,9 +472,11 @@ function formatScanDate(createdAt: string) {
 }
 
 function RecentActivityItem({ item }: Readonly<{ item: WardrobeItem }>) {
+  const itemLabel = formatItemDisplayLabel(item);
+
   return (
     <Link
-      aria-label={`Open ${formatCategoryColor(item)}`}
+      aria-label={`Open ${itemLabel}`}
       className={
         "group block overflow-hidden rounded-2xl border " +
         "border-[var(--color-text-muted)]/15 bg-[var(--color-bg)] transition duration-[200ms] " +
@@ -490,7 +486,7 @@ function RecentActivityItem({ item }: Readonly<{ item: WardrobeItem }>) {
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden">
         <Image
-          alt={formatCategoryColor(item)}
+          alt={itemLabel}
           className={
             "object-cover transition duration-[300ms] " +
             "ease-[var(--ease-out)] group-hover:scale-[1.03]"
@@ -515,7 +511,7 @@ function RecentActivityItem({ item }: Readonly<{ item: WardrobeItem }>) {
       <div className="space-y-3 p-4">
         <div className="space-y-0.5">
           <p className="font-sans text-base font-semibold text-[var(--color-text)]">
-            {formatCategoryColor(item)}
+            {itemLabel}
           </p>
           <p className="font-sans text-xs text-[var(--color-text-muted)]">
             {formatScanDate(item.createdAt)}

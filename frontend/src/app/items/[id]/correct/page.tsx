@@ -4,6 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import {
+  formatItemDisplayLabel,
+  type VisualAttributes,
+} from "../../../../lib/itemLabel";
 import { ApiRequestError, useAuthenticatedApi } from "../../../apiClient";
 import {
   ColorSwatchButton,
@@ -28,13 +32,6 @@ const CATEGORY_OPTIONS = [
 ] as const;
 
 type CategoryOption = (typeof CATEGORY_OPTIONS)[number];
-
-type VisualAttributes = {
-  garmentType: string;
-  pattern: string | null;
-  primaryColor: string;
-  secondaryColors: string[];
-};
 
 type ScannedItemResponse = {
   closetInsight: string | null;
@@ -70,55 +67,8 @@ function getEffectiveAttribute<Value>(
   return correctedValue ?? detectedValue;
 }
 
-function formatVisualAttribute(value: string) {
-  return value
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
-
-function formatVisualAttributesLabel(visualAttributes: VisualAttributes) {
-  const colors = [
-    visualAttributes.primaryColor,
-    visualAttributes.secondaryColors[0],
-  ]
-    .filter((color): color is string => Boolean(color))
-    .filter((color) => color.trim())
-    .map(formatVisualAttribute)
-    .join("/");
-  const garmentType = formatVisualAttribute(visualAttributes.garmentType);
-
-  return colors ? `${colors} ${garmentType}` : garmentType;
-}
-
-function formatFallbackItemLabel(item: ScannedItemResponse) {
-  const effectiveCategory = getEffectiveAttribute(
-    item.correctedCategory,
-    item.detectedCategory,
-  );
-  const effectiveColor = getEffectiveAttribute(
-    item.correctedColor,
-    item.detectedColor,
-  );
-
-  if (!effectiveCategory || !effectiveColor) {
-    return null;
-  }
-
-  return `${formatOptionLabel(effectiveColor)} ${formatOptionLabel(
-    effectiveCategory,
-  )}`;
-}
-
-function formatItemDisplayLabel(item: ScannedItemResponse) {
-  return item.visualAttributes
-    ? formatVisualAttributesLabel(item.visualAttributes)
-    : formatFallbackItemLabel(item);
-}
-
 function formatScannedItemAlt(item: ScannedItemResponse) {
-  return formatItemDisplayLabel(item) ?? "Photo of the item you're correcting";
+  return formatItemDisplayLabel(item);
 }
 
 export default function CorrectItemPage() {
@@ -265,16 +215,14 @@ export default function CorrectItemPage() {
                     unoptimized
                   />
                 </div>
-                {formatItemDisplayLabel(item) ? (
-                  <p
-                    className={
-                      "px-4 py-4 text-center font-sans text-sm font-semibold " +
-                      "text-[var(--color-text-muted)]"
-                    }
-                  >
-                    {formatItemDisplayLabel(item)}
-                  </p>
-                ) : null}
+                <p
+                  className={
+                    "px-4 py-4 text-center font-sans text-sm font-semibold " +
+                    "text-[var(--color-text-muted)]"
+                  }
+                >
+                  {formatItemDisplayLabel(item)}
+                </p>
               </div>
 
               <div className="space-y-8">
