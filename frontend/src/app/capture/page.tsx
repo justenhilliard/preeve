@@ -20,6 +20,9 @@ const SECONDARY_ACTION_CLASS =
 const VIEWFINDER_FRAME_CLASS =
   "relative overflow-hidden rounded-2xl border border-[var(--color-text-muted)]/15 " +
   "bg-[var(--color-surface)]/45 shadow-[0_24px_70px_rgba(62,46,41,0.10)]";
+const VIEWFINDER_VIDEO_CLASS =
+  "aspect-[3/4] max-h-[calc(100dvh-18rem)] w-full bg-[var(--color-accent-dark)] " +
+  "object-cover landscape:aspect-video landscape:max-h-[calc(100dvh-14rem)]";
 const PROCESSING_SECTION_CLASS =
   "mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-3xl flex-col " +
   "justify-center gap-8";
@@ -293,10 +296,20 @@ export default function CapturePage() {
   }
 
   return (
-    <main className="relative min-h-screen bg-background px-6 py-8 text-foreground">
+    <main
+      className={
+        "relative min-h-screen bg-background px-6 py-8 text-foreground " +
+        "landscape:py-3"
+      }
+    >
       <div aria-hidden="true" className="grain-overlay" />
-      <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-3xl flex-col">
-        <nav className="flex items-center justify-between gap-4">
+      <div
+        className={
+          "mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-3xl flex-col " +
+          "landscape:min-h-[calc(100vh-1.5rem)]"
+        }
+      >
+        <nav className="flex flex-wrap items-center justify-between gap-4">
           <Link href="/" className="auth-back-link">
             Back
           </Link>
@@ -304,12 +317,17 @@ export default function CapturePage() {
           <ThemeToggle />
         </nav>
 
-        <section className="flex flex-1 flex-col justify-center gap-8 py-10">
-          <header className="space-y-4 text-center">
+        <section
+          className={
+            "flex flex-1 flex-col justify-center gap-8 py-10 " +
+            "landscape:gap-4 landscape:py-3"
+          }
+        >
+          <header className="space-y-4 text-center landscape:space-y-2">
             <h1
               className={
                 "font-serif text-5xl font-semibold tracking-normal " +
-                "text-[var(--color-text)]"
+                "text-[var(--color-text)] landscape:text-4xl"
               }
             >
               Capture your item
@@ -357,7 +375,7 @@ export default function CapturePage() {
               <div className={VIEWFINDER_FRAME_CLASS}>
                 <video
                   autoPlay
-                  className="aspect-[3/4] w-full bg-[var(--color-accent-dark)] object-cover"
+                  className={VIEWFINDER_VIDEO_CLASS}
                   muted
                   playsInline
                   ref={videoRef}

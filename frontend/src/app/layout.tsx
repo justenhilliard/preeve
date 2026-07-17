@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Inter, Lato } from "next/font/google";
 import { ClerkAppProvider } from "./clerkAppProvider";
 import "./globals.css";
@@ -31,6 +31,12 @@ export const metadata: Metadata = {
     "Buy, Maybe, or Skip verdict based on your wardrobe and style.",
 };
 
+export const viewport: Viewport = {
+  initialScale: 1,
+  viewportFit: "cover",
+  width: "device-width",
+};
+
 // Runs before React hydrates so the .dark class (and therefore every CSS
 // custom property in globals.css) is correct on first paint - without this,
 // a returning dark-mode visitor would see a flash of the light theme.
@@ -48,6 +54,10 @@ const THEME_INIT_SCRIPT = `
 })();
 `;
 
+const ROOT_HTML_CLASS =
+  `h-full antialiased ${cormorantGaramond.variable} ` +
+  `${inter.variable} ${lato.variable}`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -56,7 +66,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`h-full antialiased ${cormorantGaramond.variable} ${inter.variable} ${lato.variable}`}
+      className={ROOT_HTML_CLASS}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">

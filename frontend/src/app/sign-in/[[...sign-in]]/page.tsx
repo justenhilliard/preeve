@@ -18,7 +18,7 @@ export default function SignInPage() {
   return (
     <main
       className={
-        "relative min-h-screen overflow-hidden bg-[var(--color-bg)] " +
+        "relative min-h-screen overflow-x-hidden bg-[var(--color-bg)] " +
         "px-6 py-8 text-[var(--color-text)]"
       }
     >
@@ -26,7 +26,10 @@ export default function SignInPage() {
 
       <svg
         aria-hidden="true"
-        className="absolute inset-x-0 bottom-0 z-0 h-[48vh] w-full"
+        className={
+          "absolute inset-x-0 bottom-0 z-0 h-[34vh] max-h-56 w-full " +
+          "landscape:h-[24vh] sm:h-[48vh] sm:max-h-none"
+        }
         preserveAspectRatio="none"
         viewBox="0 0 1440 100"
       >
@@ -55,7 +58,7 @@ export default function SignInPage() {
       </svg>
 
       <div className="relative z-10 mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-md flex-col">
-        <nav className="flex items-center justify-between gap-4">
+        <nav className="flex flex-wrap items-center justify-between gap-4">
           <Link href="/" className="auth-back-link">
             Back
           </Link>
@@ -63,7 +66,12 @@ export default function SignInPage() {
           <ThemeToggle />
         </nav>
 
-        <section className="flex flex-1 flex-col items-center justify-center gap-8 py-10">
+        <section
+          className={
+            "flex min-h-[34rem] flex-1 flex-col items-center justify-center " +
+            "gap-8 py-8 sm:min-h-0 sm:py-10"
+          }
+        >
           <header className="animate-fade-up space-y-4 text-center">
             <p className="font-serif text-4xl font-semibold tracking-normal">
               Preeve

@@ -122,7 +122,7 @@ const LANDING_SECTION_CLASS =
 const LANDING_BAND_CLASS =
   "scroll-mt-28 border-y border-[var(--color-text-muted)]/10 bg-[var(--color-surface)]/30 py-24";
 const LANDING_NAV_CLASS =
-  "mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-6";
+  "mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-4 px-6 py-6";
 const LANDING_CTA_BUTTON_CLASS =
   "rounded-md bg-[var(--color-accent)] px-6 py-3 font-sans text-sm font-semibold " +
   "text-[var(--color-on-dark)] transition-[background-color,transform] duration-[160ms] " +
@@ -139,8 +139,8 @@ const EMAIL_INPUT_CLASS =
   "outline-none transition placeholder:text-[var(--color-text-muted)] " +
   "focus:border-[var(--color-accent)]";
 const HERO_HEADLINE_CLASS =
-  "font-serif text-6xl font-semibold leading-[1.05] tracking-normal " +
-  "text-[var(--color-on-dark)] sm:text-7xl lg:text-8xl";
+  "font-serif text-4xl font-semibold leading-[1.05] tracking-normal " +
+  "text-[var(--color-on-dark)] sm:text-6xl lg:text-8xl";
 const CTA_BANNER_CLASS =
   "rounded-2xl border border-[var(--color-text-muted)]/15 bg-[var(--color-surface)]/45 p-8 " +
   "shadow-[0_24px_70px_rgba(62,46,41,0.10)]";
@@ -833,7 +833,7 @@ function HowItWorksScroll() {
 
   return (
     <div className="grid gap-16 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
-      <div className="flex flex-col gap-40 lg:py-32">
+      <div className="flex flex-col gap-16 sm:gap-24 lg:gap-40 lg:py-32">
         {HOW_IT_WORKS_STEPS.map((step, index) => (
           <div
             className={`transition-opacity duration-[300ms] ${
@@ -880,6 +880,7 @@ function HowItWorksScroll() {
 
 function LandingPage() {
   const currentYear = new Date().getFullYear();
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   return (
     <main className="relative min-h-screen bg-background text-foreground">
@@ -915,10 +916,64 @@ function LandingPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              aria-controls="landing-mobile-nav"
+              aria-expanded={isMobileNavOpen}
+              aria-label="Toggle landing navigation"
+              className={
+                "flex h-11 w-11 items-center justify-center rounded-full " +
+                "border border-[var(--color-text-muted)]/15 " +
+                "text-[var(--color-text)] transition hover:bg-[var(--color-surface)]/45 sm:hidden"
+              }
+              onClick={() => setIsMobileNavOpen((currentValue) => !currentValue)}
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+              >
+                {isMobileNavOpen ? (
+                  <path d="M6 6l12 12M18 6 6 18" />
+                ) : (
+                  <path d="M4 7h16M4 12h16M4 17h16" />
+                )}
+              </svg>
+            </button>
             <ThemeToggle />
             <Link className={SIGN_IN_BUTTON_CLASS} href="/sign-in">
               Sign in
             </Link>
+          </div>
+
+          <div
+            className={
+              `basis-full flex-col gap-2 border-t ` +
+              `border-[var(--color-text-muted)]/10 pt-3 sm:hidden ${
+                isMobileNavOpen ? "flex" : "hidden"
+              }`
+            }
+            id="landing-mobile-nav"
+          >
+            {LANDING_NAV_LINKS.map((navLink) => (
+              <a
+                className={
+                  "rounded-xl px-3 py-3 font-sans text-sm font-semibold " +
+                  "text-[var(--color-text-muted)] transition-colors duration-[160ms] " +
+                  "hover:bg-[var(--color-surface)]/45 hover:text-[var(--color-accent)]"
+                }
+                href={navLink.href}
+                key={navLink.href}
+                onClick={() => setIsMobileNavOpen(false)}
+              >
+                {navLink.label}
+              </a>
+            ))}
           </div>
         </nav>
       </div>

@@ -164,7 +164,7 @@ export default function CorrectItemPage() {
   return (
     <main className="min-h-screen bg-background px-6 py-8 text-foreground">
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-4xl flex-col">
-        <nav className="flex items-center justify-between gap-4">
+        <nav className="flex flex-wrap items-center justify-between gap-4">
           <Link href="/" className="auth-back-link">
             Back
           </Link>

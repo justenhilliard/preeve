@@ -38,7 +38,7 @@ const PRIMARY_ACTION_CLASS =
 const DISABLED_PRIMARY_ACTION_CLASS =
   "disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100";
 const OPTION_BUTTON_BASE_CLASS =
-  "flex items-center justify-between gap-3 rounded-xl border-2 " +
+  "flex min-h-11 items-center justify-between gap-3 rounded-xl border-2 " +
   "border-[var(--color-text-muted)]/15 bg-[var(--color-bg)] px-4 py-3 font-sans text-sm " +
   "font-medium text-[var(--color-text)] shadow-[0_3px_8px_rgba(62,46,41,0.22)] " +
   "outline outline-[3px] outline-offset-[3px] transition";
