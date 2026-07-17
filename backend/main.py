@@ -608,7 +608,7 @@ async def get_items(
     favorited: Literal["true"] | None = Query(default=None),
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_async_session),
-) -> dict[str, list[dict[str, str | bool | None]]]:
+) -> dict[str, list[dict[str, Any]]]:
     """Return saved wardrobe items scoped to the current user."""
     statement = (
         select(ScannedItem)
