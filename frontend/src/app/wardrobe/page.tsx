@@ -57,6 +57,8 @@ const TOP_BAR_CLASS =
   "flex flex-wrap items-center gap-3 border-b border-[var(--color-text-muted)]/15 pb-6";
 const CHIP_BASE_CLASS =
   "min-h-11 rounded-md px-4 py-2.5 font-sans text-sm font-semibold transition";
+const FAVORITES_CHIP_LAYOUT_CLASS =
+  `${CHIP_BASE_CLASS} inline-flex flex-shrink-0 snap-start items-center gap-2`;
 const CARD_CLASS =
   "group relative overflow-hidden rounded-2xl border border-[var(--color-text-muted)]/15 " +
   "bg-[var(--color-surface)]/45 shadow-[0_18px_48px_rgba(62,46,41,0.10)]";
@@ -362,10 +364,15 @@ export default function WardrobePage() {
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div
+              className={
+                "flex snap-x snap-mandatory gap-2 overflow-x-auto pb-1 " +
+                "sm:flex-wrap sm:overflow-visible sm:snap-none sm:pb-0"
+              }
+            >
               <button
                 aria-pressed={favoritesOnly}
-                className={`${CHIP_BASE_CLASS} inline-flex items-center gap-2 ${
+                className={`${FAVORITES_CHIP_LAYOUT_CLASS} ${
                   favoritesOnly
                     ? "bg-[var(--color-accent-button)] text-[var(--color-on-dark)] " +
                       "hover:bg-[var(--color-accent-button-hover)]"
@@ -396,7 +403,7 @@ export default function WardrobePage() {
                 return (
                   <button
                     aria-pressed={isActive}
-                    className={`${CHIP_BASE_CLASS} ${
+                    className={`${CHIP_BASE_CLASS} flex-shrink-0 snap-start ${
                       isActive
                         ? "bg-[var(--color-accent-button)] text-[var(--color-on-dark)] " +
                           "hover:bg-[var(--color-accent-button-hover)]"
