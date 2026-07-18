@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { InlineError } from "../inlineError";
 import { ThemeToggle } from "../themeToggle";
 
 type StepShellProps = Readonly<{
@@ -117,9 +118,7 @@ export function StepShell({
               {children}
 
               {errorMessage ? (
-                <p className="text-center font-sans text-sm text-[var(--color-text-muted)]">
-                  {errorMessage}
-                </p>
+                <InlineError message={errorMessage} />
               ) : null}
             </>
           )}

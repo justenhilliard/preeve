@@ -10,6 +10,7 @@ import {
 } from "../../../lib/itemLabel";
 import { ApiRequestError, useAuthenticatedApi } from "../../apiClient";
 import { FavoriteHeart } from "../../favoriteHeart";
+import { InlineError } from "../../inlineError";
 import { PrimaryAction, PrimaryLink } from "../../preferences/components";
 import { ThemeToggle } from "../../themeToggle";
 
@@ -227,6 +228,7 @@ export default function ItemResultPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [item, setItem] = useState<ScannedItemResponse | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -280,7 +282,7 @@ export default function ItemResultPage() {
     return () => {
       isMounted = false;
     };
-  }, [authenticatedApi, itemId, router]);
+  }, [authenticatedApi, itemId, loadAttempt, router]);
 
   async function saveToWardrobe() {
     if (!itemId || !item || item.savedToWardrobe || isSaving) {
@@ -524,15 +526,15 @@ export default function ItemResultPage() {
               </section>
             </div>
           ) : (
-            <p className="text-center font-sans text-sm text-[var(--color-text-muted)]">
-              {errorMessage ?? "No item found with that ID for this user."}
-            </p>
+            <InlineError
+              actionLabel="Retry"
+              message={errorMessage ?? "No item found with that ID for this user."}
+              onAction={() => setLoadAttempt((currentValue) => currentValue + 1)}
+            />
           )}
 
           {errorMessage && item ? (
-            <p className="text-center font-sans text-sm text-[var(--color-text-muted)]">
-              {errorMessage}
-            </p>
+            <InlineError message={errorMessage} />
           ) : null}
         </section>
       </div>

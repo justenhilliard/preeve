@@ -4,6 +4,7 @@ import { useAuth, useClerk, useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { InlineError } from "../inlineError";
 import { ThemeToggle } from "../themeToggle";
 
 const NAV_ITEMS = [
@@ -221,9 +222,7 @@ export default function SettingsPage() {
           </div>
 
           {errorMessage ? (
-            <p className="font-sans text-sm text-[var(--color-accent)]">
-              {errorMessage}
-            </p>
+            <InlineError message={errorMessage} />
           ) : null}
 
           <div className="grid gap-6">

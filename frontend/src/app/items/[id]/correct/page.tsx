@@ -10,6 +10,7 @@ import {
   type VisualAttributes,
 } from "../../../../lib/itemLabel";
 import { ApiRequestError, useAuthenticatedApi } from "../../../apiClient";
+import { InlineError } from "../../../inlineError";
 import {
   ColorSwatchButton,
   formatOptionLabel,
@@ -147,6 +148,7 @@ export default function CorrectItemPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [item, setItem] = useState<ScannedItemResponse | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -207,7 +209,7 @@ export default function CorrectItemPage() {
     return () => {
       isMounted = false;
     };
-  }, [authenticatedApi, itemId]);
+  }, [authenticatedApi, itemId, loadAttempt]);
 
   async function submitCorrection() {
     if (!itemId || !category || !color || isSubmitting) {
@@ -353,17 +355,17 @@ export default function CorrectItemPage() {
                     Save correction
                   </PrimaryAction>
                   {errorMessage ? (
-                    <p className="font-sans text-sm text-[var(--color-text-muted)]">
-                      {errorMessage}
-                    </p>
+                    <InlineError message={errorMessage} />
                   ) : null}
                 </div>
               </div>
             </div>
           ) : (
-            <p className="text-center font-sans text-sm text-[var(--color-text-muted)]">
-              {errorMessage ?? "No item found with that ID for this user."}
-            </p>
+            <InlineError
+              actionLabel="Retry"
+              message={errorMessage ?? "No item found with that ID for this user."}
+              onAction={() => setLoadAttempt((currentValue) => currentValue + 1)}
+            />
           )}
         </section>
       </div>

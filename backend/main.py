@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 import uuid
 from contextlib import asynccontextmanager
@@ -45,6 +46,8 @@ from wardrobe_pairing import (
 from verdict_engine import VerdictPreferences, compute_verdict
 
 load_dotenv()
+
+logger = logging.getLogger("preeve.api")
 
 COLOR_VALUES = (
     "black",
@@ -254,6 +257,24 @@ async def handle_validation_error(
     return JSONResponse(
         status_code=422,
         content={"error": {"code": "validation_error", "message": message}},
+    )
+
+
+@app.exception_handler(Exception)
+async def handle_unhandled_error(_: Request, error: Exception) -> JSONResponse:
+    """Return unhandled exceptions in the documented envelope shape."""
+    logger.error(
+        "Unhandled API exception",
+        exc_info=(type(error), error, error.__traceback__),
+    )
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": {
+                "code": "internal_error",
+                "message": "Something went wrong. Try again shortly.",
+            },
+        },
     )
 
 

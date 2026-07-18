@@ -17,7 +17,19 @@ function ThemedClerkProvider({
 }>) {
   const pathname = usePathname();
   const { theme } = useTheme();
-  const [queryClient] = useState(() => new QueryClient());
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            // One retry smooths over brief network blips without hiding a real outage
+            // behind several silent exponential-backoff attempts.
+            retry: 1,
+            staleTime: 30_000,
+          },
+        },
+      }),
+  );
   const formButtonPrimary = pathname.startsWith("/sign-in")
     ? "Log In"
     : "Create Account";

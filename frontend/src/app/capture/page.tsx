@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiRequestError, useAuthenticatedApi } from "../apiClient";
+import { InlineError } from "../inlineError";
 import { PrimaryAction } from "../preferences/components";
 import { ThemeToggle } from "../themeToggle";
 
@@ -70,6 +71,7 @@ function makeCanvasBlob(canvas: HTMLCanvasElement): Promise<Blob | null> {
 
 export default function CapturePage() {
   const authenticatedApi = useAuthenticatedApi();
+  const scanAbortControllerRef = useRef<AbortController | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -148,6 +150,7 @@ export default function CapturePage() {
 
   useEffect(() => {
     return () => {
+      scanAbortControllerRef.current?.abort();
       stopCameraStream();
       revokePreviewUrl(previewUrl);
     };
@@ -233,6 +236,12 @@ export default function CapturePage() {
     }
   }
 
+  function cancelScan() {
+    scanAbortControllerRef.current?.abort();
+    scanAbortControllerRef.current = null;
+    setIsSubmitting(false);
+  }
+
   async function submitScan() {
     if (!photoBlob || isSubmitting) {
       return;
@@ -243,11 +252,14 @@ export default function CapturePage() {
 
     const formData = new FormData();
     formData.append("photo", photoBlob, photoFileName);
+    const scanAbortController = new AbortController();
+    scanAbortControllerRef.current = scanAbortController;
 
     try {
       const scanResponse = await authenticatedApi<ScanResponse>("/api/items/scan", {
         body: formData,
         method: "POST",
+        signal: scanAbortController.signal,
       });
 
       if (scanResponse.classificationFailed) {
@@ -257,12 +269,23 @@ export default function CapturePage() {
 
       router.push(`/items/${scanResponse.id}`);
     } catch (error) {
+      if (
+        error instanceof ApiRequestError &&
+        error.code === "request_cancelled"
+      ) {
+        return;
+      }
+
       const message =
         error instanceof ApiRequestError
           ? error.message
           : "Scan submission failed. Try again shortly.";
       setSubmitError(message);
       setIsSubmitting(false);
+    } finally {
+      if (scanAbortControllerRef.current === scanAbortController) {
+        scanAbortControllerRef.current = null;
+      }
     }
   }
 
@@ -284,11 +307,20 @@ export default function CapturePage() {
             </div>
           </div>
 
-          <div className="flex flex-col items-center gap-3 py-4" role="status">
-            <span className={SPINNER_CLASS} />
-            <p className="font-sans text-sm font-medium text-[var(--color-text-muted)]">
-              Analyzing your item...
-            </p>
+          <div className="flex flex-col items-center gap-4 py-4">
+            <div className="flex flex-col items-center gap-3" role="status">
+              <span className={SPINNER_CLASS} />
+              <p className="font-sans text-sm font-medium text-[var(--color-text-muted)]">
+                Analyzing your item...
+              </p>
+            </div>
+            <button
+              className={SECONDARY_ACTION_CLASS}
+              onClick={cancelScan}
+              type="button"
+            >
+              Cancel
+            </button>
           </div>
         </section>
       </main>
@@ -365,9 +397,11 @@ export default function CapturePage() {
                 </PrimaryAction>
               </div>
               {submitError ? (
-                <p className="text-center font-sans text-sm text-[var(--color-text-muted)]">
-                  {submitError}
-                </p>
+                <InlineError
+                  actionLabel="Try again"
+                  message={submitError}
+                  onAction={() => void submitScan()}
+                />
               ) : null}
             </section>
           ) : (
@@ -391,9 +425,7 @@ export default function CapturePage() {
 
                 {cameraError ? (
                   <div className={`${VIEWFINDER_OVERLAY_CLASS} bg-[var(--color-surface)]/90`}>
-                    <p className="max-w-xs text-sm leading-6 text-[var(--color-text-muted)]">
-                      {cameraError}
-                    </p>
+                    <InlineError message={cameraError} />
                   </div>
                 ) : null}
 

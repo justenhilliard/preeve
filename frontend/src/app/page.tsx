@@ -11,6 +11,7 @@ import {
   type VisualAttributes,
 } from "../lib/itemLabel";
 import { useAuthenticatedApi } from "./apiClient";
+import { InlineError } from "./inlineError";
 import { ThemeToggle } from "./themeToggle";
 
 type Verdict = "buy" | "maybe" | "skip";
@@ -572,6 +573,17 @@ function RecentActivityRow({ items }: Readonly<{ items: WardrobeItem[] }>) {
   );
 }
 
+function getDashboardErrorMessage(
+  wardrobeError: Error | null,
+  meError: Error | null,
+) {
+  if (wardrobeError && meError) {
+    return "Unable to load your dashboard right now.";
+  }
+
+  return wardrobeError?.message ?? meError?.message ?? null;
+}
+
 function HomeDashboard() {
   const authenticatedApi = useAuthenticatedApi();
   const wardrobeQuery = useQuery({
@@ -584,6 +596,10 @@ function HomeDashboard() {
   });
   const recentItems = wardrobeQuery.data?.items.slice(0, 6) ?? [];
   const needsPreferences = meQuery.data?.hasCompletedPreferences === false;
+  const dashboardErrorMessage = getDashboardErrorMessage(
+    wardrobeQuery.error,
+    meQuery.error,
+  );
   const hasActivity = !wardrobeQuery.isLoading && recentItems.length > 0;
   const subtitleText = hasActivity
     ? "Welcome back. Here's what you've been circling lately."
@@ -634,6 +650,15 @@ function HomeDashboard() {
           >
             {wardrobeQuery.isLoading ? (
               <DashboardActivityLoading />
+            ) : dashboardErrorMessage ? (
+              <InlineError
+                actionLabel="Retry"
+                message={dashboardErrorMessage}
+                onAction={() => {
+                  void wardrobeQuery.refetch();
+                  void meQuery.refetch();
+                }}
+              />
             ) : recentItems.length > 0 ? (
               <>
                 <RecentActivityRow items={recentItems} />

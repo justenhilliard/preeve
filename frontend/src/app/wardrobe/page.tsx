@@ -11,6 +11,7 @@ import {
 } from "../../lib/itemLabel";
 import { useAuthenticatedApi } from "../apiClient";
 import { FavoriteHeart, HEART_PATH } from "../favoriteHeart";
+import { InlineError } from "../inlineError";
 import { PrimaryLink } from "../preferences/components";
 import { ThemeToggle } from "../themeToggle";
 
@@ -189,9 +190,11 @@ function formatVerdict(verdict: Verdict) {
 }
 
 function WardrobeCard({
+  isFavoritePending,
   item,
   onToggleFavorite,
 }: Readonly<{
+  isFavoritePending: boolean;
   item: WardrobeItem;
   onToggleFavorite: (item: WardrobeItem) => void;
 }>) {
@@ -228,6 +231,7 @@ function WardrobeCard({
       <button
         aria-label={item.isFavorited ? "Remove favorite" : "Mark favorite"}
         className={FAVORITE_BUTTON_CLASS}
+        disabled={isFavoritePending}
         onClick={() => onToggleFavorite(item)}
         type="button"
       >
@@ -416,9 +420,13 @@ export default function WardrobePage() {
               <span className="sr-only">Loading wardrobe...</span>
             </div>
           ) : queryErrorMessage ? (
-            <p className="text-center font-sans text-sm text-[var(--color-text-muted)]">
-              {queryErrorMessage}
-            </p>
+            <InlineError
+              actionLabel="Retry"
+              message={queryErrorMessage}
+              onAction={() => {
+                void wardrobeQuery.refetch();
+              }}
+            />
           ) : wardrobeItems.length === 0 ? (
             <EmptyWardrobeState />
           ) : filteredItems.length === 0 && hasActiveFilters ? (
@@ -427,10 +435,13 @@ export default function WardrobePage() {
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {filteredItems.map((item) => (
                 <WardrobeCard
+                  isFavoritePending={favoriteMutation.isPending}
                   item={item}
                   key={item.id}
                   onToggleFavorite={(selectedItem) =>
-                    favoriteMutation.mutate(selectedItem)
+                    favoriteMutation.isPending
+                      ? undefined
+                      : favoriteMutation.mutate(selectedItem)
                   }
                 />
               ))}
@@ -438,9 +449,7 @@ export default function WardrobePage() {
           )}
 
           {favoriteError ? (
-            <p className="text-center font-sans text-sm text-[var(--color-text-muted)]">
-              {favoriteError}
-            </p>
+            <InlineError message={favoriteError} />
           ) : null}
         </section>
       </div>
