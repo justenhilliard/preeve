@@ -66,8 +66,8 @@ One row per scan. Covers FR-3 (classification), FR-4 (verdict), and FR-6 (wardro
 | `visual_attributes` | `jsonb` | nullable | Best-effort structured perception metadata from the vision LLM: `garmentType`, `primaryColor`, `secondaryColors`, `pattern`, and `fit`. Null when extraction fails or has not run. `fit` is a verdict-engine input when present. |
 | `corrected_category` | `varchar(20)` | same `CHECK` list as `detected_category`, nullable | Set only if the user overrides via "This looks wrong" (FR-3.5) or the manual-fallback flow (FR-3.4). |
 | `corrected_color` | `varchar(20)` | same `CHECK` list as `detected_color`, nullable | Same as above. |
-| `verdict` | `varchar(10)` | `CHECK (verdict IN ('buy', 'maybe', 'skip'))`, nullable until computed | FR-4.2, computed by the deterministic rule matrix in `docs/prd.md` FR-4. |
-| `rationale` | `text` | nullable until computed | Template-generated explanation matching the rule that fired, FR-4.3. |
+| `verdict` | `varchar(10)` | `CHECK (verdict IN ('buy', 'maybe', 'skip'))`, nullable until computed | Point-in-time FR-4.2 snapshot from scan/correction time. API responses recompute the displayed verdict live from current preferences. |
+| `rationale` | `text` | nullable until computed | Point-in-time FR-4.3 snapshot from scan/correction time. API responses recompute the displayed rationale live from current preferences. |
 | `saved_to_wardrobe` | `boolean` | `NOT NULL DEFAULT false` | True once the user saves it via the verdict screen (FR-6.1). |
 | `is_favorited` | `boolean` | `NOT NULL DEFAULT false` | Toggled from the wardrobe list (FR-6.5). Independent of `saved_to_wardrobe` and `verdict` — can be combined with either filter. |
 | `created_at` | `timestamptz` | `NOT NULL DEFAULT now()` | |

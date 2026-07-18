@@ -43,7 +43,7 @@ from wardrobe_pairing import (
     find_wardrobe_pairing_suggestions,
     format_wardrobe_pairing_suggestion,
 )
-from verdict_engine import VerdictPreferences, compute_verdict
+from verdict_engine import VerdictPreferences, VerdictResult, compute_verdict
 
 load_dotenv()
 
@@ -490,6 +490,8 @@ def format_scanned_item(
     scanned_item: ScannedItem,
     photo_url: str,
     classification_failed: bool,
+    verdict: str | None,
+    rationale: str | None,
     pairing_suggestions: list[dict[str, str | None]] | None = None,
     closet_insight: str | None = None,
     verdict_signals: list[dict[str, str | bool]] | None = None,
@@ -505,8 +507,8 @@ def format_scanned_item(
         "visualAttributes": scanned_item.visual_attributes,
         "correctedCategory": scanned_item.corrected_category,
         "correctedColor": scanned_item.corrected_color,
-        "verdict": scanned_item.verdict,
-        "rationale": scanned_item.rationale,
+        "verdict": verdict,
+        "rationale": rationale,
         "closetInsight": closet_insight,
         "fitStylingNote": compute_fit_styling_note(
             get_visual_attribute_fit(scanned_item),
@@ -531,7 +533,11 @@ def get_visual_attribute_fit(scanned_item: ScannedItem) -> str | None:
     return fit if isinstance(fit, str) else None
 
 
-async def format_wardrobe_item(scanned_item: ScannedItem) -> dict[str, Any]:
+async def format_wardrobe_item(
+    scanned_item: ScannedItem,
+    verdict: str | None,
+    rationale: str | None,
+) -> dict[str, Any]:
     """Convert a saved scanned item row into the wardrobe list shape."""
     photo_url = await asyncio.to_thread(generate_photo_url, scanned_item.photo_key)
     return {
@@ -541,11 +547,35 @@ async def format_wardrobe_item(scanned_item: ScannedItem) -> dict[str, Any]:
         or scanned_item.detected_category,
         "detectedColor": scanned_item.corrected_color or scanned_item.detected_color,
         "visualAttributes": scanned_item.visual_attributes,
-        "verdict": scanned_item.verdict,
-        "rationale": scanned_item.rationale,
+        "verdict": verdict,
+        "rationale": rationale,
         "isFavorited": scanned_item.is_favorited,
         "createdAt": format_timestamp(scanned_item.created_at),
     }
+
+
+def build_verdict_preferences(preference: Preference | None) -> VerdictPreferences:
+    """Convert a preference row into verdict-engine input."""
+    return VerdictPreferences(
+        preferred_colors=preference.preferred_colors if preference else [],
+        preferred_fits=preference.preferred_fits if preference else [],
+        formality_preference=preference.formality_preference if preference else None,
+    )
+
+
+def compute_item_verdict(
+    scanned_item: ScannedItem,
+    category: str,
+    color: str,
+    verdict_preferences: VerdictPreferences,
+) -> VerdictResult:
+    """Compute a verdict result from one item's effective attributes."""
+    return compute_verdict(
+        category=category,
+        color=color,
+        fit=get_visual_attribute_fit(scanned_item),
+        preferences=verdict_preferences,
+    )
 
 
 async def apply_verdict_to_item(
@@ -554,23 +584,18 @@ async def apply_verdict_to_item(
     scanned_item: ScannedItem,
     category: str,
     color: str,
-) -> None:
-    """Compute and attach the current user's verdict for one item."""
+) -> VerdictResult:
+    """Compute, attach, and return the current user's verdict for one item."""
     preference = await get_user_preferences(session, current_user)
-    verdict_result = compute_verdict(
-        category=category,
-        color=color,
-        fit=get_visual_attribute_fit(scanned_item),
-        preferences=VerdictPreferences(
-            preferred_colors=preference.preferred_colors if preference else [],
-            preferred_fits=preference.preferred_fits if preference else [],
-            formality_preference=(
-                preference.formality_preference if preference else None
-            ),
-        ),
+    verdict_result = compute_item_verdict(
+        scanned_item,
+        category,
+        color,
+        build_verdict_preferences(preference),
     )
     scanned_item.verdict = verdict_result.verdict
     scanned_item.rationale = verdict_result.rationale
+    return verdict_result
 
 
 def format_verdict_signals(verdict_result: Any) -> list[dict[str, str | bool]]:
@@ -581,33 +606,30 @@ def format_verdict_signals(verdict_result: Any) -> list[dict[str, str | bool]]:
     ]
 
 
-async def get_verdict_signals_for_item(
+async def compute_live_verdict_for_item(
     session: AsyncSession,
     current_user: User,
     scanned_item: ScannedItem,
-) -> list[dict[str, str | bool]]:
-    """Recompute applicable verdict signals for one item response."""
+    verdict_preferences: VerdictPreferences | None = None,
+) -> VerdictResult | None:
+    """Recompute this item's verdict fresh from current preferences."""
     effective_category = (
         scanned_item.corrected_category or scanned_item.detected_category
     )
     effective_color = scanned_item.corrected_color or scanned_item.detected_color
     if not effective_category or not effective_color:
-        return []
+        return None
 
-    preference = await get_user_preferences(session, current_user)
-    verdict_result = compute_verdict(
+    if verdict_preferences is None:
+        preference = await get_user_preferences(session, current_user)
+        verdict_preferences = build_verdict_preferences(preference)
+
+    return compute_verdict(
         category=effective_category,
         color=effective_color,
         fit=get_visual_attribute_fit(scanned_item),
-        preferences=VerdictPreferences(
-            preferred_colors=preference.preferred_colors if preference else [],
-            preferred_fits=preference.preferred_fits if preference else [],
-            formality_preference=(
-                preference.formality_preference if preference else None
-            ),
-        ),
+        preferences=verdict_preferences,
     )
-    return format_verdict_signals(verdict_result)
 
 
 async def get_formatted_pairing_suggestions(
@@ -729,21 +751,35 @@ async def get_items(
         .order_by(ScannedItem.created_at.desc())
     )
 
-    if verdict is not None:
-        statement = statement.where(ScannedItem.verdict == verdict)
-
     if favorited == "true":
         statement = statement.where(ScannedItem.is_favorited.is_(True))
 
     result = await session.execute(statement)
     scanned_items = result.scalars().all()
+    preference = await get_user_preferences(session, current_user)
+    verdict_preferences = build_verdict_preferences(preference)
 
-    return {
-        "items": [
-            await format_wardrobe_item(scanned_item)
-            for scanned_item in scanned_items
-        ],
-    }
+    formatted_items = []
+    for scanned_item in scanned_items:
+        verdict_result = await compute_live_verdict_for_item(
+            session,
+            current_user,
+            scanned_item,
+            verdict_preferences,
+        )
+        live_verdict = verdict_result.verdict if verdict_result else None
+        if verdict is not None and live_verdict != verdict:
+            continue
+
+        formatted_items.append(
+            await format_wardrobe_item(
+                scanned_item,
+                live_verdict,
+                verdict_result.rationale if verdict_result else None,
+            ),
+        )
+
+    return {"items": formatted_items}
 
 
 @app.get("/api/items/{item_id}")
@@ -775,14 +811,21 @@ async def get_item(
         if effective_category and effective_color
         else []
     )
+    verdict_result = await compute_live_verdict_for_item(
+        session,
+        current_user,
+        scanned_item,
+    )
 
     return format_scanned_item(
         scanned_item,
         photo_url,
         is_unresolved_classification(scanned_item),
+        verdict_result.verdict if verdict_result else None,
+        verdict_result.rationale if verdict_result else None,
         pairing_suggestions,
         await get_closet_insight_for_item(session, current_user, scanned_item),
-        await get_verdict_signals_for_item(session, current_user, scanned_item),
+        format_verdict_signals(verdict_result) if verdict_result else [],
     )
 
 
@@ -797,7 +840,7 @@ async def patch_item_correction(
     scanned_item = await get_user_scanned_item(session, current_user, item_id)
     scanned_item.corrected_category = correction_request.corrected_category
     scanned_item.corrected_color = correction_request.corrected_color
-    await apply_verdict_to_item(
+    verdict_result = await apply_verdict_to_item(
         session,
         current_user,
         scanned_item,
@@ -820,9 +863,11 @@ async def patch_item_correction(
         scanned_item,
         photo_url,
         False,
+        verdict_result.verdict,
+        verdict_result.rationale,
         pairing_suggestions,
         await get_closet_insight_for_item(session, current_user, scanned_item),
-        await get_verdict_signals_for_item(session, current_user, scanned_item),
+        format_verdict_signals(verdict_result),
     )
 
 
@@ -968,7 +1013,7 @@ async def post_item_scan(
         and classification.detected_category is not None
         and classification.detected_color is not None
     ):
-        await apply_verdict_to_item(
+        verdict_result = await apply_verdict_to_item(
             session,
             current_user,
             scanned_item,
@@ -983,6 +1028,7 @@ async def post_item_scan(
             classification.detected_color,
         )
     else:
+        verdict_result = None
         pairing_suggestions = []
 
     session.add(scanned_item)
@@ -994,7 +1040,9 @@ async def post_item_scan(
         scanned_item,
         photo_url,
         classification.classification_failed,
+        verdict_result.verdict if verdict_result else None,
+        verdict_result.rationale if verdict_result else None,
         pairing_suggestions,
         await get_closet_insight_for_item(session, current_user, scanned_item),
-        await get_verdict_signals_for_item(session, current_user, scanned_item),
+        format_verdict_signals(verdict_result) if verdict_result else [],
     )

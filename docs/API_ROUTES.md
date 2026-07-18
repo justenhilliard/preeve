@@ -324,8 +324,11 @@ category+color match is attempted before the broader fallback match.
 `visualAttributes` is best-effort structured perception metadata and may be `null`
 without affecting the CLIP-driven verdict flow. It is never used for verdict
 category/color correction. Its `fit` value, when present, participates in the
-fit-aware verdict matrix and powers `fitStylingNote`. `closetInsight` is
-computed live from the user's current saved wardrobe items and is not stored.
+fit-aware verdict matrix and powers `fitStylingNote`. `verdict` and `rationale`
+are computed live from the user's current preferences on every response; the
+stored DB columns are only point-in-time scan/correction snapshots.
+`closetInsight` is computed live from the user's current saved wardrobe items
+and is not stored.
 Its priority order is category+color overlap, then new-color gap, then fit
 variety when the current fit differs from at least two saved items with stored
 fits.
@@ -431,7 +434,7 @@ Wardrobe log list (FR-6.2) — returns only items where `savedToWardrobe` is tru
 
 | Param | Values | Behavior |
 |---|---|---|
-| `verdict` | `buy`, `maybe`, `skip` | Filters to items with that verdict. Omit for all verdicts. |
+| `verdict` | `buy`, `maybe`, `skip` | Filters to items whose live-computed verdict currently matches. Omit for all verdicts. |
 | `favorited` | `true` | Filters to favorited items. Omit for the unfiltered view. |
 
 Both can be combined, e.g. `GET /api/items?verdict=buy&favorited=true`, for
@@ -470,7 +473,9 @@ each `scanned_items` row and avoids inconsistent card labels across list and
 detail screens. It still intentionally excludes `closetInsight`, which is
 computed live from the user's current wardrobe and would require N+1 work for
 the list. It also excludes `fitStylingNote` and `verdictSignals` to keep list
-cards compact.
+cards compact. `verdict` and `rationale` in this list are computed live from
+the user's current preferences, matching the single-item detail response, not
+read from the stored scan/correction snapshot.
 
 ---
 
