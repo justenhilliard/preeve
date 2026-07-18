@@ -122,7 +122,7 @@ function VerdictSignalChecklist({
       {signals.map((signal) => (
         <li
           className={
-            "rounded-full border border-[var(--color-text-muted)]/15 px-3 py-1 " +
+            "rounded-md border border-[var(--color-text-muted)]/15 px-3 py-1 " +
             "font-sans text-xs font-semibold text-[var(--color-text-muted)]"
           }
           key={signal.name}

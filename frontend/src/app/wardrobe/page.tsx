@@ -56,7 +56,7 @@ const VERDICT_FILTERS: { label: string; value: VerdictFilter }[] = [
 const TOP_BAR_CLASS =
   "flex flex-wrap items-center gap-3 border-b border-[var(--color-text-muted)]/15 pb-6";
 const CHIP_BASE_CLASS =
-  "min-h-11 rounded-full px-4 py-2.5 font-sans text-sm font-semibold transition";
+  "min-h-11 rounded-md px-4 py-2.5 font-sans text-sm font-semibold transition";
 const CARD_CLASS =
   "group relative overflow-hidden rounded-2xl border border-[var(--color-text-muted)]/15 " +
   "bg-[var(--color-surface)]/45 shadow-[0_18px_48px_rgba(62,46,41,0.10)]";
@@ -83,7 +83,7 @@ const SPINNER_CLASS =
   "h-9 w-9 animate-spin rounded-full border-[3px] border-[var(--color-text-muted)]/15 " +
   "border-t-[var(--color-accent)]";
 const VERDICT_BADGE_CLASS =
-  "inline-flex rounded-full px-3 py-1 font-sans text-xs font-semibold";
+  "inline-flex rounded-md px-3 py-1 font-sans text-xs font-semibold";
 const VERDICT_STYLES: Record<Verdict, string> = {
   buy: "bg-[var(--color-sage-badge)] text-[var(--color-on-dark)]",
   maybe: "bg-[var(--color-ochre-badge)] text-[var(--color-on-dark)]",
@@ -109,7 +109,7 @@ function WardrobeTopBar() {
 
               return (
                 <Link
-                  className={`rounded-full px-4 py-2 font-sans text-sm font-semibold transition ${
+                  className={`rounded-md px-4 py-2 font-sans text-sm font-semibold transition ${
                     isActive
                       ? "bg-[var(--color-accent-button)] text-[var(--color-on-dark)] " +
                         "hover:bg-[var(--color-accent-button-hover)]"

@@ -74,7 +74,7 @@ const DELETE_BUTTON_CLASS =
   "font-semibold text-[var(--color-on-dark)] transition " +
   "hover:bg-[var(--color-accent-dark-hover)] disabled:opacity-60";
 const OVERRIDE_BUTTON_CLASS =
-  "w-fit rounded-full border border-[var(--color-text-muted)]/20 px-4 py-2 font-sans " +
+  "w-fit rounded-md border border-[var(--color-text-muted)]/20 px-4 py-2 font-sans " +
   "text-sm font-semibold text-[var(--color-text)] transition hover:bg-[var(--color-bg)]/70";
 const FAVORITE_BUTTON_CLASS =
   "flex h-11 w-11 items-center justify-center rounded-full border " +
@@ -91,7 +91,7 @@ const SECTION_LABEL_CLASS =
 const RESULT_HEADING_CLASS =
   "font-serif text-5xl font-semibold tracking-normal text-[var(--color-text)]";
 const VERDICT_BADGE_CLASS =
-  "inline-flex rounded-full px-5 py-2 font-sans text-sm font-semibold";
+  "inline-flex rounded-md px-5 py-2 font-sans text-sm font-semibold";
 const VERDICT_STYLES: Record<Verdict, string> = {
   buy: "bg-[var(--color-sage-badge)] text-[var(--color-on-dark)]",
   maybe: "bg-[var(--color-ochre-badge)] text-[var(--color-on-dark)]",
@@ -159,7 +159,7 @@ function VerdictSignalChecklist({
       {signals.map((signal) => (
         <li
           className={
-            "rounded-full border border-[var(--color-text-muted)]/15 px-3 py-1 " +
+            "rounded-md border border-[var(--color-text-muted)]/15 px-3 py-1 " +
             "font-sans text-xs font-semibold text-[var(--color-text-muted)]"
           }
           key={signal.name}

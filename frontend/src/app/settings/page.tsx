@@ -62,7 +62,7 @@ function SettingsTopBar() {
 
               return (
                 <Link
-                  className={`rounded-full px-4 py-2 font-sans text-sm font-semibold transition ${
+                  className={`rounded-md px-4 py-2 font-sans text-sm font-semibold transition ${
                     isActive
                       ? "bg-[var(--color-accent-button)] text-[var(--color-on-dark)] " +
                         "hover:bg-[var(--color-accent-button-hover)]"

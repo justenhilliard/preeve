@@ -157,9 +157,9 @@ const LOADING_HOME_CLASS =
   "mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-5xl items-center " +
   "justify-center";
 const BADGE_CLASS =
-  "rounded-full px-4 py-2 font-sans text-sm font-semibold";
+  "rounded-md px-4 py-2 font-sans text-sm font-semibold";
 const VERDICT_BADGE_CLASS =
-  "inline-flex rounded-full px-3 py-1 font-sans text-xs font-semibold";
+  "inline-flex rounded-md px-3 py-1 font-sans text-xs font-semibold";
 const VERDICT_STYLES: Record<Verdict, string> = {
   buy: "bg-[var(--color-sage-badge)] text-[var(--color-on-dark)]",
   maybe: "bg-[var(--color-ochre-badge)] text-[var(--color-on-dark)]",
@@ -201,7 +201,7 @@ function HomeTopBar() {
 
               return (
                 <Link
-                  className={`rounded-full px-4 py-2 font-sans text-sm font-semibold transition ${
+                  className={`rounded-md px-4 py-2 font-sans text-sm font-semibold transition ${
                     isActive
                       ? "bg-[var(--color-accent-button)] text-[var(--color-on-dark)] " +
                         "hover:bg-[var(--color-accent-button-hover)]"
