@@ -386,6 +386,132 @@ function ScanNowBanner() {
   );
 }
 
+type ClosetSnapshotStats = {
+  buyCount: number;
+  maybeCount: number;
+  skipCount: number;
+  topColor: string | null;
+  totalCount: number;
+};
+
+function computeClosetSnapshotStats(
+  items: WardrobeItem[],
+): ClosetSnapshotStats {
+  const colorCounts = new Map<string, number>();
+  let buyCount = 0;
+  let maybeCount = 0;
+  let skipCount = 0;
+
+  for (const item of items) {
+    if (item.verdict === "buy") {
+      buyCount += 1;
+    } else if (item.verdict === "maybe") {
+      maybeCount += 1;
+    } else if (item.verdict === "skip") {
+      skipCount += 1;
+    }
+
+    if (item.detectedColor) {
+      colorCounts.set(
+        item.detectedColor,
+        (colorCounts.get(item.detectedColor) ?? 0) + 1,
+      );
+    }
+  }
+
+  let topColor: string | null = null;
+  let topColorCount = 0;
+  for (const [color, count] of colorCounts) {
+    if (count > topColorCount || (count === topColorCount && !topColor)) {
+      topColor = color;
+      topColorCount = count;
+    }
+  }
+
+  return {
+    buyCount,
+    maybeCount,
+    skipCount,
+    topColor,
+    totalCount: items.length,
+  };
+}
+
+function formatSnapshotColor(color: string) {
+  return color.charAt(0).toUpperCase() + color.slice(1).replace(/_/g, " ");
+}
+
+const SNAPSHOT_VALUE_CLASS =
+  "font-serif text-3xl font-semibold tracking-normal";
+const SNAPSHOT_LABEL_CLASS =
+  "font-sans text-xs font-semibold uppercase tracking-[0.14em] " +
+  "text-[var(--color-text-muted)]";
+
+function ClosetSnapshotStat({
+  label,
+  value,
+  valueClassName = "text-[var(--color-text)]",
+}: Readonly<{
+  label: string;
+  value: string;
+  valueClassName?: string;
+}>) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className={`${SNAPSHOT_VALUE_CLASS} ${valueClassName}`}>
+        {value}
+      </span>
+      <span className={SNAPSHOT_LABEL_CLASS}>{label}</span>
+    </div>
+  );
+}
+
+function ClosetSnapshot({ items }: Readonly<{ items: WardrobeItem[] }>) {
+  if (items.length === 0) {
+    return null;
+  }
+
+  const stats = computeClosetSnapshotStats(items);
+
+  return (
+    <section
+      className={
+        "rounded-2xl border border-[var(--color-text-muted)]/15 " +
+        "bg-[var(--color-surface)]/45 px-6 py-5 " +
+        "shadow-[0_10px_28px_rgba(62,46,41,0.08)]"
+      }
+    >
+      <div className="flex flex-wrap items-end gap-x-10 gap-y-4">
+        <ClosetSnapshotStat
+          label="Items saved"
+          value={String(stats.totalCount)}
+        />
+        <ClosetSnapshotStat
+          label="Buy"
+          value={String(stats.buyCount)}
+          valueClassName="text-[var(--color-sage)]"
+        />
+        <ClosetSnapshotStat
+          label="Maybe"
+          value={String(stats.maybeCount)}
+          valueClassName="text-[var(--color-ochre)]"
+        />
+        <ClosetSnapshotStat
+          label="Skip"
+          value={String(stats.skipCount)}
+          valueClassName="text-[var(--color-text-muted)]"
+        />
+        {stats.topColor ? (
+          <ClosetSnapshotStat
+            label="Most saved color"
+            value={formatSnapshotColor(stats.topColor)}
+          />
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
 function ClockIcon() {
   return (
     <svg
@@ -671,6 +797,7 @@ function HomeDashboard() {
               />
             ) : recentItems.length > 0 ? (
               <>
+                <ClosetSnapshot items={wardrobeQuery.data?.items ?? []} />
                 <RecentActivityRow items={recentItems} />
                 <ScanNowBanner />
               </>
