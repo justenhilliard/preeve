@@ -467,6 +467,7 @@ def format_scanned_item(
     classification_failed: bool,
     pairing_suggestions: list[dict[str, str | None]] | None = None,
     closet_insight: str | None = None,
+    verdict_signals: list[dict[str, str | bool]] | None = None,
 ) -> dict[str, Any]:
     """Convert a scanned item row into the documented scan response shape."""
     # Routes that do not perform a pairing lookup still use the shared item
@@ -485,6 +486,7 @@ def format_scanned_item(
         "fitStylingNote": compute_fit_styling_note(
             get_visual_attribute_fit(scanned_item),
         ),
+        "verdictSignals": verdict_signals or [],
         "pairingSuggestions": pairing_suggestions or [],
         "savedToWardrobe": scanned_item.saved_to_wardrobe,
         "isFavorited": scanned_item.is_favorited,
@@ -544,6 +546,43 @@ async def apply_verdict_to_item(
     )
     scanned_item.verdict = verdict_result.verdict
     scanned_item.rationale = verdict_result.rationale
+
+
+def format_verdict_signals(verdict_result: Any) -> list[dict[str, str | bool]]:
+    """Convert internal verdict signals into the compact API shape."""
+    return [
+        {"name": signal.name, "matches": signal.matches}
+        for signal in verdict_result.signals
+    ]
+
+
+async def get_verdict_signals_for_item(
+    session: AsyncSession,
+    current_user: User,
+    scanned_item: ScannedItem,
+) -> list[dict[str, str | bool]]:
+    """Recompute applicable verdict signals for one item response."""
+    effective_category = (
+        scanned_item.corrected_category or scanned_item.detected_category
+    )
+    effective_color = scanned_item.corrected_color or scanned_item.detected_color
+    if not effective_category or not effective_color:
+        return []
+
+    preference = await get_user_preferences(session, current_user)
+    verdict_result = compute_verdict(
+        category=effective_category,
+        color=effective_color,
+        fit=get_visual_attribute_fit(scanned_item),
+        preferences=VerdictPreferences(
+            preferred_colors=preference.preferred_colors if preference else [],
+            preferred_fits=preference.preferred_fits if preference else [],
+            formality_preference=(
+                preference.formality_preference if preference else None
+            ),
+        ),
+    )
+    return format_verdict_signals(verdict_result)
 
 
 async def get_formatted_pairing_suggestions(
@@ -679,6 +718,7 @@ async def get_item(
         is_unresolved_classification(scanned_item),
         pairing_suggestions,
         await get_closet_insight_for_item(session, current_user, scanned_item),
+        await get_verdict_signals_for_item(session, current_user, scanned_item),
     )
 
 
@@ -716,6 +756,7 @@ async def patch_item_correction(
         False,
         pairing_suggestions,
         await get_closet_insight_for_item(session, current_user, scanned_item),
+        await get_verdict_signals_for_item(session, current_user, scanned_item),
     )
 
 
@@ -887,4 +928,5 @@ async def post_item_scan(
         classification.classification_failed,
         pairing_suggestions,
         await get_closet_insight_for_item(session, current_user, scanned_item),
+        await get_verdict_signals_for_item(session, current_user, scanned_item),
     )

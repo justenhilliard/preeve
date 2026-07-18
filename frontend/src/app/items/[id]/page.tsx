@@ -21,6 +21,11 @@ type PairingSuggestion = {
   suggestionText: string;
 };
 
+type VerdictSignal = {
+  matches: boolean;
+  name: string;
+};
+
 type ScannedItemResponse = {
   classificationFailed?: boolean;
   closetInsight: string | null;
@@ -37,6 +42,7 @@ type ScannedItemResponse = {
   savedToWardrobe: boolean;
   visualAttributes: VisualAttributes | null;
   verdict: Verdict | null;
+  verdictSignals: VerdictSignal[];
   createdAt: string;
 };
 
@@ -136,6 +142,33 @@ function FitStylingNoteLine({
       <span className="font-semibold text-[var(--color-text)]">Fit tip:</span>{" "}
       {note}
     </p>
+  );
+}
+
+function VerdictSignalChecklist({
+  signals,
+}: Readonly<{ signals: VerdictSignal[] }>) {
+  if (signals.length === 0) {
+    return null;
+  }
+
+  return (
+    <ul className="flex flex-wrap gap-2">
+      {signals.map((signal) => (
+        <li
+          className={
+            "rounded-full border border-[var(--color-text-muted)]/15 px-3 py-1 " +
+            "font-sans text-xs font-semibold text-[var(--color-text-muted)]"
+          }
+          key={signal.name}
+        >
+          <span className="text-[var(--color-text)]">
+            {formatVisualAttribute(signal.name)}:
+          </span>{" "}
+          {signal.matches ? "Matches" : "Needs attention"}
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -423,6 +456,7 @@ export default function ItemResultPage() {
                     <p className="text-lg leading-8 text-[var(--color-text-muted)]">
                       {item.rationale}
                     </p>
+                    <VerdictSignalChecklist signals={item.verdictSignals} />
                     <FitStylingNoteLine note={item.fitStylingNote} />
                     {item.closetInsight ? (
                       <p className="text-base leading-7 text-[var(--color-text-muted)]">

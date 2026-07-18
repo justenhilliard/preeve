@@ -31,6 +31,7 @@ class VerdictPreferences:
 class VerdictResult:
     verdict: str
     rationale: str
+    signals: list[VerdictSignal]
 
 
 def format_preferred_colors(preferred_colors: list[str]) -> str:
@@ -156,6 +157,7 @@ def compute_verdict(
         return VerdictResult(
             verdict="maybe",
             rationale="Set your style preferences to get a personalized verdict.",
+            signals=signals,
         )
 
     matched_clauses = [
@@ -173,12 +175,14 @@ def compute_verdict(
         return VerdictResult(
             verdict="skip",
             rationale=f"{join_clauses(failed_clauses)}.",
+            signals=signals,
         )
 
     if not failed_clauses:
         return VerdictResult(
             verdict="buy",
             rationale=f"{join_clauses(matched_clauses)}.",
+            signals=signals,
         )
 
     return VerdictResult(
@@ -187,4 +191,5 @@ def compute_verdict(
             f"{join_clauses(matched_clauses)}, but "
             f"{join_clauses(failed_clauses)}."
         ),
+        signals=signals,
     )

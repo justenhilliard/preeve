@@ -34,6 +34,11 @@ const CATEGORY_OPTIONS = [
 
 type CategoryOption = (typeof CATEGORY_OPTIONS)[number];
 
+type VerdictSignal = {
+  matches: boolean;
+  name: string;
+};
+
 type ScannedItemResponse = {
   closetInsight: string | null;
   correctedCategory: CategoryOption | null;
@@ -44,6 +49,7 @@ type ScannedItemResponse = {
   id: string;
   photoUrl: string;
   visualAttributes: VisualAttributes | null;
+  verdictSignals: VerdictSignal[];
 };
 
 type CorrectionPayload = {
@@ -100,6 +106,33 @@ function FitStylingNoteLine({
       <span className="font-semibold text-[var(--color-text)]">Fit tip:</span>{" "}
       {note}
     </p>
+  );
+}
+
+function VerdictSignalChecklist({
+  signals,
+}: Readonly<{ signals: VerdictSignal[] }>) {
+  if (signals.length === 0) {
+    return null;
+  }
+
+  return (
+    <ul className="flex flex-wrap gap-2">
+      {signals.map((signal) => (
+        <li
+          className={
+            "rounded-full border border-[var(--color-text-muted)]/15 px-3 py-1 " +
+            "font-sans text-xs font-semibold text-[var(--color-text-muted)]"
+          }
+          key={signal.name}
+        >
+          <span className="text-[var(--color-text)]">
+            {formatVisualAttribute(signal.name)}:
+          </span>{" "}
+          {signal.matches ? "Matches" : "Needs attention"}
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -261,6 +294,7 @@ export default function CorrectItemPage() {
               </div>
 
               <div className="space-y-8">
+                <VerdictSignalChecklist signals={item.verdictSignals} />
                 <FitStylingNoteLine note={item.fitStylingNote} />
                 {item.closetInsight ? (
                   <p className="text-base leading-7 text-[var(--color-text-muted)]">

@@ -257,6 +257,11 @@ the current page session.
   "rationale": "navy is in your preferred palette, and outerwear fits your preference.",
   "closetInsight": "You already have 2 other navy outerwear items in your wardrobe.",
   "fitStylingNote": "Keep the rest of the outfit clean and structured to match.",
+  "verdictSignals": [
+    { "name": "color", "matches": true },
+    { "name": "fit", "matches": true },
+    { "name": "formality", "matches": true }
+  ],
   "pairingSuggestions": [
     {
       "id": "1d2e3f4a-5b6c-7d8e-9f0a-1b2c3d4e5f6a",
@@ -292,6 +297,7 @@ match, same category with different color or vice versa, also finds something.
   "rationale": null,
   "closetInsight": null,
   "fitStylingNote": null,
+  "verdictSignals": [],
   "pairingSuggestions": [],
   "savedToWardrobe": false,
   "createdAt": "2026-07-09T19:00:00Z",
@@ -322,6 +328,9 @@ computed live from the user's current saved wardrobe items and is not stored.
 Its priority order is category+color overlap, then new-color gap, then fit
 variety when the current fit differs from at least two saved items with stored
 fits.
+`verdictSignals` is also computed live from current preferences and returned as
+compact `{ "name": string, "matches": boolean }` entries for applicable verdict
+signals only. It is not persisted.
 
 **Error — 502** (CLIP upstream unavailable — distinct from a low-confidence
 result, which is handled as `classificationFailed: true` above, not an HTTP
@@ -380,6 +389,10 @@ v1; the user resubmits both category and color even if only one was wrong.
   "rationale": "burgundy isn't in your preferred palette (navy, black, olive).",
   "closetInsight": "This adds burgundy to your wardrobe.",
   "fitStylingNote": "Pair with something fitted to keep the silhouette balanced.",
+  "verdictSignals": [
+    { "name": "color", "matches": false },
+    { "name": "fit", "matches": true }
+  ],
   "pairingSuggestions": [],
   "savedToWardrobe": false
 }
@@ -455,7 +468,8 @@ This list endpoint includes `visualAttributes` because it is already stored on
 each `scanned_items` row and avoids inconsistent card labels across list and
 detail screens. It still intentionally excludes `closetInsight`, which is
 computed live from the user's current wardrobe and would require N+1 work for
-the list.
+the list. It also excludes `fitStylingNote` and `verdictSignals` to keep list
+cards compact.
 
 ---
 
