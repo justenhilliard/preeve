@@ -159,11 +159,20 @@ function VerdictSignalChecklist({
       {signals.map((signal) => (
         <li
           className={
-            "rounded-md border border-[var(--color-text-muted)]/15 px-3 py-1 " +
+            "inline-flex items-center gap-1.5 rounded-md border " +
+            "border-[var(--color-text-muted)]/15 px-3 py-1.5 " +
             "font-sans text-xs font-semibold text-[var(--color-text-muted)]"
           }
           key={signal.name}
         >
+          <span
+            aria-hidden="true"
+            className={`h-1.5 w-1.5 rounded-full ${
+              signal.matches
+                ? "bg-[var(--color-sage)]"
+                : "bg-[var(--color-ochre)]"
+            }`}
+          />
           <span className="text-[var(--color-text)]">
             {formatVisualAttribute(signal.name)}:
           </span>{" "}
@@ -445,26 +454,43 @@ export default function ItemResultPage() {
                       />
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      <span className={SECTION_LABEL_CLASS}>Verdict</span>
-                      <span
-                        className={`${VERDICT_BADGE_CLASS} ${
-                          VERDICT_STYLES[item.verdict]
-                        }`}
-                      >
-                        {formatVerdict(item.verdict)}
-                      </span>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <span className={SECTION_LABEL_CLASS}>Verdict</span>
+                        <span
+                          className={`${VERDICT_BADGE_CLASS} ${
+                            VERDICT_STYLES[item.verdict]
+                          }`}
+                        >
+                          {formatVerdict(item.verdict)}
+                        </span>
+                      </div>
+
+                      <p className="text-lg leading-8 text-[var(--color-text)]">
+                        {item.rationale}
+                      </p>
+                      <VerdictSignalChecklist signals={item.verdictSignals} />
                     </div>
 
-                    <p className="text-lg leading-8 text-[var(--color-text-muted)]">
-                      {item.rationale}
-                    </p>
-                    <VerdictSignalChecklist signals={item.verdictSignals} />
-                    <FitStylingNoteLine note={item.fitStylingNote} />
-                    {item.closetInsight ? (
-                      <p className="text-base leading-7 text-[var(--color-text-muted)]">
-                        {item.closetInsight}
-                      </p>
+                    {item.fitStylingNote || item.closetInsight ? (
+                      <div
+                        className={
+                          "space-y-3 border-t " +
+                          "border-[var(--color-text-muted)]/10 pt-6"
+                        }
+                      >
+                        <FitStylingNoteLine note={item.fitStylingNote} />
+                        {item.closetInsight ? (
+                          <p
+                            className={
+                              "text-base leading-7 " +
+                              "text-[var(--color-text-muted)]"
+                            }
+                          >
+                            {item.closetInsight}
+                          </p>
+                        ) : null}
+                      </div>
                     ) : null}
 
                     <button
@@ -475,7 +501,15 @@ export default function ItemResultPage() {
                       This looks wrong
                     </button>
 
-                    <PairingSuggestions suggestions={item.pairingSuggestions} />
+                    <div
+                      className={
+                        "border-t border-[var(--color-text-muted)]/10 pt-6"
+                      }
+                    >
+                      <PairingSuggestions
+                        suggestions={item.pairingSuggestions}
+                      />
+                    </div>
                   </div>
 
                   <div className="flex flex-col gap-3 sm:flex-row">

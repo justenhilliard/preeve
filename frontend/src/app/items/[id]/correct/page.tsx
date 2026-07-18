@@ -122,11 +122,20 @@ function VerdictSignalChecklist({
       {signals.map((signal) => (
         <li
           className={
-            "rounded-md border border-[var(--color-text-muted)]/15 px-3 py-1 " +
+            "inline-flex items-center gap-1.5 rounded-md border " +
+            "border-[var(--color-text-muted)]/15 px-3 py-1.5 " +
             "font-sans text-xs font-semibold text-[var(--color-text-muted)]"
           }
           key={signal.name}
         >
+          <span
+            aria-hidden="true"
+            className={`h-1.5 w-1.5 rounded-full ${
+              signal.matches
+                ? "bg-[var(--color-sage)]"
+                : "bg-[var(--color-ochre)]"
+            }`}
+          />
           <span className="text-[var(--color-text)]">
             {formatVisualAttribute(signal.name)}:
           </span>{" "}
