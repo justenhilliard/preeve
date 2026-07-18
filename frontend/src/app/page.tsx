@@ -10,6 +10,10 @@ import {
   formatItemDisplayLabel,
   type VisualAttributes,
 } from "../lib/itemLabel";
+import {
+  COLOR_SWATCHES,
+  type ColorOption,
+} from "./preferences/preferencesContext";
 import { useAuthenticatedApi } from "./apiClient";
 import { InlineError } from "./inlineError";
 import { ThemeToggle } from "./themeToggle";
@@ -441,8 +445,12 @@ function formatSnapshotColor(color: string) {
   return color.charAt(0).toUpperCase() + color.slice(1).replace(/_/g, " ");
 }
 
+function getSnapshotSwatchFill(color: string): string | undefined {
+  return COLOR_SWATCHES[color as ColorOption];
+}
+
 const SNAPSHOT_VALUE_CLASS =
-  "font-serif text-3xl font-semibold tracking-normal";
+  "font-serif text-3xl font-semibold tracking-normal lining-nums tabular-nums";
 const SNAPSHOT_LABEL_CLASS =
   "font-sans text-xs font-semibold uppercase tracking-[0.14em] " +
   "text-[var(--color-text-muted)]";
@@ -502,10 +510,29 @@ function ClosetSnapshot({ items }: Readonly<{ items: WardrobeItem[] }>) {
           valueClassName="text-[var(--color-text-muted)]"
         />
         {stats.topColor ? (
-          <ClosetSnapshotStat
-            label="Most saved color"
-            value={formatSnapshotColor(stats.topColor)}
-          />
+          <div className="flex flex-col gap-1">
+            <span
+              className={
+                `${SNAPSHOT_VALUE_CLASS} flex items-center gap-2.5 ` +
+                "text-[var(--color-text)]"
+              }
+            >
+              {getSnapshotSwatchFill(stats.topColor) ? (
+                <span
+                  aria-hidden="true"
+                  className={
+                    "h-4 w-4 rounded-full border " +
+                    "border-[var(--color-text-muted)]/25"
+                  }
+                  style={{
+                    background: getSnapshotSwatchFill(stats.topColor),
+                  }}
+                />
+              ) : null}
+              {formatSnapshotColor(stats.topColor)}
+            </span>
+            <span className={SNAPSHOT_LABEL_CLASS}>Most saved color</span>
+          </div>
         ) : null}
       </div>
     </section>
