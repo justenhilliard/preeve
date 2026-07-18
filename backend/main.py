@@ -37,7 +37,11 @@ from models import (
     User,
 )
 from object_storage import delete_item_photo, generate_photo_url, upload_item_photo
-from pairing_lookup import find_pairing_suggestions
+from pairing_lookup import MAX_PAIRING_SUGGESTIONS, find_pairing_suggestions
+from wardrobe_pairing import (
+    find_wardrobe_pairing_suggestions,
+    format_wardrobe_pairing_suggestion,
+)
 from verdict_engine import VerdictPreferences, compute_verdict
 
 load_dotenv()
@@ -595,6 +599,41 @@ async def get_formatted_pairing_suggestions(
     return await format_pairing_suggestions(pairing_suggestions)
 
 
+async def get_formatted_item_pairing_suggestions(
+    session: AsyncSession,
+    current_user: User,
+    item_id: uuid.UUID,
+    category: str,
+    color: str,
+) -> list[dict[str, str | None]]:
+    """Look up wardrobe-sourced pairings before seed-dataset suggestions."""
+    wardrobe_items = await find_wardrobe_pairing_suggestions(
+        session,
+        current_user,
+        category,
+        item_id,
+    )
+    wardrobe_suggestions = []
+    for scanned_item in wardrobe_items:
+        image_url = await asyncio.to_thread(generate_photo_url, scanned_item.photo_key)
+        wardrobe_suggestions.append(
+            format_wardrobe_pairing_suggestion(scanned_item, image_url),
+        )
+    remaining_count = MAX_PAIRING_SUGGESTIONS - len(wardrobe_suggestions)
+    if remaining_count <= 0:
+        return wardrobe_suggestions[:MAX_PAIRING_SUGGESTIONS]
+
+    seed_suggestions = await get_formatted_pairing_suggestions(
+        session,
+        category,
+        color,
+    )
+    return [
+        *wardrobe_suggestions,
+        *seed_suggestions[:remaining_count],
+    ]
+
+
 async def get_closet_insight_for_item(
     session: AsyncSession,
     current_user: User,
@@ -700,11 +739,15 @@ async def get_item(
     # it's looked up fresh on every fetch using the item's *effective*
     # category/color (a manual correction wins over the original CLIP
     # detection), not persisted at scan/correct time.
-    effective_category = scanned_item.corrected_category or scanned_item.detected_category
+    effective_category = (
+        scanned_item.corrected_category or scanned_item.detected_category
+    )
     effective_color = scanned_item.corrected_color or scanned_item.detected_color
     pairing_suggestions = (
-        await get_formatted_pairing_suggestions(
+        await get_formatted_item_pairing_suggestions(
             session,
+            current_user,
+            scanned_item.id,
             effective_category,
             effective_color,
         )
@@ -745,8 +788,10 @@ async def patch_item_correction(
     await session.refresh(scanned_item)
 
     photo_url = await asyncio.to_thread(generate_photo_url, scanned_item.photo_key)
-    pairing_suggestions = await get_formatted_pairing_suggestions(
+    pairing_suggestions = await get_formatted_item_pairing_suggestions(
         session,
+        current_user,
+        scanned_item.id,
         correction_request.corrected_category,
         correction_request.corrected_color,
     )
@@ -909,8 +954,10 @@ async def post_item_scan(
             classification.detected_category,
             classification.detected_color,
         )
-        pairing_suggestions = await get_formatted_pairing_suggestions(
+        pairing_suggestions = await get_formatted_item_pairing_suggestions(
             session,
+            current_user,
+            scanned_item.id,
             classification.detected_category,
             classification.detected_color,
         )

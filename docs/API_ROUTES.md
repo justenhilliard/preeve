@@ -279,9 +279,10 @@ the current page session.
 }
 ```
 
-Array has 1 or 2 entries per FR-5.1. An exact category+color match is always
-attempted first; a second, distinct entry appears only if the broader fallback
-match, same category with different color or vice versa, also finds something.
+Array has 1 or 2 entries per FR-5.1. When the user has saved wardrobe items
+with complementary categories, those wardrobe entries are returned before
+seed-dataset entries in the same shape. For seed-dataset entries, an exact
+category+color match is attempted before the broader fallback match.
 
 **Success — 201 (classification failed, manual fallback required — FR-3.4)**
 ```json

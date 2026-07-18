@@ -158,6 +158,9 @@ formality detection. Formality only meaningfully fails for `top`/`bottom` with a
 
 - **FR-5.1** — System looks up 1–2 pairing suggestions from a hand-curated seed dataset (36 entries, one per category/color combination — see `docs/DATABASE.md` Seed Data). Lookup logic: (1) an exact category+color match against the scanned item's effective attributes is always attempted first; (2) if a second, distinct suggestion is wanted, a broader fallback match (same category with a different color, or same color with a different category) is attempted second. This lets the 1–2 range work without requiring more than one seed row per exact combination.
 - **FR-5.2** — If no tagged match exists in the seed dataset, the UI shows a graceful "no pairing found yet" message rather than an error or blank state.
+- **FR-5.3** — Saved wardrobe items with complementary categories are tried
+  before the seed dataset. If fewer than two wardrobe-sourced suggestions are
+  found, the seed-dataset lookup fills the remaining slots.
 
 **Acceptance criteria:** Every category/color combination present in the seed dataset returns at least one suggestion. Unmatched combinations degrade gracefully with no broken UI.
 
