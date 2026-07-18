@@ -479,11 +479,10 @@ function RecentActivityItem({ item }: Readonly<{ item: WardrobeItem }>) {
     <Link
       aria-label={`Open ${itemLabel}`}
       className={
-        "group flex h-full w-[75vw] max-w-xs flex-shrink-0 snap-start flex-col " +
-        "overflow-hidden rounded-2xl border border-[var(--color-text-muted)]/15 " +
-        "bg-[var(--color-bg)] transition duration-[200ms] ease-[var(--ease-out)] " +
-        "hover:shadow-[0_18px_48px_rgba(62,46,41,0.14)] sm:w-auto sm:max-w-none " +
-        "sm:flex-shrink sm:snap-align-none"
+        "group flex h-full w-72 flex-shrink-0 snap-start flex-col overflow-hidden " +
+        "rounded-2xl border border-[var(--color-text-muted)]/15 bg-[var(--color-bg)] " +
+        "transition duration-[200ms] ease-[var(--ease-out)] " +
+        "hover:shadow-[0_18px_48px_rgba(62,46,41,0.14)] sm:w-80"
       }
       href={`/items/${item.id}`}
     >
@@ -495,7 +494,7 @@ function RecentActivityItem({ item }: Readonly<{ item: WardrobeItem }>) {
             "ease-[var(--ease-out)] group-hover:scale-[1.03]"
           }
           fill
-          sizes="(min-width: 1024px) 320px, (min-width: 640px) 45vw, 75vw"
+          sizes="(min-width: 640px) 320px, 288px"
           src={item.photoUrl}
           unoptimized
         />
@@ -567,8 +566,7 @@ function RecentActivityRow({ items }: Readonly<{ items: WardrobeItem[] }>) {
 
         <div
           className={
-            "flex snap-x snap-mandatory items-stretch gap-5 overflow-x-auto pb-2 " +
-            "sm:grid sm:grid-cols-2 sm:overflow-visible sm:snap-none sm:pb-0 lg:grid-cols-3"
+            "flex snap-x snap-mandatory items-stretch gap-5 overflow-x-auto pb-2"
           }
         >
           {items.map((item) => (
