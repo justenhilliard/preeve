@@ -321,6 +321,20 @@ category+color match is attempted before the broader fallback match.
 }
 ```
 
+**Error — 429** (scan rate limit exceeded)
+```json
+{
+  "error": {
+    "code": "rate_limited",
+    "message": "You're scanning too quickly. Wait a moment and try again."
+  }
+}
+```
+
+The default scan limit is 10 scans per rolling 60 seconds per authenticated
+user. Override it with `SCAN_RATE_LIMIT_MAX` and
+`SCAN_RATE_LIMIT_WINDOW_SECONDS`.
+
 `visualAttributes` is best-effort structured perception metadata and may be `null`
 without affecting the CLIP-driven verdict flow. It is never used for verdict
 category/color correction. Its `fit` value, when present, participates in the
@@ -434,11 +448,12 @@ Wardrobe log list (FR-6.2) — returns only items where `savedToWardrobe` is tru
 
 | Param | Values | Behavior |
 |---|---|---|
-| `verdict` | `buy`, `maybe`, `skip` | Filters to items whose live-computed verdict currently matches. Omit for all verdicts. |
+| `verdict` | `buy`, `maybe`, `skip` | Filters to items whose live-computed verdict matches. |
 | `favorited` | `true` | Filters to favorited items. Omit for the unfiltered view. |
 
-Both can be combined, e.g. `GET /api/items?verdict=buy&favorited=true`, for
-favorited items that are also a Buy.
+Omit `verdict` for all verdicts. Both can be combined, e.g.
+`GET /api/items?verdict=buy&favorited=true`, for favorited items that are also
+a Buy.
 
 **Success — 200**
 ```json

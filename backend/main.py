@@ -39,6 +39,7 @@ from models import (
 )
 from object_storage import delete_item_photo, generate_photo_url, upload_item_photo
 from pairing_lookup import MAX_PAIRING_SUGGESTIONS, find_pairing_suggestions
+from rate_limit import check_scan_rate_limit
 from wardrobe_pairing import (
     find_wardrobe_pairing_suggestions,
     format_wardrobe_pairing_suggestion,
@@ -950,6 +951,8 @@ async def post_item_scan(
     session: AsyncSession = Depends(get_async_session),
 ) -> dict[str, Any]:
     """Compress, store, classify, and persist an uploaded item photo."""
+    await check_scan_rate_limit(current_user.id)
+
     if photo is None:
         raise ApiError(
             status_code=400,
