@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+from collections import Counter
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,11 +22,28 @@ def format_item_count(count: int) -> str:
     return "item" if count == 1 else "items"
 
 
+def get_visual_attribute_fit(scanned_item: ScannedItem) -> str | None:
+    """Read a saved item's detected fit from optional visual attributes."""
+    visual_attributes = scanned_item.visual_attributes or {}
+    fit = visual_attributes.get("fit")
+    return fit if isinstance(fit, str) else None
+
+
+def resolve_most_common_fit(fits: list[str]) -> str:
+    """Return the most frequent fit, breaking ties alphabetically."""
+    fit_counts = Counter(fits)
+    return min(
+        fit_counts,
+        key=lambda fit: (-fit_counts[fit], fit),
+    )
+
+
 async def compute_closet_insight(
     session: AsyncSession,
     current_user: User,
     category: str,
     color: str,
+    fit: str | None = None,
     exclude_item_id: uuid.UUID | None = None,
 ) -> str | None:
     """Compute a deterministic wardrobe-context insight for one item."""
@@ -62,6 +80,22 @@ async def compute_closet_insight(
         return (
             f"This adds {color} to your wardrobe - you haven't saved anything "
             "in that color yet."
+        )
+
+    comparable_fits = [
+        item_fit
+        for scanned_item in comparable_items
+        if (item_fit := get_visual_attribute_fit(scanned_item)) is not None
+    ]
+    if (
+        fit is not None
+        and len(comparable_fits) >= 2
+        and fit not in comparable_fits
+    ):
+        most_common_fit = resolve_most_common_fit(comparable_fits)
+        return (
+            f"This {fit} fit adds variety - your saved pieces lean toward "
+            f"{most_common_fit}."
         )
 
     return None

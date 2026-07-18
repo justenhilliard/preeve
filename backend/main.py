@@ -574,6 +574,7 @@ async def get_closet_insight_for_item(
         current_user,
         effective_category,
         effective_color,
+        fit=get_visual_attribute_fit(scanned_item),
         exclude_item_id=scanned_item.id,
     )
 

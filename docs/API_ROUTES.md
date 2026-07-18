@@ -319,6 +319,9 @@ without affecting the CLIP-driven verdict flow. It is never used for verdict
 category/color correction. Its `fit` value, when present, participates in the
 fit-aware verdict matrix and powers `fitStylingNote`. `closetInsight` is
 computed live from the user's current saved wardrobe items and is not stored.
+Its priority order is category+color overlap, then new-color gap, then fit
+variety when the current fit differs from at least two saved items with stored
+fits.
 
 **Error — 502** (CLIP upstream unavailable — distinct from a low-confidence
 result, which is handled as `classificationFailed: true` above, not an HTTP
