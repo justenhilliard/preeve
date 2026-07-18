@@ -25,6 +25,7 @@ from clip_classifier import (
 )
 from closet_insight import compute_closet_insight
 from database import get_async_session
+from fit_styling import compute_fit_styling_note
 from image_processing import compress_image, validate_upload_metadata
 from item_description import extract_visual_attributes
 from models import (
@@ -481,6 +482,9 @@ def format_scanned_item(
         "verdict": scanned_item.verdict,
         "rationale": scanned_item.rationale,
         "closetInsight": closet_insight,
+        "fitStylingNote": compute_fit_styling_note(
+            get_visual_attribute_fit(scanned_item),
+        ),
         "pairingSuggestions": pairing_suggestions or [],
         "savedToWardrobe": scanned_item.saved_to_wardrobe,
         "isFavorited": scanned_item.is_favorited,
@@ -491,6 +495,13 @@ def format_scanned_item(
         response["classificationFailed"] = True
 
     return response
+
+
+def get_visual_attribute_fit(scanned_item: ScannedItem) -> str | None:
+    """Read the detected fit from optional visual-attributes JSON."""
+    visual_attributes = scanned_item.visual_attributes or {}
+    fit = visual_attributes.get("fit")
+    return fit if isinstance(fit, str) else None
 
 
 async def format_wardrobe_item(scanned_item: ScannedItem) -> dict[str, Any]:
@@ -519,16 +530,10 @@ async def apply_verdict_to_item(
 ) -> None:
     """Compute and attach the current user's verdict for one item."""
     preference = await get_user_preferences(session, current_user)
-    visual_attributes = scanned_item.visual_attributes or {}
-    fit = (
-        visual_attributes.get("fit")
-        if isinstance(visual_attributes.get("fit"), str)
-        else None
-    )
     verdict_result = compute_verdict(
         category=category,
         color=color,
-        fit=fit,
+        fit=get_visual_attribute_fit(scanned_item),
         preferences=VerdictPreferences(
             preferred_colors=preference.preferred_colors if preference else [],
             preferred_fits=preference.preferred_fits if preference else [],

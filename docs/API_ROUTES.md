@@ -256,6 +256,7 @@ the current page session.
   "verdict": "buy",
   "rationale": "navy is in your preferred palette, and outerwear fits your preference.",
   "closetInsight": "You already have 2 other navy outerwear items in your wardrobe.",
+  "fitStylingNote": "Keep the rest of the outfit clean and structured to match.",
   "pairingSuggestions": [
     {
       "id": "1d2e3f4a-5b6c-7d8e-9f0a-1b2c3d4e5f6a",
@@ -290,6 +291,7 @@ match, same category with different color or vice versa, also finds something.
   "verdict": null,
   "rationale": null,
   "closetInsight": null,
+  "fitStylingNote": null,
   "pairingSuggestions": [],
   "savedToWardrobe": false,
   "createdAt": "2026-07-09T19:00:00Z",
@@ -315,8 +317,8 @@ match, same category with different color or vice versa, also finds something.
 `visualAttributes` is best-effort structured perception metadata and may be `null`
 without affecting the CLIP-driven verdict flow. It is never used for verdict
 category/color correction. Its `fit` value, when present, participates in the
-fit-aware verdict matrix. `closetInsight` is computed live from the user's
-current saved wardrobe items and is not stored.
+fit-aware verdict matrix and powers `fitStylingNote`. `closetInsight` is
+computed live from the user's current saved wardrobe items and is not stored.
 
 **Error — 502** (CLIP upstream unavailable — distinct from a low-confidence
 result, which is handled as `classificationFailed: true` above, not an HTTP
@@ -374,6 +376,7 @@ v1; the user resubmits both category and color even if only one was wrong.
   "verdict": "skip",
   "rationale": "burgundy isn't in your preferred palette (navy, black, olive).",
   "closetInsight": "This adds burgundy to your wardrobe.",
+  "fitStylingNote": "Pair with something fitted to keep the silhouette balanced.",
   "pairingSuggestions": [],
   "savedToWardrobe": false
 }

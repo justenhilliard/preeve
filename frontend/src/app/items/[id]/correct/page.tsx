@@ -40,6 +40,7 @@ type ScannedItemResponse = {
   correctedColor: ColorOption | null;
   detectedCategory: CategoryOption | null;
   detectedColor: ColorOption | null;
+  fitStylingNote: string | null;
   id: string;
   photoUrl: string;
   visualAttributes: VisualAttributes | null;
@@ -83,6 +84,21 @@ function PatternDetailLine({
     <p className="font-sans text-sm font-medium text-[var(--color-text-muted)]">
       <span className="font-semibold text-[var(--color-text)]">Pattern:</span>{" "}
       {formatVisualAttribute(pattern)}
+    </p>
+  );
+}
+
+function FitStylingNoteLine({
+  note,
+}: Readonly<{ note: string | null }>) {
+  if (!note) {
+    return null;
+  }
+
+  return (
+    <p className="text-base leading-7 text-[var(--color-text-muted)]">
+      <span className="font-semibold text-[var(--color-text)]">Fit tip:</span>{" "}
+      {note}
     </p>
   );
 }
@@ -245,6 +261,7 @@ export default function CorrectItemPage() {
               </div>
 
               <div className="space-y-8">
+                <FitStylingNoteLine note={item.fitStylingNote} />
                 {item.closetInsight ? (
                   <p className="text-base leading-7 text-[var(--color-text-muted)]">
                     {item.closetInsight}

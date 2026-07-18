@@ -28,6 +28,7 @@ type ScannedItemResponse = {
   correctedColor: string | null;
   detectedCategory: string | null;
   detectedColor: string | null;
+  fitStylingNote: string | null;
   id: string;
   isFavorited: boolean;
   pairingSuggestions: PairingSuggestion[];
@@ -119,6 +120,21 @@ function PatternDetailLine({
     <p className="font-sans text-sm font-medium text-[var(--color-text-muted)]">
       <span className="font-semibold text-[var(--color-text)]">Pattern:</span>{" "}
       {formatVisualAttribute(pattern)}
+    </p>
+  );
+}
+
+function FitStylingNoteLine({
+  note,
+}: Readonly<{ note: string | null }>) {
+  if (!note) {
+    return null;
+  }
+
+  return (
+    <p className="text-base leading-7 text-[var(--color-text-muted)]">
+      <span className="font-semibold text-[var(--color-text)]">Fit tip:</span>{" "}
+      {note}
     </p>
   );
 }
@@ -407,6 +423,7 @@ export default function ItemResultPage() {
                     <p className="text-lg leading-8 text-[var(--color-text-muted)]">
                       {item.rationale}
                     </p>
+                    <FitStylingNoteLine note={item.fitStylingNote} />
                     {item.closetInsight ? (
                       <p className="text-base leading-7 text-[var(--color-text-muted)]">
                         {item.closetInsight}
