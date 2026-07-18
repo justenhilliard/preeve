@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   formatItemDisplayLabel,
+  formatVisualAttribute,
   type VisualAttributes,
 } from "../../../lib/itemLabel";
 import { ApiRequestError, useAuthenticatedApi } from "../../apiClient";
@@ -105,6 +106,21 @@ function formatScanDate(createdAt: string) {
 
 function formatScannedItemAlt(item: ScannedItemResponse) {
   return formatItemDisplayLabel(item);
+}
+
+function PatternDetailLine({
+  pattern,
+}: Readonly<{ pattern: string | null | undefined }>) {
+  if (!pattern) {
+    return null;
+  }
+
+  return (
+    <p className="font-sans text-sm font-medium text-[var(--color-text-muted)]">
+      <span className="font-semibold text-[var(--color-text)]">Pattern:</span>{" "}
+      {formatVisualAttribute(pattern)}
+    </p>
+  );
 }
 
 function formatPairingSuggestionAlt(suggestion: PairingSuggestion) {
@@ -372,6 +388,9 @@ export default function ItemResultPage() {
                       <p className="font-sans text-sm font-medium text-[var(--color-text-muted)]">
                         Scanned {formatScanDate(item.createdAt)}
                       </p>
+                      <PatternDetailLine
+                        pattern={item.visualAttributes?.pattern}
+                      />
                     </div>
 
                     <div className="flex items-center gap-3">

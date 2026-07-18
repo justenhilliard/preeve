@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   formatItemDisplayLabel,
+  formatVisualAttribute,
   type VisualAttributes,
 } from "../../../../lib/itemLabel";
 import { ApiRequestError, useAuthenticatedApi } from "../../../apiClient";
@@ -69,6 +70,21 @@ function getEffectiveAttribute<Value>(
 
 function formatScannedItemAlt(item: ScannedItemResponse) {
   return formatItemDisplayLabel(item);
+}
+
+function PatternDetailLine({
+  pattern,
+}: Readonly<{ pattern: string | null | undefined }>) {
+  if (!pattern) {
+    return null;
+  }
+
+  return (
+    <p className="font-sans text-sm font-medium text-[var(--color-text-muted)]">
+      <span className="font-semibold text-[var(--color-text)]">Pattern:</span>{" "}
+      {formatVisualAttribute(pattern)}
+    </p>
+  );
 }
 
 export default function CorrectItemPage() {
@@ -215,14 +231,17 @@ export default function CorrectItemPage() {
                     unoptimized
                   />
                 </div>
-                <p
-                  className={
-                    "px-4 py-4 text-center font-sans text-sm font-semibold " +
-                    "text-[var(--color-text-muted)]"
-                  }
-                >
-                  {formatItemDisplayLabel(item)}
-                </p>
+                <div className="space-y-2 px-4 py-4 text-center">
+                  <p
+                    className={
+                      "font-sans text-sm font-semibold " +
+                      "text-[var(--color-text-muted)]"
+                    }
+                  >
+                    {formatItemDisplayLabel(item)}
+                  </p>
+                  <PatternDetailLine pattern={item.visualAttributes?.pattern} />
+                </div>
               </div>
 
               <div className="space-y-8">
