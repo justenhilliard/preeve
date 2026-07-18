@@ -70,8 +70,9 @@ const DISCARD_BUTTON_CLASS =
   "rounded-md border border-[var(--color-text-muted)]/20 px-6 py-3 font-sans text-sm " +
   "font-semibold text-[var(--color-text)] transition hover:bg-[var(--color-surface)]/45";
 const DELETE_BUTTON_CLASS =
-  "rounded-md border border-[var(--color-accent)]/45 px-6 py-3 font-sans text-sm " +
-  "font-semibold text-[var(--color-text)] transition hover:bg-[var(--color-accent)]/10";
+  "rounded-md bg-[var(--color-accent-dark)] px-6 py-3 font-sans text-sm " +
+  "font-semibold text-[var(--color-on-dark)] transition " +
+  "hover:bg-[var(--color-accent-dark-hover)] disabled:opacity-60";
 const OVERRIDE_BUTTON_CLASS =
   "w-fit rounded-full border border-[var(--color-text-muted)]/20 px-4 py-2 font-sans " +
   "text-sm font-semibold text-[var(--color-text)] transition hover:bg-[var(--color-bg)]/70";
@@ -395,7 +396,7 @@ export default function ItemResultPage() {
             </div>
           ) : item && item.verdict && item.rationale ? (
             <div className="grid gap-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
-              <div className={PREVIEW_FRAME_CLASS}>
+              <div className={`${PREVIEW_FRAME_CLASS} lg:sticky lg:top-8 lg:self-start`}>
                 <div className="relative aspect-[3/4] w-full">
                   <Image
                     alt={formatScannedItemAlt(item)}
