@@ -159,24 +159,24 @@ function VerdictSignalChecklist({
       {signals.map((signal) => (
         <li
           className={
-            "inline-flex items-center gap-1.5 rounded-md border " +
+            "inline-flex items-center gap-1 rounded-md border " +
             "border-[var(--color-text-muted)]/15 px-3 py-1.5 " +
             "font-sans text-xs font-semibold text-[var(--color-text-muted)]"
           }
           key={signal.name}
         >
-          <span
-            aria-hidden="true"
-            className={`h-1.5 w-1.5 rounded-full ${
-              signal.matches
-                ? "bg-[var(--color-sage)]"
-                : "bg-[var(--color-ochre)]"
-            }`}
-          />
           <span className="text-[var(--color-text)]">
             {formatVisualAttribute(signal.name)}:
           </span>{" "}
-          {signal.matches ? "Matches" : "Needs attention"}
+          <span
+            className={
+              signal.matches
+                ? "text-[var(--color-sage)]"
+                : "text-[var(--color-ochre)]"
+            }
+          >
+            {signal.matches ? "Matches" : "Needs attention"}
+          </span>
         </li>
       ))}
     </ul>

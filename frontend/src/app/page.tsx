@@ -345,7 +345,12 @@ function ScanItemCta() {
       <CameraIcon />
       <span className="flex flex-col items-start">
         <span className="font-sans text-base font-semibold">Scan item</span>
-        <span className="font-sans text-xs font-medium text-[var(--color-on-dark)]">
+        <span
+          className={
+            "font-sans text-xs font-medium " +
+            "text-[var(--color-on-dark-muted)]"
+          }
+        >
           Photo to verdict in seconds
         </span>
       </span>
@@ -510,7 +515,7 @@ function RecentActivityItem({ item }: Readonly<{ item: WardrobeItem }>) {
         ) : null}
       </div>
 
-      <div className="flex flex-1 flex-col space-y-3 p-4">
+      <div className="flex flex-1 flex-col space-y-3 p-5">
         <div className="space-y-0.5">
           <p className="line-clamp-2 font-sans text-base font-semibold text-[var(--color-text)]">
             {itemLabel}
