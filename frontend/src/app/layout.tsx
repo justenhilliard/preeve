@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { SerwistProvider } from "@serwist/turbopack/react";
 import { Cormorant_Garamond, Inter, Lato } from "next/font/google";
 import { ClerkAppProvider } from "./clerkAppProvider";
 import "./globals.css";
@@ -29,10 +30,15 @@ export const metadata: Metadata = {
   description:
     "Snap a photo of anything you're about to buy and get an instant " +
     "Buy, Maybe, or Skip verdict based on your wardrobe and style.",
+  appleWebApp: {
+    capable: true,
+    title: "Preeve",
+  },
 };
 
 export const viewport: Viewport = {
   initialScale: 1,
+  themeColor: "#9d583f",
   viewportFit: "cover",
   width: "device-width",
 };
@@ -71,7 +77,9 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
-        <ClerkAppProvider>{children}</ClerkAppProvider>
+        <SerwistProvider swUrl="/serwist/sw.js">
+          <ClerkAppProvider>{children}</ClerkAppProvider>
+        </SerwistProvider>
       </body>
     </html>
   );
