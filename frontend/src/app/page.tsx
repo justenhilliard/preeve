@@ -479,9 +479,9 @@ function RecentActivityItem({ item }: Readonly<{ item: WardrobeItem }>) {
     <Link
       aria-label={`Open ${itemLabel}`}
       className={
-        "group block w-[75vw] max-w-xs flex-shrink-0 snap-start overflow-hidden " +
-        "rounded-2xl border border-[var(--color-text-muted)]/15 bg-[var(--color-bg)] " +
-        "transition duration-[200ms] ease-[var(--ease-out)] " +
+        "group flex h-full w-[75vw] max-w-xs flex-shrink-0 snap-start flex-col " +
+        "overflow-hidden rounded-2xl border border-[var(--color-text-muted)]/15 " +
+        "bg-[var(--color-bg)] transition duration-[200ms] ease-[var(--ease-out)] " +
         "hover:shadow-[0_18px_48px_rgba(62,46,41,0.14)] sm:w-auto sm:max-w-none " +
         "sm:flex-shrink sm:snap-align-none"
       }
@@ -511,9 +511,9 @@ function RecentActivityItem({ item }: Readonly<{ item: WardrobeItem }>) {
         ) : null}
       </div>
 
-      <div className="space-y-3 p-4">
+      <div className="flex flex-1 flex-col space-y-3 p-4">
         <div className="space-y-0.5">
-          <p className="font-sans text-base font-semibold text-[var(--color-text)]">
+          <p className="line-clamp-2 font-sans text-base font-semibold text-[var(--color-text)]">
             {itemLabel}
           </p>
           <p className="font-sans text-xs text-[var(--color-text-muted)]">
@@ -524,7 +524,7 @@ function RecentActivityItem({ item }: Readonly<{ item: WardrobeItem }>) {
         {item.rationale ? (
           <p
             className={
-              "border-l-2 py-1 pl-3 text-sm leading-6 " +
+              "line-clamp-3 border-l-2 py-1 pl-3 text-sm leading-6 " +
               `text-[var(--color-text-muted)] ${
                 item.verdict
                   ? VERDICT_BORDER_STYLES[item.verdict]
@@ -567,8 +567,8 @@ function RecentActivityRow({ items }: Readonly<{ items: WardrobeItem[] }>) {
 
         <div
           className={
-            "flex snap-x snap-mandatory gap-5 overflow-x-auto pb-2 sm:grid " +
-            "sm:grid-cols-2 sm:overflow-visible sm:snap-none sm:pb-0 lg:grid-cols-3"
+            "flex snap-x snap-mandatory items-stretch gap-5 overflow-x-auto pb-2 " +
+            "sm:grid sm:grid-cols-2 sm:overflow-visible sm:snap-none sm:pb-0 lg:grid-cols-3"
           }
         >
           {items.map((item) => (
