@@ -411,6 +411,7 @@ export default function ItemResultPage() {
                     alt={formatScannedItemAlt(item)}
                     className="object-cover"
                     fill
+                    priority
                     sizes="(min-width: 1024px) 460px, 100vw"
                     src={item.photoUrl}
                     unoptimized
