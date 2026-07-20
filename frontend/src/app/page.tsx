@@ -160,8 +160,6 @@ const FOOTER_LAYOUT_CLASS =
 const LOADING_HOME_CLASS =
   "mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-5xl items-center " +
   "justify-center";
-const BADGE_CLASS =
-  "rounded-md px-4 py-2 font-sans text-sm font-semibold";
 const VERDICT_BADGE_CLASS =
   "inline-flex rounded-md px-3 py-1 font-sans text-xs font-semibold";
 const VERDICT_STYLES: Record<Verdict, string> = {
@@ -925,6 +923,40 @@ function FaqItem({ item }: Readonly<{ item: (typeof FAQ_ITEMS)[number] }>) {
   );
 }
 
+const VIEWFINDER_CORNER_CLASS =
+  "pointer-events-none absolute h-6 w-6 border-[var(--color-on-dark)]/80";
+const VIEWFINDER_CORNERS = [
+  "left-3 top-3 rounded-tl-lg border-l-2 border-t-2",
+  "right-3 top-3 rounded-tr-lg border-r-2 border-t-2",
+  "bottom-3 left-3 rounded-bl-lg border-b-2 border-l-2",
+  "bottom-3 right-3 rounded-br-lg border-b-2 border-r-2",
+];
+const GARMENT_SWEATER_CLASS =
+  "bg-[linear-gradient(135deg,var(--color-surface),color-mix(in_srgb," +
+  "var(--color-accent-dark)_28%,var(--color-surface)))]";
+const GARMENT_TROUSER_CLASS =
+  "bg-[linear-gradient(135deg,color-mix(in_srgb,var(--color-ochre)_45%," +
+  "var(--color-surface)),var(--color-surface))]";
+
+function MockGarment({ variant }: Readonly<{ variant: "sweater" | "trouser" }>) {
+  return (
+    <div
+      aria-hidden="true"
+      className={
+        "relative h-full w-full " +
+        (variant === "sweater" ? GARMENT_SWEATER_CLASS : GARMENT_TROUSER_CLASS)
+      }
+    >
+      <div
+        className={
+          "absolute left-1/2 top-3 h-2.5 w-10 -translate-x-1/2 rounded-b-full " +
+          "bg-[var(--color-bg)]/40"
+        }
+      />
+    </div>
+  );
+}
+
 function ScanScreen() {
   return (
     <>
@@ -934,14 +966,27 @@ function ScanScreen() {
           "border-[var(--color-text-muted)]/15 bg-[var(--color-surface)]/60"
         }
       >
-        <div
-          className={
-            "absolute inset-x-6 top-1/2 h-0.5 -translate-y-1/2 bg-[var(--color-accent)]"
-          }
-        />
+        <MockGarment variant="sweater" />
+        {VIEWFINDER_CORNERS.map((corner) => (
+          <span
+            className={`${VIEWFINDER_CORNER_CLASS} ${corner}`}
+            key={corner}
+          />
+        ))}
       </div>
-      <p className="text-center font-sans text-sm font-semibold text-[var(--color-text-muted)]">
-        Scanning your item...
+      <div className="flex justify-center">
+        <span
+          aria-hidden="true"
+          className={
+            "flex h-12 w-12 items-center justify-center rounded-full " +
+            "border-[3px] border-[var(--color-accent-dark)]/25 p-1"
+          }
+        >
+          <span className="h-full w-full rounded-full bg-[var(--color-accent)]" />
+        </span>
+      </div>
+      <p className="text-center font-sans text-xs font-semibold text-[var(--color-text-muted)]">
+        Snap the piece you&apos;re deciding on
       </p>
     </>
   );
@@ -950,52 +995,90 @@ function ScanScreen() {
 function VerdictScreen() {
   return (
     <>
-      <div className="flex justify-center gap-2">
+      <div className="space-y-1">
+        <p className="font-serif text-xl font-semibold text-[var(--color-text)]">
+          Your Analysis
+        </p>
+        <p className="font-sans text-xs font-semibold text-[var(--color-text-muted)]">
+          Navy Wool Sweater
+        </p>
+      </div>
+
+      <div className="flex items-center gap-2">
         <span
-          className={`${BADGE_CLASS} bg-[var(--color-sage-badge)] text-[var(--color-on-dark)]`}
+          className={
+            "font-sans text-[0.6rem] font-semibold uppercase " +
+            "tracking-[0.14em] text-[var(--color-text-muted)]"
+          }
+        >
+          Verdict
+        </span>
+        <span
+          className={
+            "inline-flex rounded-md px-3 py-1 font-sans text-xs font-semibold " +
+            "bg-[var(--color-sage-badge)] text-[var(--color-on-dark)]"
+          }
         >
           Buy
         </span>
+      </div>
+
+      <p className="text-sm leading-6 text-[var(--color-text)]">
+        Navy is in your preferred palette, and the tailored fit matches your
+        style.
+      </p>
+
+      <div className="flex flex-wrap gap-1.5">
         <span
           className={
-            `${BADGE_CLASS} bg-[var(--color-ochre)]/55 ` +
-            "text-[var(--color-text)]"
+            "inline-flex items-center gap-1 rounded-md border " +
+            "border-[var(--color-text-muted)]/15 px-2 py-1 font-sans " +
+            "text-[0.65rem] font-semibold text-[var(--color-text-muted)]"
           }
         >
-          Maybe
+          <span className="text-[var(--color-text)]">Color:</span>{" "}
+          <span className="text-[var(--color-sage)]">Matches</span>
         </span>
         <span
           className={
-            `${BADGE_CLASS} bg-[var(--color-accent-dark)]/35 ` +
-            "text-[var(--color-text-muted)]"
+            "inline-flex items-center gap-1 rounded-md border " +
+            "border-[var(--color-text-muted)]/15 px-2 py-1 font-sans " +
+            "text-[0.65rem] font-semibold text-[var(--color-text-muted)]"
           }
         >
-          Skip
+          <span className="text-[var(--color-text)]">Fit:</span>{" "}
+          <span className="text-[var(--color-sage)]">Matches</span>
         </span>
       </div>
-      <p className="text-center font-serif text-3xl font-semibold text-[var(--color-text)]">
-        Buy
-      </p>
-      <p className="text-center text-sm leading-6 text-[var(--color-text-muted)]">
-        Navy fits the palette you saved.
-      </p>
     </>
   );
 }
 
 function PairingScreen() {
   return (
-    <div
-      className={
-        "rounded-2xl border border-[var(--color-text-muted)]/15 " +
-        "bg-[var(--color-bg)] p-4"
-      }
-    >
-      <div className="mb-3 h-20 rounded-xl bg-[var(--color-surface)]/70" />
-      <p className="text-sm leading-6 text-[var(--color-text-muted)]">
-        Pair it with tan or white pieces for an easy repeat outfit.
+    <>
+      <p
+        className={
+          "font-sans text-[0.6rem] font-semibold uppercase " +
+          "tracking-[0.14em] text-[var(--color-text-muted)]"
+        }
+      >
+        Styling idea
       </p>
-    </div>
+      <div
+        className={
+          "overflow-hidden rounded-2xl border " +
+          "border-[var(--color-text-muted)]/15 bg-[var(--color-bg)]"
+        }
+      >
+        <div className="relative aspect-[16/9] w-full">
+          <MockGarment variant="trouser" />
+        </div>
+        <p className="px-3 py-3 text-xs leading-5 text-[var(--color-text-muted)]">
+          Pairs with the Tan Chinos you saved.
+        </p>
+      </div>
+    </>
   );
 }
 
