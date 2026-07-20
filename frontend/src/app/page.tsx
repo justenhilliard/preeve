@@ -1334,7 +1334,7 @@ function LandingPage() {
             className="object-cover object-center"
             fill
             priority
-            src="/preeve-branding.png"
+            src="/preeve-branding.jpg"
           />
           <div
             className={
