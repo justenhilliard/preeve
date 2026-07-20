@@ -66,7 +66,7 @@ Verdicts are computed in `backend/verdict_engine.py`. It builds a list of indepe
 Clone the repository and move into it.
 
 ```bash
-git clone https://github.com/yourusername/preeve.git
+git clone https://github.com/justenhilliard/preeve.git
 cd preeve
 ```
 
