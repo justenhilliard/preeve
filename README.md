@@ -1,5 +1,9 @@
 # Preeve
 
+**[Live Demo](https://preeve.vercel.app)** · [Source Code](https://github.com/justenhilliard/preeve)
+
+The backend runs on a free tier that sleeps when idle, so the first request after a quiet period can take up to a minute to wake up. Everything after that is quick.
+
 Preeve is a mobile web app that helps you decide whether to buy a clothing item while you are still standing in the store. You take a photo of the piece, and the app classifies what it is, compares it against the style preferences you set up, and returns a Buy, Maybe, or Skip verdict with the reasoning behind it.
 
 The idea came from a pretty ordinary problem: it is hard to tell in the moment whether something actually fits the wardrobe you already own, or whether you just like it because you are standing in a well-lit store. Preeve tries to answer that in a few seconds.
