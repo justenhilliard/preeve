@@ -64,11 +64,20 @@ const ROOT_HTML_CLASS =
   `h-full antialiased ${cormorantGaramond.variable} ` +
   `${inter.variable} ${lato.variable}`;
 
+// The service worker caches static assets with a CacheFirst strategy. In
+// development Next.js serves CSS and JS at stable URLs whose contents change
+// on every rebuild, so the worker keeps serving the previous build's assets
+// until a hard refresh. Registering it only in production avoids that while
+// leaving real PWA behavior intact (test it against `npm run build`).
+const isProduction = process.env.NODE_ENV === "production";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const appTree = <ClerkAppProvider>{children}</ClerkAppProvider>;
+
   return (
     <html
       lang="en"
@@ -77,9 +86,11 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
-        <SerwistProvider swUrl="/serwist/sw.js">
-          <ClerkAppProvider>{children}</ClerkAppProvider>
-        </SerwistProvider>
+        {isProduction ? (
+          <SerwistProvider swUrl="/serwist/sw.js">{appTree}</SerwistProvider>
+        ) : (
+          appTree
+        )}
       </body>
     </html>
   );
